@@ -26,12 +26,15 @@
  * by Keith Owens and Andrea Arcangeli
  */
 
+ /*顺序锁*/
+
 #include <linux/spinlock.h>
 #include <linux/preempt.h>
 
+/*顺序锁定义*/
 typedef struct {
-	unsigned sequence;
-	spinlock_t lock;
+	unsigned sequence;	/*用来协调读取者与写入者的操作*/
+	spinlock_t lock;	/*在多个写入者之间做互斥使用*/
 } seqlock_t;
 
 /*
@@ -44,12 +47,14 @@ typedef struct {
 #define SEQLOCK_UNLOCKED \
 		 __SEQLOCK_UNLOCKED(old_style_seqlock_init)
 
+/*动态初始化顺序锁*/
 #define seqlock_init(x)					\
 	do {						\
 		(x)->sequence = 0;			\
 		spin_lock_init(&(x)->lock);		\
 	} while (0)
 
+/*静态定义一个互斥锁并初始化*/
 #define DEFINE_SEQLOCK(x) \
 		seqlock_t x = __SEQLOCK_UNLOCKED(x)
 
@@ -57,13 +62,16 @@ typedef struct {
  * Acts like a normal spin_lock/unlock.
  * Don't need preempt_disable() because that is in the spin_lock already.
  */
+ /*写入者在seqlock上的上锁操作*/
 static inline void write_seqlock(seqlock_t *sl)
 {
+	/*写入之前先获得seqlock上的自旋锁lock,在写入者之间必须保证互斥操作*/
 	spin_lock(&sl->lock);
 	++sl->sequence;
 	smp_wmb();
 }
 
+ /*写入者在seqlock上的上锁操作*/
 static inline void write_sequnlock(seqlock_t *sl)
 {
 	smp_wmb();
