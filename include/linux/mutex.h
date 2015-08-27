@@ -10,6 +10,8 @@
 #ifndef __LINUX_MUTEX_H
 #define __LINUX_MUTEX_H
 
+/*互斥锁的概念来自semaphore*/
+
 #include <linux/list.h>
 #include <linux/spinlock_types.h>
 #include <linux/linkage.h>
@@ -45,7 +47,7 @@
  * - detects multi-task circular deadlocks and prints out all affected
  *   locks and tasks (and only those tasks)
  */
- /*互斥锁定义*/
+ /*互斥锁定义,对结构体的初始化不能直接通过操作其成员变量的方式*/
 struct mutex {
 	/* 1: unlocked, 0: locked, negative: locked, possible waiters */
 	atomic_t		count;
@@ -79,6 +81,7 @@ struct mutex_waiter {
 # include <linux/mutex-debug.h>
 #else
 # define __DEBUG_MUTEX_INITIALIZER(lockname)
+/*定义并初始化一个互斥锁*/
 # define mutex_init(mutex) \
 do {							\
 	static struct lock_class_key __key;		\
@@ -102,6 +105,7 @@ do {							\
 		__DEBUG_MUTEX_INITIALIZER(lockname) \
 		__DEP_MAP_MUTEX_INITIALIZER(lockname) }
 
+/*定义一个静态的struct mutex变量同时初始化*/
 #define DEFINE_MUTEX(mutexname) \
 	struct mutex mutexname = __MUTEX_INITIALIZER(mutexname)
 
@@ -114,6 +118,7 @@ extern void __mutex_init(struct mutex *lock, const char *name,
  *
  * Returns 1 if the mutex is locked, 0 if unlocked.
  */
+ /*判断互斥锁的状态*/
 static inline int mutex_is_locked(struct mutex *lock)
 {
 	return atomic_read(&lock->count) != 1;
@@ -134,7 +139,9 @@ extern int __must_check mutex_lock_killable_nested(struct mutex *lock,
 #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
 #define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
 #else
+/*互斥锁的down操作*/
 extern void mutex_lock(struct mutex *lock);
+/*互斥锁的down操作,可中断的*/
 extern int __must_check mutex_lock_interruptible(struct mutex *lock);
 extern int __must_check mutex_lock_killable(struct mutex *lock);
 
@@ -149,7 +156,9 @@ extern int __must_check mutex_lock_killable(struct mutex *lock);
  *
  * Returns 1 if the mutex has been acquired successfully, and 0 on contention.
  */
+ /*互斥锁的down操作*/
 extern int mutex_trylock(struct mutex *lock);
+/*互斥锁的UP操作*/
 extern void mutex_unlock(struct mutex *lock);
 extern int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
 

@@ -23,6 +23,7 @@
  * simply bail out immediately through the slow path where the lock will be
  * reattempted until it succeeds.
  */
+ /*与平台相关的函数,用于快速判断进程可否获得互斥锁,如果可以函数直接返回,否则进入fail_fn执行*/
 static inline void
 __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
 {
@@ -69,6 +70,7 @@ __mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
  * rather than the result, is used to test for success in order to have
  * better generated assembly.
  */
+ /*互斥锁的快速解锁操作*/
 static inline void
 __mutex_fastpath_unlock(atomic_t *count, void (*fail_fn)(atomic_t *))
 {

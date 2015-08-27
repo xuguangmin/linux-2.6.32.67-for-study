@@ -89,6 +89,7 @@ __mutex_lock_slowpath(atomic_t *lock_count);
  *
  * This function is similar to (but not equivalent to) down().
  */
+ /*互斥锁的down操作*/
 void __sched mutex_lock(struct mutex *lock)
 {
 	might_sleep();
@@ -96,6 +97,9 @@ void __sched mutex_lock(struct mutex *lock)
 	 * The locking fastpath is the 1->0 transition from
 	 * 'unlocked' into 'locked' state.
 	 */
+	 /* 用来快速判断当前可否获得互斥锁,如果成功获得互斥锁,则函数直接返回
+	  * 否则进入到__mutex_lock_slowpath函数中
+	  */
 	__mutex_fastpath_lock(&lock->count, __mutex_lock_slowpath);
 	mutex_set_owner(lock);
 }
@@ -116,6 +120,7 @@ static __used noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count
  *
  * This function is similar to (but not equivalent to) up().
  */
+/*互斥锁的UP操作*/
 void __sched mutex_unlock(struct mutex *lock)
 {
 	/*
@@ -130,6 +135,8 @@ void __sched mutex_unlock(struct mutex *lock)
 	 */
 	mutex_clear_owner(lock);
 #endif
+	/* 这里有两条主线:__mutex_fastpath_unlock  __mutex_unlock_slowpath;
+	 * 分别用于互斥锁的快速和慢速解锁操作*/
 	__mutex_fastpath_unlock(&lock->count, __mutex_unlock_slowpath);
 }
 
@@ -138,6 +145,7 @@ EXPORT_SYMBOL(mutex_unlock);
 /*
  * Lock a mutex (possibly interruptible), slowpath:
  */
+ /*获取互斥锁失败时的处理*/
 static inline int __sched
 __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
 	       	unsigned long ip)
@@ -312,6 +320,7 @@ EXPORT_SYMBOL_GPL(mutex_lock_interruptible_nested);
 /*
  * Release the lock, slowpath:
  */
+ /*互斥锁的慢速解锁操作处理函数*/
 static inline void
 __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
 {
@@ -330,6 +339,7 @@ __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
 	if (__mutex_slowpath_needs_to_unlock())
 		atomic_set(&lock->count, 1);
 
+	/*判断是否有进程等待获取互斥锁*/
 	if (!list_empty(&lock->wait_list)) {
 		/* get the first entry from the wait-list: */
 		struct mutex_waiter *waiter =
@@ -338,6 +348,7 @@ __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
 
 		debug_mutex_wake_waiter(lock, waiter);
 
+		/*唤醒等待获取互斥锁的进程*/
 		wake_up_process(waiter->task);
 	}
 
@@ -347,6 +358,7 @@ __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
 /*
  * Release the lock, slowpath:
  */
+ /*互斥锁的慢速解锁操作*/
 static __used noinline void
 __mutex_unlock_slowpath(atomic_t *lock_count)
 {
@@ -404,6 +416,7 @@ int __sched mutex_lock_killable(struct mutex *lock)
 }
 EXPORT_SYMBOL(mutex_lock_killable);
 
+/*获取互斥锁失败进入此函数执行,函数在把当前进程放入mutex的wait_list之前会试图多次询问mutex中的count是否为1*/
 static __used noinline void __sched
 __mutex_lock_slowpath(atomic_t *lock_count)
 {
