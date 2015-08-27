@@ -1,0 +1,1 @@
+cmd_arch/arm/mach-s3c6410/built-in.o :=  arm-linux-ld -EL    -r -o arch/arm/mach-s3c6410/built-in.o arch/arm/mach-s3c6410/cpu.o arch/arm/mach-s3c6410/setup-sdhci.o arch/arm/mach-s3c6410/mach-smdk6410.o 
