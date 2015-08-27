@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.67
- * Wed Aug 19 17:40:29 2015
+ * Thu Aug 27 18:59:37 2015
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_DEBUG_SPINLOCK_SLEEP 1
