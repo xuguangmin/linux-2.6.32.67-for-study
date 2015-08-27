@@ -65,7 +65,7 @@ typedef struct {
  /*写入者在seqlock上的上锁操作*/
 static inline void write_seqlock(seqlock_t *sl)
 {
-	/*写入之前先获得seqlock上的自旋锁lock,在写入者之间必须保证互斥操作*/
+	/*写入之前先获得seqlock上的自旋lock,在写入者之间必须保证互斥操作*/
 	spin_lock(&sl->lock);
 	++sl->sequence;
 	smp_wmb();
