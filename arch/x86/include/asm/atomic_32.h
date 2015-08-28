@@ -89,6 +89,7 @@ static inline int atomic_sub_and_test(int i, atomic_t *v)
  *
  * Atomically increments @v by 1.
  */
+ /**/
 static inline void atomic_inc(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "incl %0"

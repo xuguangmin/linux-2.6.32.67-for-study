@@ -187,6 +187,7 @@ typedef u32 phys_addr_t;
 
 typedef phys_addr_t resource_size_t;
 
+/*原子变量, 相关操作与平台相关arch/arm/include/atomic.h*/
 typedef struct {
 	volatile int counter;
 } atomic_t;
