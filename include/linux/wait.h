@@ -25,18 +25,28 @@
 #include <asm/system.h>
 #include <asm/current.h>
 
+
+/*等待队列是内核定义的一种数据结构,用来实现其他的内核机制,比如完成借口
+completion以及工作队列等*/
+/*等待队列本质上是一双向链表,有等待队列头和等待队列节点构成*/
+
+
+/*等待队列节点数据结构*/
 typedef struct __wait_queue wait_queue_t;
 typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
 int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
 
+/*等待队列节点数据结构*/
 struct __wait_queue {
-	unsigned int flags;
+	unsigned int flags;	/* 唤醒等待队列上的进程时,该标志会影响唤醒操作的行为模式,
+				 * 内核为此定义了WQ_FLAG_EXCLUSIVE,如果一个等待节点设置了
+				 * 该标志位,表明睡眠在其上的进程在被唤醒时具有排他性*/
 #define WQ_FLAG_EXCLUSIVE	0x01
-	void *private;
-	wait_queue_func_t func;
-	struct list_head task_list;
-};
-
+	void *private;		/* 等待队列的私有数据,实际使用中用来指向睡眠在该节点上的
+				 * 进程的task_struct结构*/
+	wait_queue_func_t func;	/*当该节点上的睡眠进程需要被唤醒时执行的唤醒函数*/
+	struct list_head task_list;/*用来将各独立的等待队列节点链接起来形成链表*/
+}; 
 struct wait_bit_key {
 	void *flags;
 	int bit_nr;
@@ -47,9 +57,10 @@ struct wait_bit_queue {
 	wait_queue_t wait;
 };
 
+/*等待队列数据结构*/
 struct __wait_queue_head {
-	spinlock_t lock;
-	struct list_head task_list;
+	spinlock_t lock;	/*等待队列的自旋锁,用作等待队列被并发访问时的互斥机制*/
+	struct list_head task_list;/*双向链表结构体,用来将等待队列构成链表*/
 };
 typedef struct __wait_queue_head wait_queue_head_t;
 
@@ -58,12 +69,13 @@ struct task_struct;
 /*
  * Macros for declaration and initialisaton of the datatypes
  */
-
+/*初始化等待队列节点*/
 #define __WAITQUEUE_INITIALIZER(name, tsk) {				\
 	.private	= tsk,						\
 	.func		= default_wake_function,			\
 	.task_list	= { NULL, NULL } }
 
+/*定义并初始化一个等待队列的节点*/
 #define DECLARE_WAITQUEUE(name, tsk)					\
 	wait_queue_t name = __WAITQUEUE_INITIALIZER(name, tsk)
 
@@ -71,6 +83,7 @@ struct task_struct;
 	.lock		= __SPIN_LOCK_UNLOCKED(name.lock),		\
 	.task_list	= { &(name).task_list, &(name).task_list } }
 
+/*等待队列的静态定义和初始化*/
 #define DECLARE_WAIT_QUEUE_HEAD(name) \
 	wait_queue_head_t name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
 
@@ -79,6 +92,7 @@ struct task_struct;
 
 extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *);
 
+/*等待队列的定义和初始化*/
 #define init_waitqueue_head(q)				\
 	do {						\
 		static struct lock_class_key __key;	\
@@ -94,7 +108,7 @@ extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *)
 #else
 # define DECLARE_WAIT_QUEUE_HEAD_ONSTACK(name) DECLARE_WAIT_QUEUE_HEAD(name)
 #endif
-
+/*动态初始化等待队列节点对象*/
 static inline void init_waitqueue_entry(wait_queue_t *q, struct task_struct *p)
 {
 	q->flags = 0;
