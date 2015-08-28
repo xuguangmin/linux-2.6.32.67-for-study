@@ -10,6 +10,11 @@
 
 #include <linux/wait.h>
 
+/*
+ * 完成接口，是一个同步机制，用来在多个执行路径间作同步使用，
+ * 即协调多个执行路径的执行顺序
+ */
+
 /**
  * struct completion - structure used to maintain state for a "completion"
  *
@@ -22,11 +27,14 @@
  * and macros DECLARE_COMPLETION(), DECLARE_COMPLETION_ONSTACK(), and
  * INIT_COMPLETION().
  */
+ /*完成借口*/
 struct completion {
-	unsigned int done;
-	wait_queue_head_t wait;
+	unsigned int done;	/*表示当前completion的状态*/
+	wait_queue_head_t wait;	/* wait是一等待队列,用来管理当前等待在
+				 * 该completion上的所有进程*/
 };
 
+/*等待队列*/
 #define COMPLETION_INITIALIZER(work) \
 	{ 0, __WAIT_QUEUE_HEAD_INITIALIZER((work).wait) }
 
@@ -41,6 +49,7 @@ struct completion {
  * for static declarations. You should use the _ONSTACK variant for automatic
  * variables.
  */
+ /*静态定义一个struct completion变量并初始化*/
 #define DECLARE_COMPLETION(work) \
 	struct completion work = COMPLETION_INITIALIZER(work)
 
@@ -70,12 +79,15 @@ struct completion {
  * This inline function will initialize a dynamically created completion
  * structure.
  */
+ /*动态初始化一个completion变量*/
 static inline void init_completion(struct completion *x)
 {
 	x->done = 0;
 	init_waitqueue_head(&x->wait);
 }
 
+/* 完成接口completion对执行路径间的同步可以通过等待者与完成者模型来表述，
+ * 对于等待者的行为,内核定义了wait_for_completion函数*/
 extern void wait_for_completion(struct completion *);
 extern int wait_for_completion_interruptible(struct completion *x);
 extern int wait_for_completion_killable(struct completion *x);
@@ -96,6 +108,7 @@ extern void complete_all(struct completion *);
  * This macro should be used to reinitialize a completion structure so it can
  * be reused. This is especially important after complete_all() is used.
  */
+ /*重新初始化一个使用过的struct completion变量*/
 #define INIT_COMPLETION(x)	((x).done = 0)
 
 
