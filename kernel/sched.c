@@ -5904,11 +5904,15 @@ EXPORT_SYMBOL(default_wake_function);
  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
  * zero in this (rare) case, and we handle it by continuing to scan the queue.
  */
+ /*唤醒等待的进程,完成接口中使用到*/
 static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
 			int nr_exclusive, int wake_flags, void *key)
 {
 	wait_queue_t *curr, *next;
 
+	/*遍历当前completion所管理的等待队列的每一个节点，此时nr_exclusive=1，flag中含有
+	WQ_FLAG_EXCLUSIVE标志，意味着本次只会唤醒一个等待者,func指向default_wake_function
+	用来做实际的唤醒工作*/
 	list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
 		unsigned flags = curr->flags;
 
@@ -6008,12 +6012,15 @@ EXPORT_SYMBOL_GPL(__wake_up_sync);	/* For internal use only */
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
+ /*完成接口，完成者的行为;另一个是complete_all,前者只唤醒一个等待者，后者将唤醒所有等待者*/
 void complete(struct completion *x)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
+	/*函数将完成者的数量加１*/
 	x->done++;
+	/*唤醒等待者,第三个第四个参数表示排他性唤醒的个数和唤醒标志*/
 	__wake_up_common(&x->wait, TASK_NORMAL, 1, 0, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
@@ -6028,24 +6035,46 @@ EXPORT_SYMBOL(complete);
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
+ /*完成接口，将唤醒所有等待者*/
 void complete_all(struct completion *x)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	x->done += UINT_MAX/2;
+	/*唤醒等待的进程*/
 	__wake_up_common(&x->wait, TASK_NORMAL, 0, 0, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
 EXPORT_SYMBOL(complete_all);
 
+/* 将当前进程加入睡眠队列,这种睡眠不可中断
+ * 如果考虑到进程进入睡眠队列的状态及睡眠超时时间的设定，内核提供了
+   可中断的等待状态
+ * int wait_for_completion_interruptible()
+   可杀死的等待状态
+ * int wait_for_completion_killable()
+   不可中断的等待状态，但在超时后进程将终止等待状态
+ * wait_for_completion_timeout()
+   可中断的等待状态，但在timeout指定的时间到期之后，进程将终止等待状态
+   wait_for_completion_interruptible_timeout()
+   可杀死的等待状态，但在超时后进程将终止等待状态
+ * wait_for_completion_killable_timeout()
+ */
 static inline long __sched
 do_wait_for_common(struct completion *x, long timeout, int state)
 {
+	/* done表示当前在completion上的完成者数量，如果没有完成者，
+	 * 等待队列进入睡眠队列等待*/
 	if (!x->done) {
+		/*定义并初始化一个等待队列节点*/
 		DECLARE_WAITQUEUE(wait, current);
+		/*wait中的func函数指针默认指向default_wake_function
+		 * 当wait上的进程被唤醒时将调用该函数*/
 
+		/*等待节点wait中的这个flags标记将在完成者的唤醒操作中使用*/
 		wait.flags |= WQ_FLAG_EXCLUSIVE;
+		/*将当前进程加入睡眠队列,这种睡眠不可中断*/
 		__add_wait_queue_tail(&x->wait, &wait);
 		do {
 			if (signal_pending_state(state, current)) {
@@ -6054,6 +6083,12 @@ do_wait_for_common(struct completion *x, long timeout, int state)
 			}
 			__set_current_state(state);
 			spin_unlock_irq(&x->wait.lock);
+			/*若干时间后，进程因某种原因被唤醒，
+			表现为从schedule_timeout函数返回,他将检查done成员和timeout变量
+			以决定后续的行为,timtout>0便是进程还没有超时，
+			done=0表示completion上还没有完成者,
+			此时当前进程如果没有信号需要处理，将继续睡眠,
+			如果睡眠超时将返回timeout的值*/
 			timeout = schedule_timeout(timeout);
 			spin_lock_irq(&x->wait.lock);
 		} while (!x->done && timeout);
@@ -6061,6 +6096,7 @@ do_wait_for_common(struct completion *x, long timeout, int state)
 		if (!x->done)
 			return timeout;
 	}
+	/*没有超时且有完成者在comepletion上出现将完成者数量减１,结束等待状态返回*/
 	x->done--;
 	return timeout ?: 1;
 }
@@ -6071,6 +6107,7 @@ wait_for_common(struct completion *x, long timeout, int state)
 	might_sleep();
 
 	spin_lock_irq(&x->wait.lock);
+	/*使当前进程以TASK_UNINTERRUPTIBLE睡眠在completion x上的wait队列中*/
 	timeout = do_wait_for_common(x, timeout, state);
 	spin_unlock_irq(&x->wait.lock);
 	return timeout;
@@ -6086,8 +6123,11 @@ wait_for_common(struct completion *x, long timeout, int state)
  * See also similar routines (i.e. wait_for_completion_timeout()) with timeout
  * and interrupt capability. Also see complete().
  */
+/* 完成接口completion对执行路径间的同步可以通过等待者与完成者模型来表述，
+ * 对于等待者的行为,内核定义了wait_for_completion函数*/
 void __sched wait_for_completion(struct completion *x)
 {
+	/*使当前进程以TASK_UNINTERRUPTIBLE睡眠在completion x上的wait队列中*/
 	wait_for_common(x, MAX_SCHEDULE_TIMEOUT, TASK_UNINTERRUPTIBLE);
 }
 EXPORT_SYMBOL(wait_for_completion);
