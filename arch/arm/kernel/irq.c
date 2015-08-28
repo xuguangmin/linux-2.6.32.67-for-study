@@ -103,10 +103,18 @@ unlock:
  * come via this function.  Instead, they should provide their
  * own 'handler'
  */
+ /* 当有外部中断发生时，预先设计好的处理器硬件逻辑会把当前任务上下文寄存器保存在一个
+  * 特定的中断栈中，屏蔽掉处理器响应外部中断的能力，在结束部分，
+  * 硬件逻辑根据中断向量表中的外部中断对应的入口地址，开始调用由操作系统提供的通用中断处理函数
+  * 通用中断处理函数调用此函数, 中断处理的绝大部分流程都浓缩在了这个Ｃ函数中，
+  * 当这个函数返回时,通用中断处理函数余下的部分完成中断现场恢复的工作，标志者中断处理流程的结束, 被中断的任务开始继续执行
+  * @irq:通用中断处理函数从ＰＩＣ中得到的软件中断号
+  * @regs是保存下来的被中断任务的执行现场*/
 asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
+	/*HARDIRQ部分的开始*/
 	irq_enter();
 
 	/*
@@ -124,6 +132,7 @@ asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 	/* AT91 specific workaround */
 	irq_finish(irq);
 
+	/*SOFTIRQ在此函数中完成*/
 	irq_exit();
 	set_irq_regs(old_regs);
 }
