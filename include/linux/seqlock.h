@@ -28,6 +28,43 @@
 
  /*顺序锁*/
 
+ /* 使用例子
+  * 定义一个全局的seqlock变量demo_seqlock
+    DEFINE_SEQLOCK(demo_seqlock);
+
+    对于写入者的代码....
+  * //实际写之前调用write_seqlock获取自旋锁,同时更新sequence的值
+    write_seqlock(&demo_seqlock);
+  * //获得自旋锁之后,调用do_write进行实际的写入操作
+    do_write();
+    //写入结束,调用write_sequnlock释放锁
+    write_sequnlock(&demo_seqlock);
+
+
+    对于读取者的代码....
+    unsigned start;
+    do{
+    	//读操作前先得到sequence的值start,用以在读操作结束时判断是否发生数据更新
+	//注意读操作无需获得锁
+	start = read_seqbegin(&demo_seqlock);
+	//调用do_read进行实际的读操作
+	do_read();
+    }while(read_seqretry(&demo_seqlock,start));//如果有数据更新,再重新读取
+  *
+
+  如果考虑到中断安全的问题,可以使用对应版本:
+  write_seqlock_irq(lock)
+  write_seqlock_irqsave(lock, flags);
+  write_seqlock_bh(lock)
+
+  write_sequnlock_irq(lock)
+  write_sequnlock_irqrestore(lock, flags)
+  write_sequnlock_bh(lock)
+
+  read_seqbegin_irqsave(lock, flags)
+  read_seqretry_irqrestore(lock, iv, flags)
+  */
+
 #include <linux/spinlock.h>
 #include <linux/preempt.h>
 
@@ -71,14 +108,21 @@ static inline void write_seqlock(seqlock_t *sl)
 	smp_wmb();
 }
 
- /*写入者在seqlock上的上锁操作*/
+ /*写入者在seqlock上的解锁操作*/
 static inline void write_sequnlock(seqlock_t *sl)
 {
 	smp_wmb();
+	/* 更新sequence告诉读取者有数据更新发生,所以
+	 * 必须保证sequence的值在写入的前后发生变化
+	 * 在此基础上sequence提供的另外一个信息是写入过程没有结束,通过最低位完成的
+	 * 如果sequence&0为0表明写入过程已经结束,否则写入过程正值进行,在读取者的sequence
+	   或看到这两种用途
+	 */
 	sl->sequence++;
 	spin_unlock(&sl->lock);
 }
 
+/*在无法获得锁时不进入自选状态,返回0,成功返回1*/
 static inline int write_tryseqlock(seqlock_t *sl)
 {
 	int ret = spin_trylock(&sl->lock);
@@ -111,6 +155,10 @@ repeat:
  *
  * If sequence value changed then writer changed data while in section.
  */
+ /* 判断是否有数据更新
+  * @start:是读取者在读取操作之前调用read_seqbegin获得的初始值,
+  	如果本次读取无效,那么read_seqretry返回1,否则返回0
+  */
 static __always_inline int read_seqretry(const seqlock_t *sl, unsigned start)
 {
 	smp_rmb();
