@@ -47,11 +47,13 @@ extern void exit_rcu(void);
 
 #else /* #ifdef CONFIG_TREE_PREEMPT_RCU */
 
+/*禁止抢占*/
 static inline void __rcu_read_lock(void)
 {
 	preempt_disable();
 }
 
+/*允许抢占*/
 static inline void __rcu_read_unlock(void)
 {
 	preempt_enable();

@@ -41,6 +41,52 @@
 #include <linux/lockdep.h>
 #include <linux/completion.h>
 
+/*RCU机制*/
+/*
+ * RCU典型用法范例:
+
+   //假设struct shared_data时一个在读取者和写入者之间共享的受保护数据
+   struct shared_data{
+   	int a;
+	int b;
+	struct rcu_head rcu;
+   };
+   //读取者侧的代码,读取者调用rcu_read_lock和rcu_read_unlock构建它的读取临界区,
+   	所有的指向被保护资源指针的引用都应该在临界区中出现,而且临界区中的代码不能睡眠
+   static void demo_reader(struct shared_data *ptr)
+   {
+   	struct shared_data *p = NULL;
+	rcu_read_lock();
+	//调用rcu_dereference获得ptr的指针
+	p = rcu_dereference(ptr);
+	if(p)
+		do_something_withp(p);
+	rcu_read_unlock();
+   }
+
+
+   //写入者侧的代码
+   //写入者提供的回调函数,用于释放老指针
+   static void demo_del_oldptr(struct rcu_head *rh)
+   {
+   	struct shared_data *p = container_of(rh, struct shared_data, rcu)
+	kfree(p);
+   }
+   static void demo_writer(struct shared_data *ptr)
+   {
+   	struct shared_data *new_ptr = kmalloc(...);
+	...
+	new_ptr->a = 10;
+	new_ptr->b = 10;
+	//用新指针更新老指针
+	rcu_assign_pointer(ptr, new_ptr);
+	//调用call_rcu让内核在确保所有对老指针ptr的引用都结束后回调demo_del_oldptr释放老指针
+	call_rcu(ptr->rcu, demo_del_oldptr);
+   }
+ */
+
+
+
 /**
  * struct rcu_head - callback structure for use with RCU
  * @next: next update requests in a list
@@ -53,6 +99,7 @@ struct rcu_head {
 
 /* Exported common interfaces */
 #ifdef CONFIG_TREE_PREEMPT_RCU
+/*类似call_rcu的功能,但函数可能会阻塞,不能在中断上下文使用, 应使用call_rcu注册进内核*/
 extern void synchronize_rcu(void);
 #else /* #ifdef CONFIG_TREE_PREEMPT_RCU */
 #define synchronize_rcu synchronize_sched
@@ -122,8 +169,10 @@ extern struct lockdep_map rcu_lock_map;
  *
  * It is illegal to block while in an RCU read-side critical section.
  */
+ /*RCU 临街区中不会发生进程切换*/
 static inline void rcu_read_lock(void)
 {
+	/*禁止抢占*/
 	__rcu_read_lock();
 	__acquire(RCU);
 	rcu_read_acquire();
@@ -144,6 +193,7 @@ static inline void rcu_read_lock(void)
  *
  * See rcu_read_lock() for more information.
  */
+ /*读者在读取由RCU保护的共享数据时使用该函数标记它进入读端临界区。*/
 static inline void rcu_read_unlock(void)
 {
 	rcu_read_release();
@@ -160,8 +210,9 @@ static inline void rcu_read_unlock(void)
  * a process in RCU read-side critical section must be protected by
  * disabling softirqs. Read-side critical sections in interrupt context
  * can use just rcu_read_lock().
- *
  */
+ /* 该函数与rcu_read_lock配对使用，用以标记读者退出读端临界区。
+  * 夹在这两个函数之间的代码区称为"读端临界区*/
 static inline void rcu_read_lock_bh(void)
 {
 	__rcu_read_lock_bh();
@@ -233,7 +284,7 @@ static inline notrace void rcu_read_unlock_sched_notrace(void)
  * (currently only the Alpha), and, more importantly, documents
  * exactly which pointers are protected by RCU.
  */
-
+/*获得p的指针*/
 #define rcu_dereference(p)     ({ \
 				typeof(p) _________p1 = ACCESS_ONCE(p); \
 				smp_read_barrier_depends(); \
@@ -253,6 +304,7 @@ static inline notrace void rcu_read_unlock_sched_notrace(void)
  * code.
  */
 
+/*更新老指针*/
 #define rcu_assign_pointer(p, v) \
 	({ \
 		if (!__builtin_constant_p(v) || \
@@ -281,6 +333,11 @@ extern void wakeme_after_rcu(struct rcu_head  *head);
  * sections are delimited by rcu_read_lock() and rcu_read_unlock(),
  * and may be nested.
  */
+ /* RCU的写入者负责在替换掉老指针之后调用call_rcu向内核注册一回调函数,
+  * 回调函数负责实现释放老指针指向的内存空间,call_rcu中的参数func就是指向该回调函数的指针.
+  * head是内核在调用func时传递到func中的参数,实际使用中会把rcu_head内嵌到共享数据
+  * 所在的结构体中,这样在回调函数中可以通过传进来的struct rcu_head指针,使用container_of
+  * 获得指向旧的共享数据区的指针,然后调用kfree释放旧的数据区*/
 extern void call_rcu(struct rcu_head *head,
 			      void (*func)(struct rcu_head *head));
 
