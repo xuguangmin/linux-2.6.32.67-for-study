@@ -86,6 +86,7 @@ enum {
 	IRQTF_AFFINITY,
 };
 
+/*irq_return_t声明,设备驱动程序负责实现该函数,然后调用request_irq函数，后者会把驱动程序实现的中断服务例程赋值给handler*/
 typedef irqreturn_t (*irq_handler_t)(int, void *);
 
 /**
@@ -101,12 +102,16 @@ typedef irqreturn_t (*irq_handler_t)(int, void *);
  * @thread:	thread pointer for threaded interrupts
  * @thread_flags:	flags related to @thread
  */
+ /*设备驱动程序通过这个结构将其中断处理函数挂在在action上*/
 struct irqaction {
-	irq_handler_t handler;
+	irq_handler_t handler;	/*指向设备特定的中断服务例程函数的指针*/
 	unsigned long flags;
 	const char *name;
-	void *dev_id;
-	struct irqaction *next;
+	void *dev_id;	/* 调用handler时传给他的参数，在多个设备共享一个irq的
+			 * 情况下特别重要，这种链式的action中，
+			 * 设备驱动程序通过dev_id来标识自己*/
+	struct irqaction *next;	/* 指向下一个action对象,用于多个设备共享一个irq
+	 			 * 的情形，此时action通过next构成一个链表*/
 	int irq;
 	struct proc_dir_entry *dir;
 	irq_handler_t thread_fn;

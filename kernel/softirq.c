@@ -298,6 +298,7 @@ asmlinkage void do_softirq(void)
 /*
  * Enter an interrupt context.
  */
+/*HARDIRQ部分的开始,告诉系统进入冲断处理的上半部分，与irq_enter对应的是irq_exit,irq_enter会更新系统中的一些统计量，同时会把当前栈中的preemtp_count变量加上HARDIRQ_OFFSET来标识一个HARDIRQ中上下文*/
 void irq_enter(void)
 {
 	int cpu = smp_processor_id();

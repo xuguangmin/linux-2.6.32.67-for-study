@@ -108,6 +108,7 @@ struct msi_desc;
  * @release:		release function solely used by UML
  * @typename:		obsoleted by name, kept as migration helper
  */
+ /*用来表示一个PIC对象*/
 struct irq_chip {
 	const char	*name;
 	unsigned int	(*startup)(unsigned int irq);
@@ -172,39 +173,66 @@ struct irq_2_iommu;
  * @dir:		/proc/irq/ procfs entry
  * @name:		flow handler name for /proc/interrupts output
  */
+ /* 该结构在ｌｉｎｕｘ整个中断处理框架中非常重要，起着沟通从通用的中断处理函数
+  * 到设备特定的中断处理例程之间的桥梁作用*/
 struct irq_desc {
 	unsigned int		irq;
 	unsigned int            *kstat_irqs;
 #ifdef CONFIG_INTR_REMAP
 	struct irq_2_iommu      *irq_2_iommu;
 #endif
-	irq_flow_handler_t	handle_irq;
-	struct irq_chip		*chip;
+	irq_flow_handler_t	handle_irq;	/*指向该中断请求的处理函数,他与软件中断号一一对应,代表了对IRQ　line上的处理动作*/
+	struct irq_chip		*chip;		/* 用来表示一个PIC对象*/
 	struct msi_desc		*msi_desc;
-	void			*handler_data;
-	void			*chip_data;
+	void			*handler_data;	/*用以访问发送硬件请求的硬件*/
+	void			*chip_data;	/*用以访问发送硬件请求的硬件*/
 	struct irqaction	*action;	/* IRQ action list */
-	unsigned int		status;		/* IRQ status */
+				/* 指向响应该IRQ的动作链表中的第一项,
+				 * 代表着与具体设备相关的中断处理,
+				 * 也是设备驱动程序员要直接与之打交道的对象
+				 * 通过action成员可以在一条IRQ line上挂在多个
+				 * 设备,即多个设备可以通过同一条IRQ line来
+				 * 共享同一个软件中断号irq,形成所谓的中断链*/
+	/* handle_irq和action的层次关系
+	IRQ line	     handle_irq
+	___________________________________
+	 |	　    |		 |      　｜
+	 |            |		 |  PIC    |___处理器
+	设备１	     设备n	 ___________
+	 |	      |
+     action  -next-> action
+	
+	*/
+
+	unsigned int		status;		/* IRQ status 
+						 * 用以描述IRQ线的状态*/
 
 	unsigned int		depth;		/* nested irq disables */
+						/* 指出该IRQ线上的中断嵌套深度*/
 	unsigned int		wake_depth;	/* nested wake enables */
+						/* 指出该IRQ线上的中断嵌套深度*/
 	unsigned int		irq_count;	/* For detecting broken IRQs */
+						/* 指出该IRQ线上中断请求的数目*/
 	unsigned long		last_unhandled;	/* Aging timer for unhandled count */
-	unsigned int		irqs_unhandled;
-	spinlock_t		lock;
+	unsigned int		irqs_unhandled;	/* 指出该IRQ线上未处理的中断数目*/
+	spinlock_t		lock;	/* 操作irq_desc数组时用作互斥保护的
+					 * 成员，因为irq_desc在多个处理器之间
+					 * 共享，即使单处理器系统，也有并发操
+					 * 作该数组的可能*/
 #ifdef CONFIG_SMP
-	cpumask_var_t		affinity;
+	cpumask_var_t		affinity;	/* 在多处理器上使用，用以实现负载均衡*/
 	unsigned int		node;
 #ifdef CONFIG_GENERIC_PENDING_IRQ
-	cpumask_var_t		pending_mask;
+	cpumask_var_t		pending_mask;	/* 用以挂起被负载均衡的中断*/
 #endif
 #endif
 	atomic_t		threads_active;
 	wait_queue_head_t       wait_for_threads;
 #ifdef CONFIG_PROC_FS
-	struct proc_dir_entry	*dir;
+	struct proc_dir_entry	*dir;		/* 指向/proc/irq目录项*/
 #endif
-	const char		*name;
+	const char		*name;		/* handle_irq所对应的名称，
+						 * 最终显示在/proc/interrupts*/
 } ____cacheline_internodealigned_in_smp;
 
 extern void arch_init_copy_chip_data(struct irq_desc *old_desc,
@@ -310,12 +338,17 @@ static inline void generic_handle_irq_desc(unsigned int irq, struct irq_desc *de
 	desc->handle_irq(irq, desc);
 #else
 	if (likely(desc->handle_irq))
+		/*调用其成员函数*/
 		desc->handle_irq(irq, desc);
 	else
 		__do_IRQ(irq);
 #endif
 }
 
+/* 负责对当前发生的中断进行实际的处理
+ * 函数通过软件中断号irq来索引数组irq_desc,得到一个struct irq_desc类型的指针变量
+ * desc,然后调用其成员函数handle_irq对当前中断进行实际的处理
+ */
 static inline void generic_handle_irq(unsigned int irq)
 {
 	generic_handle_irq_desc(irq, irq_to_desc(irq));
