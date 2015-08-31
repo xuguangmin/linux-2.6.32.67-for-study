@@ -29,6 +29,8 @@
 #include <asm/irq_regs.h>
 
 struct irq_desc;
+/* 指向该中断请求的处理函数,他与软件中断号一一对应,
+ * 代表了对IRQ　line上的处理动作*/
 typedef	void (*irq_flow_handler_t)(unsigned int irq,
 					    struct irq_desc *desc);
 

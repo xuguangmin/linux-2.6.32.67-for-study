@@ -113,8 +113,9 @@ struct irqaction {
 	struct irqaction *next;	/* 指向下一个action对象,用于多个设备共享一个irq
 	 			 * 的情形，此时action通过next构成一个链表*/
 	int irq;
-	struct proc_dir_entry *dir;
-	irq_handler_t thread_fn;
+	struct proc_dir_entry *dir; /*中断处理函数中用来创建在proc文件系统中的目录项*/
+	irq_handler_t thread_fn;  /* 当驱动程序调用request_threaded_irq函数
+				   * 来安装中断处理例程时，用来实现irq_thread机制*/
 	struct task_struct *thread;
 	unsigned long thread_flags;
 };

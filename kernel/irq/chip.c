@@ -648,6 +648,10 @@ handle_percpu_irq(unsigned int irq, struct irq_desc *desc)
 		desc->chip->eoi(irq);
 }
 
+/* 参数handle是要安装在irq_desc[irq].handle_irq上的第一级处理函数，
+ * 由__irq_set_handler来完成,函数对传递进来的操作数作一些必要的检查后
+ * @is_chained:用来表示irq_desc[irq]对应的项是否支持中断共享
+ */
 void
 __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
 		  const char *name)
@@ -686,11 +690,14 @@ __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
 		desc->status |= IRQ_DISABLED;
 		desc->depth = 1;
 	}
+	 /* 将handle安装到irq_desc[irq]上*/
 	desc->handle_irq = handle;
 	desc->name = name;
 
 	if (handle != handle_bad_irq && is_chained) {
 		desc->status &= ~IRQ_DISABLED;
+		/* IRQ_NOREQUEST意味着对于irq_desc[irq]无法通过request_irq
+		 * 来安装中断处理例程*/
 		desc->status |= IRQ_NOREQUEST | IRQ_NOPROBE;
 		desc->depth = 0;
 		desc->chip->startup(irq);
@@ -700,11 +707,14 @@ __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
 }
 EXPORT_SYMBOL_GPL(__set_irq_handler);
 
+/*平台的初始化代码通过handle_irq注册第一级中断处理函数*/
 void
 set_irq_chip_and_handler(unsigned int irq, struct irq_chip *chip,
 			 irq_flow_handler_t handle)
 {
 	set_irq_chip(irq, chip);
+	/* 参数handle是要安装在irq_desc[irq].handle_irq上的第一级处理函数，
+	 * 由__irq_set_handler来完成*/
 	__set_irq_handler(irq, handle, 0, NULL);
 }
 

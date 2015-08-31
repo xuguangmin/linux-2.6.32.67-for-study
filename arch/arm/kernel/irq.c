@@ -112,9 +112,10 @@ unlock:
   * @regs是保存下来的被中断任务的执行现场*/
 asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
+	/*set_irq_regs将一个per_CPU型的指针变量__irq_regs保存到old_regs中，然后将__irq_regs赋予了一个新值regs,这样中断处理过程中，系统中每个ｃｐｕ都可以通过__irq_regs来访问系统保存的中断现场*/
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
-	/*HARDIRQ部分的开始*/
+	/*HARDIRQ部分的开始,告诉系统进入冲断处理的上半部分，与irq_enter对应的是irq_exit,irq_enter会更新系统中的一些统计量，同时会把当前栈中的preemtp_count变量加上HARDIRQ_OFFSET来标识一个HARDIRQ中上下文*/
 	irq_enter();
 
 	/*
@@ -126,14 +127,16 @@ asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 			printk(KERN_WARNING "Bad IRQ%u\n", irq);
 		ack_bad_irq(irq);
 	} else {
+		/*负责对当前发生的中断进行实际的处理*/
 		generic_handle_irq(irq);
 	}
 
 	/* AT91 specific workaround */
 	irq_finish(irq);
 
-	/*SOFTIRQ在此函数中完成*/
+	/*SOFTIRQ在此函数中完成,中断处理的下班部分在此函数完成*/
 	irq_exit();
+	/*函数结束调用set_irq_regs来恢复__irq_regs，__irq_regs一般用来在调试或者诊断时打印当前栈的信息，也可以通过这些保存的中断现场寄存器判断出被中断的进程当时运行在用户态还是内核态*/
 	set_irq_regs(old_regs);
 }
 
