@@ -350,6 +350,8 @@ void irq_chip_set_defaults(struct irq_chip *chip)
 		chip->end = dummy_irq_chip.end;
 }
 
+/* mask_ack_irq利用PIC对象的irq_mask例程将该条中断线在PIC中屏蔽掉，
+ * 然后将IRQD_IRQ_MASKED位置１*/
 static inline void mask_ack_irq(struct irq_desc *desc, int irq)
 {
 	if (desc->chip->mask_ack)
@@ -566,6 +568,7 @@ handle_edge_irq(unsigned int irq, struct irq_desc *desc)
 {
 	spin_lock(&desc->lock);
 
+	/*清除位IRQ_REPLAY和IRQ_WAITING,用来实现设备软件的自动探测机制*/
 	desc->status &= ~(IRQ_REPLAY | IRQ_WAITING);
 
 	/*
@@ -573,26 +576,42 @@ handle_edge_irq(unsigned int irq, struct irq_desc *desc)
 	 * we shouldn't process the IRQ. Mark it pending, handle
 	 * the necessary masking and go out
 	 */
+	 /* 确定IRQ_INPROGRESS和IRQ_DISABLED位没有被置1
+	  * IRQ_INPROGRESS表示当前的desc指向一个被禁止的中断线
+	  * IRQ_DISABLED表示当前的中断线正在处理中
+	  * desc->action为空表示当前中断线上没有安装特定设备的中断ISR
+	  * 如果当前中断线不处在正被轮询的阶段(IRQS_POLL_INPROGRESS),
+	  * handle_edge_irq需要将desc->istate的IRQ_PENDING位置1,同时调用
+	  * mask_ack_irq利用PIC对象的irq_mask例程将该条中断线在PIC中屏蔽掉，
+	  * 然后将IRQD_IRQ_MASKED位置１．对于一个正在被处理，或者被disabled，或者压根儿没有安装设备中断处理例程ISR，对于这样的中断线来说，这条正在触发中断信号的IRQ line都应该被屏蔽掉，为了后续的跟踪处理,IRQS_PENDING和IRQD_IRQD_MASKED位需要置１，如果当前中断线正在被轮询，那么需要根据轮询结构决定下一步的处理*/
 	if (unlikely((desc->status & (IRQ_INPROGRESS | IRQ_DISABLED)) ||
 		    !desc->action)) {
 		desc->status |= (IRQ_PENDING | IRQ_MASKED);
 		mask_ack_irq(desc, irq);
 		goto out_unlock;
 	}
+	/*用来跟新与中断相关的一些统计量，比如统计某一CPU上中断发生的次数*/
 	kstat_incr_irqs_this_cpu(irq, desc);
 
 	/* Start handling the irq */
 	if (desc->chip->ack)
+		/* 中断应答,从硬件逻辑角度，这一步通常使得当前发出中断信号的
+		 * 设备产生一个信号电瓶的转换，防止设备在他的中断已经在设备
+		 * 驱动程序中处理时依然不停的发出同一个中断信号*/
 		desc->chip->ack(irq);
 
 	/* Mark the IRQ currently in progress.*/
+	/* IRQ_INPROGRESS表示当前的desc指向一个被禁止的中断线*/
 	desc->status |= IRQ_INPROGRESS;
 
+	/*核心部分*/
 	do {
 		struct irqaction *action = desc->action;
 		irqreturn_t action_ret;
 
+		/*如果action为空，表明当前还没有设备驱动程序在这条中断线上安装中断处理例程ISR,则调用mask*/
 		if (unlikely(!action)) {
+			/*屏蔽当前中断线在PIC中对应的中断位，同时将IRQD_IRQ_MASKED位置１*/
 			desc->chip->mask(irq);
 			goto out_unlock;
 		}
@@ -611,6 +630,7 @@ handle_edge_irq(unsigned int irq, struct irq_desc *desc)
 
 		desc->status &= ~IRQ_PENDING;
 		spin_unlock(&desc->lock);
+		/*通过调用该函数对本次中断进行实际的处理操作*/
 		action_ret = handle_IRQ_event(irq, action);
 		if (!noirqdebug)
 			note_interrupt(irq, desc, action_ret);

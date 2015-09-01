@@ -49,6 +49,7 @@ extern unsigned long long nr_context_switches(void);
 
 struct irq_desc;
 
+/*用来跟新与中断相关的一些统计量，比如统计某一CPU上中断发生的次数*/
 static inline void kstat_incr_irqs_this_cpu(unsigned int irq,
 					    struct irq_desc *desc)
 {

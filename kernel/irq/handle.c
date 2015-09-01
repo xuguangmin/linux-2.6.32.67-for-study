@@ -367,6 +367,7 @@ static void warn_no_thread(unsigned int irq, struct irqaction *action)
  *
  * Handles the action chain of an irq event
  */
+ /*它为调用设备驱动程序安装的中断处理例程做最后的准备工作*/
 irqreturn_t handle_IRQ_event(unsigned int irq, struct irqaction *action)
 {
 	irqreturn_t ret, retval = IRQ_NONE;

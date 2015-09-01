@@ -112,27 +112,29 @@ struct msi_desc;
  */
  /*用来表示一个PIC对象*/
 struct irq_chip {
-	const char	*name;
-	unsigned int	(*startup)(unsigned int irq);
-	void		(*shutdown)(unsigned int irq);
-	void		(*enable)(unsigned int irq);
-	void		(*disable)(unsigned int irq);
+	const char	*name;	/*该中断控制器的名字，显示在/proc/interrupts*/
+	unsigned int	(*startup)(unsigned int irq);	/*启动中断*/
+	void		(*shutdown)(unsigned int irq);	/*关闭中断*/
+	void		(*enable)(unsigned int irq);	/*使能中断*/
+	void		(*disable)(unsigned int irq);	/*禁止中断*/
 
-	void		(*ack)(unsigned int irq);
+	void		(*ack)(unsigned int irq);/* 中断应答函数，就是清除中观标志*/
 	void		(*mask)(unsigned int irq);
-	void		(*mask_ack)(unsigned int irq);
-	void		(*unmask)(unsigned int irq);
+	void		(*mask_ack)(unsigned int irq);	/*屏蔽中断应答函数，一般用于电瓶触发方式，需要先屏蔽再应答*/
+	void		(*unmask)(unsigned int irq);	/*开启中断*/
 	void		(*eoi)(unsigned int irq);
 
 	void		(*end)(unsigned int irq);
 	int		(*set_affinity)(unsigned int irq,
 					const struct cpumask *dest);
 	int		(*retrigger)(unsigned int irq);
+
+	/* 设置中断类型，其中包括设置GPIO口为中断输入*/
 	int		(*set_type)(unsigned int irq, unsigned int flow_type);
 	int		(*set_wake)(unsigned int irq, unsigned int on);
 
-	void		(*bus_lock)(unsigned int irq);
-	void		(*bus_sync_unlock)(unsigned int irq);
+	void		(*bus_lock)(unsigned int irq);	/*上锁函数*/
+	void		(*bus_sync_unlock)(unsigned int irq);	/*解锁*/
 
 	/* Currently used only by UML, might disappear one day.*/
 #ifdef CONFIG_IRQ_RELEASE_METHOD

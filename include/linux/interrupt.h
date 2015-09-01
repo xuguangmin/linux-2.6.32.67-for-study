@@ -128,6 +128,12 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		     irq_handler_t thread_fn,
 		     unsigned long flags, const char *name, void *dev);
 
+/* 把驱动程序实现的中断服务例程赋值给handler,驱动程序中安装中断服务例程
+ * @irq:当前要安装的中断处理例程对应的中断号
+ * @handler:中断处理例程ISR,由设备驱动程序负责实现
+ * @flags:是标志变量,可影响内核在安装ISR时的一些行为模式
+ * @name:当前安装中断ISR的设备名称，内核在proc文件系统生成name的一个入口点
+ * @dev:是个传递到中断处理例程的指针，在中断共享的情况下，将在free_irq时用到，以     区分当前是要释放的哪一个struct irqaction对象*/
 static inline int __must_check
 request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	    const char *name, void *dev)
