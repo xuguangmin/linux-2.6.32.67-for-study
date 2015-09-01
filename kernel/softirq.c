@@ -317,20 +317,27 @@ void irq_enter(void)
 	__irq_enter();
 }
 
+/*__ARCH_IRQ_EXIT_IRQS_DISABLED是个体系架构相关的宏,用来决定在HARDIRQ部分
+ * 结束时有没有关闭处理器响应外部中断的能力,如果定义了__ARCH_IRQ_EXIT_IRQS_DISABLED,就意味着在处理SOFTIRQ部分时,可以保证外部中断已经关闭,此时可以直接调用_do_softire,不过之前要做一些中断屏蔽的事情,保证_do_softirq开始执行时中断是关闭的*/
 #ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED
 # define invoke_softirq()	__do_softirq()
 #else
+/*invoke_softirq是真正处理SOFTIRQ部分的函数*/
 # define invoke_softirq()	do_softirq()
 #endif
 
 /*
  * Exit an interrupt context. Process softirqs if needed and possible:
  */
+ /*中断下半部SOFTIRQ*/
 void irq_exit(void)
 {
 	account_system_vtime(current);
 	trace_hardirq_exit();
+	/*函数把当前栈中的preempt_count变量减去IRQ_EXIT_OFFSET来标识HARDIRQ中断上下文的结束,这步动作对应do_IRQ中的irq_enter*/
 	sub_preempt_count(IRQ_EXIT_OFFSET);
+	/* invoke_softirq是真正处理SOFTIRQ部分的函数,这个函数的前提是if中的
+	 * 两个条件:in_interrupt和local_softirq_pending;invoke_softirq被调用的前提是:当前不在interrupt上下文中而且__softirq_pending中有等待的softirq.当前不再interrupt保证了如果代码正在SOFTIRQ部分执行时,如果发生了一个外部中断,那么在中断处理函数结束HARDIRQ部分时,将不会处理softirq,而是直接返回,这样此前被中断的SOFTIRQ部分将继续执行*/
 	if (!in_interrupt() && local_softirq_pending())
 		invoke_softirq();
 

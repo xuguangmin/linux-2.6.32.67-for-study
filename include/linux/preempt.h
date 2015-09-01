@@ -15,6 +15,7 @@
   extern void sub_preempt_count(int val);
 #else
 # define add_preempt_count(val)	do { preempt_count() += (val); } while (0)
+/*函数把当前栈中的preempt_count变量减去IRQ_EXIT_OFFSET来标识HARDIRQ中断上下文的结束,这步动作对应do_IRQ中的irq_enter*/
 # define sub_preempt_count(val)	do { preempt_count() -= (val); } while (0)
 #endif
 

@@ -417,6 +417,7 @@ void compat_irq_chip_set_default_handler(struct irq_desc *desc)
 		desc->handle_irq = NULL;
 }
 
+ /*设定中断触发信号类型的函数,其主要的功能是通过PIC对象的irq_set_type成员函数设定当前中断上有效的中断触发信号类型*/
 int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
 		unsigned long flags)
 {
@@ -659,9 +660,11 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 	 * and the interrupt does not nest into another interrupt
 	 * thread.
 	 */
+	 /*通过request_threaded_irq函数安装一个中断*/
 	if (new->thread_fn && !nested) {
 		struct task_struct *t;
 
+		/*实现irq_thread线程,irq_thread线程被创建出来时将以TASK_INTERRUPTIBLE的状态睡眠等待中断的发生，当中断发生时action->handler只负责唤醒睡眠的irq_thread，后者将调用action->thread_fn进行实际的中断处理工作．因为irq_thread本质上是系统中的一个独立进程，所以采用这种机制将使实质的中断处理工作发生在进程公开，而不是中断的上下文中*/
 		t = kthread_create(irq_thread, new, "irq/%d-%s", irq,
 				   new->name);
 		if (IS_ERR(t))
@@ -793,8 +796,12 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 	if (new->thread)
 		wake_up_process(new->thread);
 
+	/* 如果desc->dir为空，那么调用register_irq_proc在/proc/irq
+	 * 目录下创建类似/proc/125这样的新目录项*/
 	register_irq_proc(irq, desc);
 	new->dir = NULL;
+	/* 在action->name不为空的情况下,会为此新action在proc文件系统中创建类似
+	 * /proc/irq/125/action_name这样的目录*/
 	register_handler_proc(irq, new);
 
 	return 0;
@@ -1008,6 +1015,7 @@ EXPORT_SYMBOL(free_irq);
  *	IRQF_TRIGGER_*		Specify active edge(s) or level
  *
  */
+ /*这个函数被request_irq直接调用来安装ISR,用request_thread_irq函数来安装一个中断时，需要在struct irqaction对象中实现他的thread_fn成员，request_thread_irq函数内部会生成一个irq_thread的独立线程*/
 int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 			 irq_handler_t thread_fn, unsigned long irqflags,
 			 const char *devname, void *dev_id)
@@ -1022,6 +1030,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	 * the behavior is classified as "will not fix" so we need to
 	 * start nudging drivers away from using that idiom.
 	 */
+	 /* 如果irqflags中的IRQF_SHARED位被置１，表明正在安装一个共享的中断，
+	  * 这种情况下，驱动必须提供dev_id,若为空则是非法的情况，
+	  * 因为在free_irq中将无法确定到底卸载哪一个*/
 	if ((irqflags & (IRQF_SHARED|IRQF_DISABLED)) ==
 					(IRQF_SHARED|IRQF_DISABLED)) {
 		pr_warning(
@@ -1057,10 +1068,12 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		handler = irq_default_primary_handler;
 	}
 
+	/*申请空间*/
 	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
 	if (!action)
 		return -ENOMEM;
 
+	/*根据传入的参数初始化*/
 	action->handler = handler;
 	action->thread_fn = thread_fn;
 	action->flags = irqflags;
@@ -1068,6 +1081,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	action->dev_id = dev_id;
 
 	chip_bus_lock(irq, desc);
+	/*安装中断处理函数*/
 	retval = __setup_irq(irq, desc, action);
 	chip_bus_sync_unlock(irq, desc);
 

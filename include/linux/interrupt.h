@@ -26,11 +26,17 @@
  * setting should be assumed to be "as already configured", which
  * may be as per machine or firmware initialisation.
  */
+ /*系统定义的中断信号触发类型标志,设定中断触发信号类型的函数为__irq_set_trigger*/
 #define IRQF_TRIGGER_NONE	0x00000000
+/*上升沿触发*/
 #define IRQF_TRIGGER_RISING	0x00000001
+/*下降沿触发*/
 #define IRQF_TRIGGER_FALLING	0x00000002
+/*高电瓶触发*/
 #define IRQF_TRIGGER_HIGH	0x00000004
+/*低电平触发*/
 #define IRQF_TRIGGER_LOW	0x00000008
+/*中断触发信号掩码*/
 #define IRQF_TRIGGER_MASK	(IRQF_TRIGGER_HIGH | IRQF_TRIGGER_LOW | \
 				 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)
 #define IRQF_TRIGGER_PROBE	0x00000010
@@ -131,7 +137,7 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 /* 把驱动程序实现的中断服务例程赋值给handler,驱动程序中安装中断服务例程
  * @irq:当前要安装的中断处理例程对应的中断号
  * @handler:中断处理例程ISR,由设备驱动程序负责实现
- * @flags:是标志变量,可影响内核在安装ISR时的一些行为模式
+ * @flags:是标志变量,可影响内核在安装ISR时的一些行为模式,信号触发类型
  * @name:当前安装中断ISR的设备名称，内核在proc文件系统生成name的一个入口点
  * @dev:是个传递到中断处理例程的指针，在中断共享的情况下，将在free_irq时用到，以     区分当前是要释放的哪一个struct irqaction对象*/
 static inline int __must_check
@@ -165,6 +171,7 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 static inline void exit_irq_thread(void) { }
 #endif
 
+/*通过request_irq安装的中断处理函数，如果不再需要应该调用free_irq予以释放*/
 extern void free_irq(unsigned int, void *);
 
 struct device;
@@ -361,18 +368,18 @@ static inline int disable_irq_wake(unsigned int irq)
    tasklets are more than enough. F.e. all serial device BHs et
    al. should be converted to tasklets, not to softirqs.
  */
-
+/*softirq的类型,软件中断的类型*/
 enum
 {
-	HI_SOFTIRQ=0,
-	TIMER_SOFTIRQ,
-	NET_TX_SOFTIRQ,
-	NET_RX_SOFTIRQ,
-	BLOCK_SOFTIRQ,
-	BLOCK_IOPOLL_SOFTIRQ,
-	TASKLET_SOFTIRQ,
-	SCHED_SOFTIRQ,
-	HRTIMER_SOFTIRQ,
+	HI_SOFTIRQ=0,	/*用来实现tasklet*/
+	TIMER_SOFTIRQ,	/*用于定时器*/
+	NET_TX_SOFTIRQ,	/*网络设备的发送操作*/
+	NET_RX_SOFTIRQ,	/*网络设备的接收操作*/
+	BLOCK_SOFTIRQ,	/*块设备的操作*/
+	BLOCK_IOPOLL_SOFTIRQ,	/*块设备的操作*/
+	TASKLET_SOFTIRQ,	/*用来实现tasklet*/
+	SCHED_SOFTIRQ,		/*用于调度器*/
+	HRTIMER_SOFTIRQ,	/*用于定时器*/
 	RCU_SOFTIRQ,	/* Preferable RCU should always be the last softirq */
 
 	NR_SOFTIRQS

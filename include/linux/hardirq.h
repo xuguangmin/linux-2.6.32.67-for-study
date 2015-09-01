@@ -89,6 +89,8 @@
  */
 #define in_irq()		(hardirq_count())
 #define in_softirq()		(softirq_count())
+/* 主要用意是根据当前栈中的preempt_count变量,
+ * 来判断当前是否在一个中断上下文中执行.preempt_count的低8位与PREEMPT相关,8-15位留给SOFTIRQ使用,16-25位给HARDIRQ使用,NMI占据1位*/
 #define in_interrupt()		(irq_count())
 #define in_serving_softirq()	(softirq_count() & SOFTIRQ_OFFSET)
 
@@ -123,6 +125,7 @@
 
 #ifdef CONFIG_PREEMPT
 # define preemptible()	(preempt_count() == 0 && !irqs_disabled())
+/*在没有配置内核可抢占的系统中,IRQ_EXIT_OFFSET=HARDIRQ_OFFSET;如果配置了可抢占,那么IRQ_EXIT_OFFSET=(HARDIRQ_OFFSET-1),意味着HARDIRQ部分结束之后内核已经启动可抢占性*/
 # define IRQ_EXIT_OFFSET (HARDIRQ_OFFSET-1)
 #else
 # define preemptible()	0
