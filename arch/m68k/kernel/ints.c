@@ -242,6 +242,8 @@ int request_irq(unsigned int irq,
 
 EXPORT_SYMBOL(request_irq);
 
+/* 通过request_irq安装的中断处理函数，如果不再需要应该调用free_irq予以释放
+ * 根据第一个参数irq,函数在irq_desc数组中查找对应的actioo,遍历该action所在的链表，如果有action->dev_id == dev_id,那么就找到了要释放的action.找到后调用kfree释放action所占的空间*/
 void free_irq(unsigned int irq, void *dev_id)
 {
 	struct irq_controller *contr;
@@ -278,7 +280,6 @@ void free_irq(unsigned int irq, void *dev_id)
 
 	spin_unlock_irqrestore(&contr->lock, flags);
 }
-
 EXPORT_SYMBOL(free_irq);
 
 void enable_irq(unsigned int irq)
