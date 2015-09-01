@@ -117,6 +117,7 @@ static void __local_bh_disable(unsigned long ip, unsigned int cnt)
 		trace_preempt_off(CALLER_ADDR0, get_parent_ip(CALLER_ADDR1));
 }
 #else /* !CONFIG_TRACE_IRQFLAGS */
+/*用来在preempt_count()上表示SOFTIRQ的上下文,考虑到SOFTIRQ执行过程可能会被外部中断的情况,这可防止SOFTIRQ部分的重入,因为只有在非interrupt的上下文中才可以进入到SOFTIRQ*/
 static inline void __local_bh_disable(unsigned long ip, unsigned int cnt)
 {
 	add_preempt_count(cnt);
@@ -209,6 +210,7 @@ EXPORT_SYMBOL(local_bh_enable_ip);
 #define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)
 #define MAX_SOFTIRQ_RESTART 10
 
+/*函数的核心思想是:从CPU本地的_softirq_pending的最低位开始,依次往高位扫描,如果发现某位为1,说明对应该位有个等待中的softirq需要处理,那么就调用soft_vec数组中对应项的action函数,这个过程会一直持续下去,知道__softirq_pending为0*/
 asmlinkage void __do_softirq(void)
 {
 	struct softirq_action *h;
