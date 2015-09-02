@@ -516,7 +516,7 @@ static inline void tasklet_schedule(struct tasklet_struct *t)
 
 extern void __tasklet_hi_schedule(struct tasklet_struct *t);
 
-/* 驱动程序项系统提交这个tasklet,即将tastlet对象加入到tasklet_vec管理的链表中*/
+/* 驱动程序项系统提交这个tasklet,即将tastlet对象加入到tasklet_hi_vec管理的链表中*/
 static inline void tasklet_hi_schedule(struct tasklet_struct *t)
 {
 	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
@@ -538,12 +538,14 @@ static inline void tasklet_hi_schedule_first(struct tasklet_struct *t)
 }
 
 
+/*disable一个tasklet,使之无法被SOFTIRQ调度运行*/
 static inline void tasklet_disable_nosync(struct tasklet_struct *t)
 {
 	atomic_inc(&t->count);
 	smp_mb__after_atomic_inc();
 }
 
+/*disable一个tasklet,使之无法被SOFTIRQ调度运行*/
 static inline void tasklet_disable(struct tasklet_struct *t)
 {
 	tasklet_disable_nosync(t);

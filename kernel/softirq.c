@@ -390,13 +390,18 @@ void open_softirq(int nr, void (*action)(struct softirq_action *))
 
 /*
  * Tasklets
+ * tasklet_vec的声明
  */
 struct tasklet_head
 {
-	struct tasklet_struct *head;
-	struct tasklet_struct **tail;
+	struct tasklet_struct *head;	/*head总是指向tasklet对象链表的第一个节点*/
+	struct tasklet_struct **tail;	/*这是个指向tasklet对象指针的指针,tail总是保存tasklet链表最后一个节点所在tasklet对象中next成员的地址*/
 };
 
+/*
+ *    定义tasklet_vec, 
+ *    定义tasklet_hi_vec
+ */
 static DEFINE_PER_CPU(struct tasklet_head, tasklet_vec);
 static DEFINE_PER_CPU(struct tasklet_head, tasklet_hi_vec);
 
@@ -439,6 +444,7 @@ void __tasklet_hi_schedule_first(struct tasklet_struct *t)
 
 EXPORT_SYMBOL(__tasklet_hi_schedule_first);
 
+/*tasklet执行函数*/
 static void tasklet_action(struct softirq_action *a)
 {
 	struct tasklet_struct *list;
@@ -474,6 +480,7 @@ static void tasklet_action(struct softirq_action *a)
 	}
 }
 
+/*tasklet_hi_action执行函数*/
 static void tasklet_hi_action(struct softirq_action *a)
 {
 	struct tasklet_struct *list;
