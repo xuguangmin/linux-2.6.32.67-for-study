@@ -40,29 +40,34 @@
  * The per-CPU workqueue (if single thread, we always use the first
  * possible cpu).
  */
+ /*CPU工作队列管理结构,实际代码中struct cpu_workqueue_struct对象是个per_CPU型的变量，通过alloc_percpu函数动态创建，系统中的每个cpu都有一份，本书称struct cpu_workqueue_struct为CPU工作队列管理结构*/
 struct cpu_workqueue_struct {
 
-	spinlock_t lock;
+	spinlock_t lock;	/*对象的自旋锁,用于对可能的并发访问该对象时提供互斥保护机制*/
 
-	struct list_head worklist;
-	wait_queue_head_t more_work;
-	struct work_struct *current_work;
+	struct list_head worklist;  /*双向链表对象,用来将驱动程序提交的工作节点形成链表,驱动程序中的延迟操作以工作节点的形式存在*/
+	wait_queue_head_t more_work; /*等待队列头节点,工作队列的工人线程没有工作节点需要处理时将进入睡眠状态,此时他需要进入该等待队列*/
+	struct work_struct *current_work;/*用于记录当前工人线程正在处理的工作节点*/
 
-	struct workqueue_struct *wq;
-	struct task_struct *thread;
+	struct workqueue_struct *wq;	/*指向系统工作队列管理结构*/
+	struct task_struct *thread;	/*指向工人线程所在的进程空间结构*/
 } ____cacheline_aligned;
 
 /*
  * The externally visible workqueue abstraction is an array of
  * per-CPU workqueues:
  */
+ /*工作队列管理结构,内核会为创建的每个工作队列生成一个工作队列管理结构对象*/
 struct workqueue_struct {
-	struct cpu_workqueue_struct *cpu_wq;
-	struct list_head list;
-	const char *name;
-	int singlethread;
-	int freezeable;		/* Freeze threads during suspend */
-	int rt;
+	struct cpu_workqueue_struct *cpu_wq; /*指向cpu工作队列管理结构的per-CPU
+			* 根据该指针,系统中每个cpu都可以通过per_cpu_ptr来获得属				* 于自己的cpu工作队列管理结构的对象*/
+	struct list_head list;/*双向链表对象,用于将工作队列管理结构加入到一
+				*个全局变量中,只有对非singlethread工作队列有效*/
+	const char *name;  /* 工作队列的名称*/
+	int singlethread;  /* 标识创建的工作队列中工人线程的数量*/
+	int freezeable;		/* Freeze threads during suspend 
+				 * 表示进程可否进入冻结状态*/
+	int rt;		/*用来调整worker_thread线程所在进程的调度策略*/
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map lockdep_map;
 #endif
@@ -777,8 +782,10 @@ EXPORT_SYMBOL_GPL(current_is_keventd);
 static struct cpu_workqueue_struct *
 init_cpu_workqueue(struct workqueue_struct *wq, int cpu)
 {
+	/*获得系统中第一个cpu对应的CPU工作队列管理结构指针cwq*/
 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
 
+	/*初始化cwq中的等待队列和双向链表等成员变量*/
 	cwq->wq = wq;
 	spin_lock_init(&cwq->lock);
 	INIT_LIST_HEAD(&cwq->worklist);
@@ -787,6 +794,7 @@ init_cpu_workqueue(struct workqueue_struct *wq, int cpu)
 	return cwq;
 }
 
+/*生成一个工人线程,在linux内核中内核线程其实是一个进程*/
 static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 {
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
@@ -794,6 +802,7 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	const char *fmt = is_wq_single_threaded(wq) ? "%s" : "%s/%d";
 	struct task_struct *p;
 
+	/*将进程task_struct中保存有进程执行现场寄存器的pc值指向worker_thread函数,这样当该进程被调度运行时将执行work_thread函数,传给函数的参数时系统中第一个cpu上的cwq指针*/
 	p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
 	/*
 	 * Nobody can add the work_struct to this cwq,
@@ -807,6 +816,7 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 		return PTR_ERR(p);
 	if (cwq->wq->rt)
 		sched_setscheduler_nocheck(p, SCHED_FIFO, &param);
+	/*新进程的task_struct结构体指针p将保存在cpu工作队列管理结构的thread成员中*/
 	cwq->thread = p;
 
 	trace_workqueue_creation(cwq->thread, cpu);
@@ -821,6 +831,7 @@ static void start_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	if (p != NULL) {
 		if (cpu >= 0)
 			kthread_bind(p, cpu);
+		/*将新进程投入到系统的运行队列中, 如此之后新进程就具备了被调度运行的条件*/
 		wake_up_process(p);
 	}
 }
@@ -836,16 +847,19 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 	struct cpu_workqueue_struct *cwq;
 	int err = 0, cpu;
 
+	/*生成工作队列管理结构的对象wq并初始化*/
 	wq = kzalloc(sizeof(*wq), GFP_KERNEL);
 	if (!wq)
 		return NULL;
 
+	/*alloc_percpu函数生成了per_CPU类型的CPU工作队列管理结构对象*/
 	wq->cpu_wq = alloc_percpu(struct cpu_workqueue_struct);
 	if (!wq->cpu_wq) {
 		kfree(wq);
 		return NULL;
 	}
 
+	/*初始化工作队列管理结构wq*/
 	wq->name = name;
 	lockdep_init_map(&wq->lockdep_map, lock_name, key, 0);
 	wq->singlethread = singlethread;
@@ -853,11 +867,18 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 	wq->rt = rt;
 	INIT_LIST_HEAD(&wq->list);
 
+	/*根据singlethread的值对单线程队列和多线程队列分别进行处理*/
 	if (singlethread) {
+		/*singlethread = 1*/
+
+		/*获得系统中第一个cpu对应的cpu工作队列管理结构指针*/
 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
+		/*生成工人线程(linux内核中的线程其实是一个进程,拥有独立的task_struct) 单线程的  singlethread = 1*/
 		err = create_workqueue_thread(cwq, singlethread_cpu);
 		start_workqueue_thread(cwq, -1);
 	} else {
+		/*singlethread != 1*/
+
 		cpu_maps_update_begin();
 		/*
 		 * We must place this wq on list even if the code below fails.
@@ -866,6 +887,8 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 		 * cwq[cpu]->thread.
 		 */
 		spin_lock(&workqueue_lock);
+		/* 工作队列管理结构对象wq还将把自己加入到
+		 * workqueues管理的链表中,workqueues是一个全局型的双向链表对象,用来链接系统中所有非singlethread的工作队列 */
 		list_add(&wq->list, &workqueues);
 		spin_unlock(&workqueue_lock);
 		/*
@@ -874,10 +897,17 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 		 * cpu_up() can hit the uninitialized cwq once we drop the
 		 * lock.
 		 */
+		/*获得系统中第一个cpu对应的cpu工作队列管理结构指针*/
 		for_each_possible_cpu(cpu) {
 			cwq = init_cpu_workqueue(wq, cpu);
 			if (err || !cpu_online(cpu))
 				continue;
+
+			/* 生成工人线程,singlethread != 1; 函数对系统中的每个
+			 * cpu调用singlethread中的三个步骤,这样么个cpu都将拥有
+			 * 自己的cpu工作队列管理结构和工作在其上的工人线程,这
+			 * 种情况下,工作队列管理结构对象wq还将把自己加入到
+			 * workqueues管理的链表中 */
 			err = create_workqueue_thread(cwq, cpu);
 			start_workqueue_thread(cwq, cpu);
 		}

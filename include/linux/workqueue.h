@@ -11,6 +11,7 @@
 #include <linux/lockdep.h>
 #include <asm/atomic.h>
 
+/* 工作队列管理结构*/
 struct workqueue_struct;
 
 struct work_struct;
@@ -22,13 +23,16 @@ typedef void (*work_func_t)(struct work_struct *work);
  */
 #define work_data_bits(work) ((unsigned long *)(&(work)->data))
 
+/*工作队列*/
 struct work_struct {
-	atomic_long_t data;
+	atomic_long_t data;	/* 驱动程序可以利用data来将设备驱动程序使用
+				 * 的某些指针传递给延迟函数*/
 #define WORK_STRUCT_PENDING 0		/* T if work item pending execution */
 #define WORK_STRUCT_FLAG_MASK (3UL)
 #define WORK_STRUCT_WQ_DATA_MASK (~WORK_STRUCT_FLAG_MASK)
-	struct list_head entry;
-	work_func_t func;
+	struct list_head entry;	/* 双向链表对象,用来将提交的等待处理的工作节点
+				 * 形成链表*/
+	work_func_t func;	/*工作节点的延迟函数,用来完成实际的延迟操作*/
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map lockdep_map;
 #endif
@@ -190,9 +194,11 @@ __create_workqueue_key(const char *name, int singlethread,
 			       NULL, NULL)
 #endif
 
+/**/
 #define create_workqueue(name) __create_workqueue((name), 0, 0, 0)
 #define create_rt_workqueue(name) __create_workqueue((name), 0, 0, 1)
 #define create_freezeable_workqueue(name) __create_workqueue((name), 1, 1, 0)
+/*生成单线程的工作队列 singlethread=1*/
 #define create_singlethread_workqueue(name) __create_workqueue((name), 1, 0, 0)
 
 extern void destroy_workqueue(struct workqueue_struct *wq);
