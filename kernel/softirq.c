@@ -52,6 +52,7 @@ irq_cpustat_t irq_stat[NR_CPUS] ____cacheline_aligned;
 EXPORT_SYMBOL(irq_stat);
 #endif
 
+/*数组中每一项,对应一个软件中断处理函数指针,在中断处理的SOFTIRQ部分,如果发现本地CPU的_softirq_pending上TASKLET_SOFTIRQ或者HI_SOFTIRQ位被置1,就将调用tasklet_action或者tasklet_hi_action*/
 static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp;
 
 static DEFINE_PER_CPU(struct task_struct *, ksoftirqd);
@@ -381,6 +382,7 @@ void raise_softirq(unsigned int nr)
 	local_irq_restore(flags);
 }
 
+/*用来给TASKLET_SOFTIRQ和HI_SOFTIRQ安装对应的执行函数*/
 void open_softirq(int nr, void (*action)(struct softirq_action *))
 {
 	softirq_vec[nr].action = action;
@@ -508,6 +510,7 @@ static void tasklet_hi_action(struct softirq_action *a)
 }
 
 
+/*动态初始化tasklet对象*/
 void tasklet_init(struct tasklet_struct *t,
 		  void (*func)(unsigned long), unsigned long data)
 {
@@ -717,10 +720,12 @@ static struct notifier_block __cpuinitdata remote_softirq_cpu_notifier = {
 	.notifier_call	= remote_softirq_cpu_notify,
 };
 
+/*系统初始化期间调用该函数为TASKLET_SOFTIRQ和HI_SOFTIRQ安装了执行函数*/
 void __init softirq_init(void)
 {
 	int cpu;
 
+	/*用来初始化管理tasklet链表的变量tasklet_vec和tasklet_hi_vec*/
 	for_each_possible_cpu(cpu) {
 		int i;
 
@@ -734,6 +739,7 @@ void __init softirq_init(void)
 
 	register_hotcpu_notifier(&remote_softirq_cpu_notifier);
 
+	/*用来给TASKLET_SOFTIRQ和HI_SOFTIRQ安装对应的执行函数*/
 	open_softirq(TASKLET_SOFTIRQ, tasklet_action);
 	open_softirq(HI_SOFTIRQ, tasklet_hi_action);
 }

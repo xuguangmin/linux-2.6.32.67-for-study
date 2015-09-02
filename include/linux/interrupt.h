@@ -371,7 +371,7 @@ static inline int disable_irq_wake(unsigned int irq)
 /*softirq的类型,软件中断的类型*/
 enum
 {
-	HI_SOFTIRQ=0,	/*用来实现tasklet*/
+	HI_SOFTIRQ=0,	/*用来实现tasklet,优先级高于TASKLET_SOFTIRQ*/
 	TIMER_SOFTIRQ,	/*用于定时器*/
 	NET_TX_SOFTIRQ,	/*网络设备的发送操作*/
 	NET_RX_SOFTIRQ,	/*网络设备的接收操作*/
@@ -394,7 +394,7 @@ extern char *softirq_to_name[NR_SOFTIRQS];
  * asm/hardirq.h to get better cache usage.  KAO
  */
 
-/**/
+/*软中断处理函数原形*/
 struct softirq_action
 {
 	void	(*action)(struct softirq_action *);
@@ -448,26 +448,37 @@ extern void __send_remote_softirq(struct call_single_data *cp, int cpu,
      wrt another tasklets. If client needs some intertask synchronization,
      he makes it with spinlocks.
  */
-
+ /*表示tasklet对象的数据结构
+  * 驱动程序为了实现基于tasklet机制的延迟操作,首先需要声明一个tasklet对象*/
 struct tasklet_struct
 {
-	struct tasklet_struct *next;
-	unsigned long state;
-	atomic_t count;
-	void (*func)(unsigned long);
-	unsigned long data;
+	struct tasklet_struct *next;	/*将系统中的tasklet对象构建成链表*/
+	unsigned long state; /*记录每个tasklet在系统中的状态,其值时枚举型变量
+				TASKLET_STATE_SCHED和TASKLET_STATE_RUN两者之一*/
+
+	atomic_t count;	/*用来实现tasklet的disable和enable操作,count.counter=0
+			表示当前的tasklet是enabled的,可以被调度执行,否则便是
+			disabled的tasklet,不可被执行*/
+	void (*func)(unsigned long);	/*该tasklet上的执行函数或者延迟函数,当该tasklet在SOFTIRQ部分被调度执行时,该函数指针指向的函数被调用,用来完成驱动程序中实际的延迟操作任务*/
+	unsigned long data;	/*作为参数传给func函数*/
 };
 
+/*声明并初始化一个tasklet对象*/
 #define DECLARE_TASKLET(name, func, data) \
 struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(0), func, data }
 
+/*用来声明一个处于disabled状态的tasklet对象*/
 #define DECLARE_TASKLET_DISABLED(name, func, data) \
 struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(1), func, data }
 
 
 enum
 {
+	/*TASKLET_STATE_SCHED表示当前tasklet已经被提交*/
 	TASKLET_STATE_SCHED,	/* Tasklet is scheduled for execution */
+
+	/* TASKLET_STATE_RUN只用在对称多处理器系统SMP中,
+	 * 表示当前tasklet正在执行*/
 	TASKLET_STATE_RUN	/* Tasklet is running (SMP only) */
 };
 
@@ -495,6 +506,8 @@ static inline void tasklet_unlock_wait(struct tasklet_struct *t)
 
 extern void __tasklet_schedule(struct tasklet_struct *t);
 
+/* 驱动程序项系统提交这个tasklet,即将tastlet对象加入到tasklet_vec管理的链表中
+ * 对于HI_SOFTIRQ,提交tasklet对象的函数为tasklet_hi_schedule*/
 static inline void tasklet_schedule(struct tasklet_struct *t)
 {
 	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
@@ -503,6 +516,7 @@ static inline void tasklet_schedule(struct tasklet_struct *t)
 
 extern void __tasklet_hi_schedule(struct tasklet_struct *t);
 
+/* 驱动程序项系统提交这个tasklet,即将tastlet对象加入到tasklet_vec管理的链表中*/
 static inline void tasklet_hi_schedule(struct tasklet_struct *t)
 {
 	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
@@ -551,6 +565,7 @@ static inline void tasklet_hi_enable(struct tasklet_struct *t)
 
 extern void tasklet_kill(struct tasklet_struct *t);
 extern void tasklet_kill_immediate(struct tasklet_struct *t, unsigned int cpu);
+/*动态初始化tasklet对象*/
 extern void tasklet_init(struct tasklet_struct *t,
 			 void (*func)(unsigned long), unsigned long data);
 
