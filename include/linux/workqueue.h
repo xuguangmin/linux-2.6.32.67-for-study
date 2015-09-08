@@ -199,11 +199,18 @@ __create_workqueue_key(const char *name, int singlethread,
 #define create_workqueue(name) __create_workqueue((name), 0, 0, 0)
 #define create_rt_workqueue(name) __create_workqueue((name), 0, 0, 1)
 #define create_freezeable_workqueue(name) __create_workqueue((name), 1, 1, 0)
-/*生成单线程的工作队列 singlethread=1*/
+/* 生成单线程的工作队列 singlethread=1,与create_workqueue函数的区别是
+ * create_singlethread_workqueue只在系统中的第一个CPU(singlethread_cpu)上创建
+ * 工作队列和工人线程,而create_workquque函数会在系统中的每个CPU上都创建工作
+ * 队列和工人线程*/
 #define create_singlethread_workqueue(name) __create_workqueue((name), 1, 0, 0)
 
 extern void destroy_workqueue(struct workqueue_struct *wq);
 
+/* 在用queue_work向工作队列提交工作节点时，如果工作队列是singlethread类型的，
+ * 因为此时只有一个worklist，所以工作节点只能提交到这唯一的一个worklist上，
+ * 反之，如果工作队列不是singlethread类型的，那么工作节点将会提交到当前运行
+ * queue_work的CPU所在的worklist中*/
 extern int queue_work(struct workqueue_struct *wq, struct work_struct *work);
 extern int queue_work_on(int cpu, struct workqueue_struct *wq,
 			struct work_struct *work);

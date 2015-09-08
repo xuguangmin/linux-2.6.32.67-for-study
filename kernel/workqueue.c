@@ -100,6 +100,8 @@ static const struct cpumask *wq_cpu_map(struct workqueue_struct *wq)
 		? cpu_singlethread_map : cpu_populated_map;
 }
 
+/* 如果是singlethread类型的工作队列,那么工作节点就提交到第一个CPU的cwq上,
+ * 否则哪个CPU调用queue_work,工作节点就提交到哪个CPU的cwq上*/
 static
 struct cpu_workqueue_struct *wq_per_cpu(struct workqueue_struct *wq, int cpu)
 {
@@ -130,6 +132,7 @@ struct cpu_workqueue_struct *get_wq_data(struct work_struct *work)
 	return (void *) (atomic_long_read(&work->data) & WORK_STRUCT_WQ_DATA_MASK);
 }
 
+/*__queue_work调用该函数,完成节点的提交*/
 static void insert_work(struct cpu_workqueue_struct *cwq,
 			struct work_struct *work, struct list_head *head)
 {
@@ -142,15 +145,21 @@ static void insert_work(struct cpu_workqueue_struct *cwq,
 	 */
 	smp_wmb();
 	list_add_tail(&work->entry, head);
+	/*唤醒在等待队列cwq->more_work上睡眠的worker_thread,如果worker_thread正在运行,就什么也不做*/
 	wake_up(&cwq->more_work);
 }
 
+/* 提交节点
+ * @cwq:CPU工作队列管理结构
+ * @work:待提交的节点指针
+ */
 static void __queue_work(struct cpu_workqueue_struct *cwq,
 			 struct work_struct *work)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&cwq->lock, flags);
+	/*完成节点的提交*/
 	insert_work(cwq, work, &cwq->worklist);
 	spin_unlock_irqrestore(&cwq->lock, flags);
 }
@@ -165,7 +174,14 @@ static void __queue_work(struct cpu_workqueue_struct *cwq,
  * We queue the work to the CPU on which it was submitted, but if the CPU dies
  * it can be processed by another CPU.
  */
- /*当驱动程序调用queue_work向工作队列提交节点work时,queue_work会把work->data的WORK_STRUCT_PENDING位置1,这是为了防止驱动程序将一个尚未被处理的工作节点再次提交cwq->worklist*/
+ /* 当驱动程序调用queue_work向工作队列提交节点work时,queue_work会把work->data的
+  * WORK_STRUCT_PENDING位置1,这是为了防止驱动程序将一个尚未被处理的工作节点
+  * 再次提交cwq->worklist
+
+ * 在用queue_work向工作队列提交工作节点时，如果工作队列是singlethread类型的，
+ * 因为此时只有一个worklist，所以工作节点只能提交到这唯一的一个worklist上，
+ * 反之，如果工作队列不是singlethread类型的，那么工作节点将会提交到当前运行
+ * queue_work的CPU所在的worklist中*/
 int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 {
 	int ret;
@@ -193,6 +209,12 @@ queue_work_on(int cpu, struct workqueue_struct *wq, struct work_struct *work)
 {
 	int ret = 0;
 
+	/* 首先检测work->data的WORK_STRUCT_PENDING位有没有被置1,置1意味着此前该
+	 * work已经被提交还没有处理,内核禁止驱动程序在一个工作节点还没处理完就
+	 * 再次提交该节点,此处的检测也告诉驱动程序,在构造工作节点对象work时,
+	 * 应该确保work->data低2位为0,如果work->data的WORK_STRUCT_PENDING为是0
+	 * ,那么就把该位置1表明工作节点处于等待处理的状态,然后调用__queue_work
+	 * 来提交节点*/
 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
 		BUG_ON(!list_empty(&work->entry));
 		__queue_work(wq_per_cpu(wq, cpu), work);
