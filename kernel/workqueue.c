@@ -241,12 +241,19 @@ static void delayed_work_timer_fn(unsigned long __data)
  *
  * Returns 0 if @work was already on a queue, non-zero otherwise.
  */
+
+/** 
+ * delay代表一个延迟的时间,工作节点需要等到delay指定的时间过后才会被真正提交
+ * 到队列wq上
+ */
 int queue_delayed_work(struct workqueue_struct *wq,
 			struct delayed_work *dwork, unsigned long delay)
 {
+	/*和queue_work一样*/
 	if (delay == 0)
 		return queue_work(wq, &dwork->work);
 
+	/*延迟提交*/
 	return queue_delayed_work_on(-1, wq, dwork, delay);
 }
 EXPORT_SYMBOL_GPL(queue_delayed_work);
@@ -259,6 +266,12 @@ EXPORT_SYMBOL_GPL(queue_delayed_work);
  * @delay: number of jiffies to wait before queueing
  *
  * Returns 0 if @work was already on a queue, non-zero otherwise.
+ */
+/**
+ * 利用定时器timer来实现延迟提交的工作,timer->expires = jiffies + delay,这样当
+ * delay实际到期后,timer->function = delayed_work_timer_fn将被调用,
+ * delayed_work_timer_fn会把queue_delayed_work_on要提交的节点提交到工作队列中,
+ * 所有驱动程序要使用queue_delayed_work,要生成一个struct delayed_work对象
  */
 int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
 			struct delayed_work *dwork, unsigned long delay)
@@ -293,7 +306,8 @@ EXPORT_SYMBOL_GPL(queue_delayed_work_on);
 static void run_workqueue(struct cpu_workqueue_struct *cwq)
 {
 	spin_lock_irq(&cwq->lock);
-	/* 函数在while循环中遍历cwq->worklist链表,对于其中的每个工作节点work,
+	/**
+	 * 函数在while循环中遍历cwq->worklist链表,对于其中的每个工作节点work,
 	 * 先将其从cwk->worklist链表删除,然后调用工作节点上的延迟函数f(work),
 	 * 传递给函数的参数是延迟函数所在工作节点的指针work,一个工作节点被处理
 	 * 完之后,将不会再出现在工作队列的cwq->worklist中,除非被再次提交

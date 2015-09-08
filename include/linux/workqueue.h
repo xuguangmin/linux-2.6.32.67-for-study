@@ -40,9 +40,12 @@ struct work_struct {
 
 #define WORK_DATA_INIT()	ATOMIC_LONG_INIT(0)
 
+/**
+ * 使用queue_delayed_work时用到此结构体,实现延迟提交功能
+ */
 struct delayed_work {
 	struct work_struct work;
-	struct timer_list timer;
+	struct timer_list timer;	/*实现时间上的延迟操作*/
 };
 
 static inline struct delayed_work *to_delayed_work(struct work_struct *work)
@@ -78,6 +81,7 @@ struct execute_work {
 	.timer = TIMER_INITIALIZER(NULL, 0, 0),			\
 	}
 
+/*可以让驱动程序静态定义一个struct work_struct对象同时初始化*/
 #define DECLARE_WORK(n, f)					\
 	struct work_struct n = __WORK_INITIALIZER(n, f)
 
@@ -86,6 +90,9 @@ struct execute_work {
 
 /*
  * initialize a work item's function pointer
+ */
+/*
+ * 初始化一个工作队列节点,只是重新设置struct work_struct中的func指针
  */
 #define PREPARE_WORK(_work, _func)				\
 	do {							\
@@ -103,6 +110,7 @@ struct execute_work {
  * to generate better code.
  */
 #ifdef CONFIG_LOCKDEP
+/* 初始化一个工作队列节点,INIT_WORK初始化struct work_struct中的每个成员*/
 #define INIT_WORK(_work, _func)						\
 	do {								\
 		static struct lock_class_key __key;			\
@@ -212,6 +220,7 @@ extern void destroy_workqueue(struct workqueue_struct *wq);
  * 反之，如果工作队列不是singlethread类型的，那么工作节点将会提交到当前运行
  * queue_work的CPU所在的worklist中*/
 extern int queue_work(struct workqueue_struct *wq, struct work_struct *work);
+/**/
 extern int queue_work_on(int cpu, struct workqueue_struct *wq,
 			struct work_struct *work);
 extern int queue_delayed_work(struct workqueue_struct *wq,
