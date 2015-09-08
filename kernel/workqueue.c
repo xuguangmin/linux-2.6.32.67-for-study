@@ -165,6 +165,7 @@ static void __queue_work(struct cpu_workqueue_struct *cwq,
  * We queue the work to the CPU on which it was submitted, but if the CPU dies
  * it can be processed by another CPU.
  */
+ /*当驱动程序调用queue_work向工作队列提交节点work时,queue_work会把work->data的WORK_STRUCT_PENDING位置1,这是为了防止驱动程序将一个尚未被处理的工作节点再次提交cwq->worklist*/
 int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 {
 	int ret;
@@ -266,9 +267,15 @@ int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
 }
 EXPORT_SYMBOL_GPL(queue_delayed_work_on);
 
+/*处理cwq->worklist上的工作节点*/
 static void run_workqueue(struct cpu_workqueue_struct *cwq)
 {
 	spin_lock_irq(&cwq->lock);
+	/* 函数在while循环中遍历cwq->worklist链表,对于其中的每个工作节点work,
+	 * 先将其从cwk->worklist链表删除,然后调用工作节点上的延迟函数f(work),
+	 * 传递给函数的参数是延迟函数所在工作节点的指针work,一个工作节点被处理
+	 * 完之后,将不会再出现在工作队列的cwq->worklist中,除非被再次提交
+	 */
 	while (!list_empty(&cwq->worklist)) {
 		struct work_struct *work = list_entry(cwq->worklist.next,
 						struct work_struct, entry);
@@ -290,9 +297,12 @@ static void run_workqueue(struct cpu_workqueue_struct *cwq)
 		spin_unlock_irq(&cwq->lock);
 
 		BUG_ON(get_wq_data(work) != cwq);
+		/* 函数用来清除work->data的WORK_STRUCT_PENDING位(位0),这里内核把
+		 * work->data的低2位用于记录work的状态信息*/
 		work_clear_pending(work);
 		lock_map_acquire(&cwq->wq->lockdep_map);
 		lock_map_acquire(&lockdep_map);
+		/*调用延迟函数*/
 		f(work);
 		lock_map_release(&lockdep_map);
 		lock_map_release(&cwq->wq->lockdep_map);
@@ -314,6 +324,7 @@ static void run_workqueue(struct cpu_workqueue_struct *cwq)
 	spin_unlock_irq(&cwq->lock);
 }
 
+/*工人线程*/
 static int worker_thread(void *__cwq)
 {
 	struct cpu_workqueue_struct *cwq = __cwq;
@@ -322,6 +333,7 @@ static int worker_thread(void *__cwq)
 	if (cwq->wq->freezeable)
 		set_freezable();
 
+	/*主体*/
 	for (;;) {
 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
 		if (!freezing(current) &&
@@ -332,9 +344,11 @@ static int worker_thread(void *__cwq)
 
 		try_to_freeze();
 
+		/*检测有没有别的函数对他调用了kthread_stop,有的话代表该线程的kthread对象的should_stop成员将被置1,此时worker_thread将通过break跳出循环,线程函数所在的进程将会终结*/
 		if (kthread_should_stop())
 			break;
 
+		/*处理cwq->worklist上的工作节点*/
 		run_workqueue(cwq);
 	}
 
@@ -352,6 +366,7 @@ static void wq_barrier_func(struct work_struct *work)
 	complete(&barr->done);
 }
 
+/*函数提交中止节点*/
 static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
 			struct wq_barrier *barr, struct list_head *head)
 {
@@ -363,21 +378,36 @@ static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
 	insert_work(cwq, &barr->work, head);
 }
 
+/* 终止worker_thread所在进程的一个前提时要确保所有提交到cwq->worklist中的工作
+ * 节点都已经处理完毕,由此函数完成;函数确保cwq->worklist上所有工作节点都已经
+ * 处理完毕的设计思想是利用完成接口completion:如果cwq->worklist不为空或者
+ * cwq->current_work不为空,说明cwq_worklist上还有工作节点或者worker_thread正在
+ * 处理一个工作节点,则向cwq->worklist上提交一个新的工作节点,这里不妨称为终止
+ * 节点,当终止节点上的延迟函数被执行时,它将调用complete函数通知
+ * flush_cpu_workqueue,而后者在提交完终止节点之后将睡眠等待wait_for_completion
+ * 函数上,直到之前提交的终止节点上的延迟函数执行结束;
+ * 
+ * 函数的操作范围只限于单个CPU,对于非singlethread工作队列,因为每个CPU上都有
+ * 一个工作队列和worker_thread,要确保系统中所有CPU上的工作队列中的工作节点都被
+ * 处理完,应该使用flush_workqueue函数*/
 static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
 {
 	int active = 0;
 	struct wq_barrier barr;
 
+	/*意味着驱动程序不应该在提交的工作节点延迟函数中调用flush_cpu_workqueue*/
 	WARN_ON(cwq->thread == current);
 
 	spin_lock_irq(&cwq->lock);
 	if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
+		/*函数提交中止节点*/
 		insert_wq_barrier(cwq, &barr, &cwq->worklist);
 		active = 1;
 	}
 	spin_unlock_irq(&cwq->lock);
 
 	if (active)
+		/*提交完中止节点,再此等待延迟函数执行*/
 		wait_for_completion(&barr.done);
 
 	return active;
@@ -396,6 +426,9 @@ static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
  * This function used to run the workqueues itself.  Now we just wait for the
  * helper threads to do it.
  */
+ /* 函数返回后可以确保函数调用前提交的所有工作节点都已经处理完毕,与之类似的还有
+  * 一个函数flush_work,如果驱动程序想等待在某个提交的工作节点上直到该节点处理
+  * 完毕函数才返回，就可以使用flush_work函数*/
 void flush_workqueue(struct workqueue_struct *wq)
 {
 	const struct cpumask *cpu_map = wq_cpu_map(wq);
@@ -419,6 +452,10 @@ EXPORT_SYMBOL_GPL(flush_workqueue);
  * arranged for the work to not be requeued, otherwise it doesn't make
  * sense to use this function.
  */
+
+/* 如果驱动程序想等待在某个提交的工作节点上直到该节点处理完毕函数才返回，
+ * 就可以使用flush_work函数,参数work就是调用者要等待在其上的工作节点,如果函数
+ * 调用时work已经处理完毕，函数返回０*/
 int flush_work(struct work_struct *work)
 {
 	struct cpu_workqueue_struct *cwq;
@@ -925,6 +962,8 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 }
 EXPORT_SYMBOL_GPL(__create_workqueue_key);
 
+/* 安全的终结worker_thread,因为destroy_workqueue被调用的时候,
+ * worker_thread很有可能正在处理worklist中余下的工作节点*/
 static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 {
 	/*
@@ -937,6 +976,8 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 	lock_map_acquire(&cwq->wq->lockdep_map);
 	lock_map_release(&cwq->wq->lockdep_map);
 
+	/*终止worker_thread所在进程的一个前提时要确保所有提交到cwq->worklist中
+	 * 的工作节点都已经处理完毕,由此函数完成*/
 	flush_cpu_workqueue(cwq);
 	/*
 	 * If the caller is CPU_POST_DEAD and cwq->worklist was not empty,
@@ -949,6 +990,9 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 	 * a dead CPU.
 	 */
 	trace_workqueue_destruction(cwq->thread);
+	/*让worker_thread所在的进程终止，因为一旦进程的执行函数worker_thread
+	 * 结束，进程将调用do_exit而终结，所以kthread_stop让worker_thread结束
+	 * 的原理就是设置should_stop = 1*/
 	kthread_stop(cwq->thread);
 	cwq->thread = NULL;
 }
@@ -959,6 +1003,7 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
  *
  * Safely destroy a workqueue. All work currently pending will be done first.
  */
+ /*函数执行与create_singlethread_workqueue/create_workqueue相反的任务,当驱动程序不再需要后者创建的工作队列时(比如驱动程序模块从系统中移走或者关闭设备),需要调用该函数来做工作队列的清理善后工作*/
 void destroy_workqueue(struct workqueue_struct *wq)
 {
 	const struct cpumask *cpu_map = wq_cpu_map(wq);
@@ -970,6 +1015,8 @@ void destroy_workqueue(struct workqueue_struct *wq)
 	spin_unlock(&workqueue_lock);
 
 	for_each_cpu(cpu, cpu_map)
+		/*安全的终结worker_thread,因为destroy_workqueue被调用的时候,
+		 * worker_thread很有可能正在处理worklist中余下的工作节点*/
 		cleanup_workqueue_thread(per_cpu_ptr(wq->cpu_wq, cpu));
  	cpu_maps_update_done();
 
