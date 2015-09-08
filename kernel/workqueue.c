@@ -610,6 +610,8 @@ static struct workqueue_struct *keventd_wq __read_mostly;
  * queued and leaves it in the same position on the kernel-global
  * workqueue otherwise.
  */
+ /* 提交工作节点,queue_work的包装函数,,queue_work的包装函数
+  * 驱动程序如果使用内核创建的工作队列只需调用schedule_workqueue就可以了*/
 int schedule_work(struct work_struct *work)
 {
 	return queue_work(keventd_wq, work);
@@ -637,6 +639,7 @@ EXPORT_SYMBOL(schedule_work_on);
  * After waiting for a given time this puts a job in the kernel-global
  * workqueue.
  */
+ /*延迟提交函数;对应queue_delayed_work*/
 int schedule_delayed_work(struct delayed_work *dwork,
 					unsigned long delay)
 {
@@ -1072,6 +1075,7 @@ long work_on_cpu(unsigned int cpu, long (*fn)(void *), void *arg)
 EXPORT_SYMBOL_GPL(work_on_cpu);
 #endif /* CONFIG_SMP */
 
+/**/
 void __init init_workqueues(void)
 {
 	alloc_cpumask_var(&cpu_populated_map, GFP_KERNEL);
@@ -1080,6 +1084,7 @@ void __init init_workqueues(void)
 	singlethread_cpu = cpumask_first(cpu_possible_mask);
 	cpu_singlethread_map = cpumask_of(singlethread_cpu);
 	hotcpu_notifier(workqueue_cpu_callback, 0);
+	/*初始化阶段创建一个名为events的工作队列*/
 	keventd_wq = create_workqueue("events");
 	BUG_ON(!keventd_wq);
 }
