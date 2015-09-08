@@ -2,6 +2,56 @@
  * workqueue.h --- work queue handling for Linux.
  */
 
+
+/**
+ * 使用了工作队列执行延迟操作的代码范例:
+ 
+ //定义全局性的struct workqueue_struct(工作队列管理结构)指针demo_dev_wq
+ static struct workqueue_struct * demo_dev_wq;
+ 
+ //设备特定的数据结构,实际使用中大部分struct work_struct结构都内嵌在这个数据结构中
+ struct demo_device {
+ 	...
+	struct work_struct work;
+	...
+ }
+ static struct demo_device *demo_dev;
+
+ //定义延迟操作函数
+ void demo_work_func(struct work_struct *work)
+ {
+ 	...
+ }
+
+ //驱动程序模块初始化代码调用creat_singlethread_workqueue创建工作队列
+ static int __init demo_dev_init(void)
+ {
+ 	...
+	demo_dev = kzalloc(sizeof(*demo_dev), GFP_KERNEL);
+	demo_dev_wq = create_singlethread_workqueue("demo_dev_workqueue");
+	INIT_WORK(&demo_dev->work, demo_work_func);
+	...
+ }
+
+ //模块退出函数
+ static void demo_dev_exit(void)
+ {
+ 	...
+	flush_workqueue(demo_dev_wq);
+	destroy_workqueue(demo_dev_wq);
+	...
+ }
+
+ //中断处理函数
+ irqreturn_t demo_isr(iint irq, void *dev_id)
+ {
+ 	...
+	queue_work(demo_dev_wq, &demo_dev->work);
+	...
+ }
+
+ */
+
 #ifndef _LINUX_WORKQUEUE_H
 #define _LINUX_WORKQUEUE_H
 
