@@ -162,7 +162,9 @@ static inline __must_check long __copy_to_user(void __user *to,
 })
 
 /* 用来完成一些简单类型变量(char,int,long)的拷贝任务,对于复合类型的变量,如数据
- * 结构,函数无法胜任*/
+ * 结构,函数无法胜任
+ * 用来将内核空间的一个简单类型变量x拷贝到ptr指向的用户空间中,函数能自动判断变量
+ * 的类型,成功返回0,否则返回-EFAULT*/
 #define put_user(x, ptr)					\
 ({								\
 	might_sleep();						\
@@ -220,7 +222,8 @@ extern int __put_user_bad(void) __attribute__((noreturn));
 })
 
 /* 用来完成一些简单类型变量(char,int,long)的拷贝任务,对于复合类型的变量,如数据
- * 结构,函数无法胜任*/
+ * 结构,函数无法胜任
+ * 将用户空间ptr指向的数据拷贝到内核空间的变量x中,函数成功返回0,否则返回-EFAULT*/
 #define get_user(x, ptr)					\
 ({								\
 	might_sleep();						\

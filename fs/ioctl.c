@@ -19,6 +19,54 @@
 
 #include <asm/ioctls.h>
 
+/**
+ * 	EXAMPLE:  unlocked_ioctl实现范例
+
+static long zl30310_espi_ioctl(struct *filp, unsigned int cmd, unsigned ong arg)
+{
+	...
+	if(_IOC_TYPE(cmd) != ZL30310_IOC_MAGIC)
+		return -ENOTTY;
+	if(_IOC_DIR(cmd) & _IOC_READ)
+		err = !access_ok(VERIFY_WRITE, (void __user*)arg, _IOC_SIZE(cmd));
+	if(err)
+		return -EFAULT;
+
+	size = _IOC_SIZE(cmd);
+	
+	mutex_lock(&zl30310_espi->buf_lock);
+	switch(cmd) {
+		case ZL30310_SPI_IOC_RD_MODE:
+			retval = __put_user(spi->mode & SPI_MODE_MASK,(__u8 __user*)arg);
+			break;
+		case ZL30310_SPI_IOC_REG_READ:
+			retval = __get_user(addr, (__u8 __user *)arg);
+			zl30310_reg_read8(zl30310_espi, addr, &regval);
+			if(retval == 0) {
+				__put_user(regval, (__u8 __user*)arg);
+			}
+			break;
+		case ZL30310_SPI_IOC_REG_WRITE:
+			if(__copy_from_user(&regop, (const void*)arg, size)) {
+				retval = -EFAULT;
+				break;
+			}
+			zl30310_reg_write8(zl30310_espi, regop.addr, regop.regval);
+			break;
+		default:
+			retval = -EFAULT;
+			break;
+		...
+		mutex_unlock(&zl30310_espi->buf_lock);
+		return retval;
+	}
+}
+
+ */
+
+
+
+
 /* So that the fiemap access checks can't overflow on 32 bit machines. */
 #define FIEMAP_MAX_EXTENTS	(UINT_MAX / sizeof(struct fiemap_extent))
 
