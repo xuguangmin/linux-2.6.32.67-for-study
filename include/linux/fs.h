@@ -1503,12 +1503,12 @@ struct file_operations {
 	 * THIS_MODULE将被赋值为空指针，没有任何作用*/
 	struct module *owner;	
 	loff_t (*llseek) (struct file *, loff_t, int);
-	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
-	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
+	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
 	ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
 	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
 	int (*readdir) (struct file *, void *, filldir_t);
-	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+	unsigned int (*poll) (struct file *, struct poll_table_struct *);/*异步阻塞/非阻塞I/O*/
 	/**
 	 * 设备文件的ioctl操作常用来对设备的行为进行某种控制,一般用来在用户空间的
 	 * 应用程序和驱动程序模块直接传递控制参数,很少用于大数据量的传递,对于
