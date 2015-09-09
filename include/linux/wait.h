@@ -172,6 +172,7 @@ wait_queue_head_t *bit_waitqueue(void *, int);
 #define wake_up_all(x)			__wake_up(x, TASK_NORMAL, 0, NULL)
 #define wake_up_locked(x)		__wake_up_locked((x), TASK_NORMAL)
 
+/*用来唤醒一个等待队列上的睡眠进程*/
 #define wake_up_interruptible(x)	__wake_up(x, TASK_INTERRUPTIBLE, 1, NULL)
 #define wake_up_interruptible_nr(x, nr)	__wake_up(x, TASK_INTERRUPTIBLE, nr, NULL)
 #define wake_up_interruptible_all(x)	__wake_up(x, TASK_INTERRUPTIBLE, 0, NULL)
@@ -214,6 +215,9 @@ do {									\
  * wake_up() has to be called after changing any variable that could
  * change the result of the wait condition.
  */
+/**
+ * 该函数使调用的进程进入等待队列,赋予睡眠进程的状态是TASK_UNINTERRUPTIBLE,与wait_event_interruptible的区别是他使睡眠的进程不可被中断,而且当进程被唤醒时也不会检查是否有等待的信号需要处理
+ */
 #define wait_event(wq, condition) 					\
 do {									\
 	if (condition)	 						\
@@ -252,6 +256,7 @@ do {									\
  * The function returns 0 if the @timeout elapsed, and the remaining
  * jiffies if the condition evaluated to true before the timeout elapsed.
  */
+/*调用该函数的进程将进入睡眠,其状态是TASK_UNINTERRUPTIBLE,不可被中断,而且当进程被唤醒时也不检查是否有等待的信号需要处理,该函数与wait_event的区别是,会指定一个时间期限,在指定的时间到达时将返回0*/
 #define wait_event_timeout(wq, condition, timeout)			\
 ({									\
 	long __ret = timeout;						\
@@ -262,10 +267,12 @@ do {									\
 
 #define __wait_event_interruptible(wq, condition, ret)			\
 do {									\
-	DEFINE_WAIT(__wait);						\
+	DEFINE_WAIT(__wait); 						\
 									\
 	for (;;) {							\
+		/*完成睡眠前的准备工作*/				\
 		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+		/*如果condition条件依然为假,并且当前进程也没有等待的信号需要处理,schedule函数将被调用,在那里调度器将把当前进程从他的运行队列中移除,wait_event_interrupt的表现形式是阻塞在了schedule函数上知道进程下次被再次唤醒并被调度执行*/		\
 		if (condition)						\
 			break;						\
 		if (!signal_pending(current)) {				\
@@ -275,6 +282,7 @@ do {									\
 		ret = -ERESTARTSYS;					\
 		break;							\
 	}								\
+	/*该函数基本时prepare_to_wait的一个反向操作*/	\
 	finish_wait(&wq, &__wait);					\
 } while (0)
 
@@ -293,6 +301,8 @@ do {									\
  * The function will return -ERESTARTSYS if it was interrupted by a
  * signal and 0 if @condition evaluated to true.
  */
+/*用来将当前调用它的进程睡眠等待在一个event上直到进程被唤醒并且需要的condition条件为真*/
+/*在condition条件不为真时将睡眠在一个等待队列wq上*/ 
 #define wait_event_interruptible(wq, condition)				\
 ({									\
 	int __ret = 0;							\
@@ -338,6 +348,7 @@ do {									\
  * was interrupted by a signal, and the remaining jiffies otherwise
  * if the condition evaluated to true before the timeout elapsed.
  */
+/*在wait_event_interruptible函数的基础上加入了时间期限,在指定的时间到达时函数将返回0*/
 #define wait_event_interruptible_timeout(wq, condition, timeout)	\
 ({									\
 	long __ret = timeout;						\
@@ -459,6 +470,7 @@ void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
 int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
 int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
 
+/*function函数在节点上的进程被唤醒时被调用,private指向当前调用wait_event_interrupt的进程*/
 #define DEFINE_WAIT_FUNC(name, function)				\
 	wait_queue_t name = {						\
 		.private	= current,				\
@@ -466,6 +478,7 @@ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
 		.task_list	= LIST_HEAD_INIT((name).task_list),	\
 	}
 
+/*用来定义一个等待队列节点对象,autoremove_wake_function函数在节点上的进程被唤醒时被调用*/
 #define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
 
 #define DEFINE_WAIT_BIT(name, word, bit)				\

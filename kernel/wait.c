@@ -64,15 +64,19 @@ EXPORT_SYMBOL(remove_wait_queue);
  * stops them from bleeding out - it would still allow subsequent
  * loads to move into the critical region).
  */
+/*完成睡眠前的准备工资*/				\
 void
 prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state)
 {
 	unsigned long flags;
 
+	/*清除__wait节点flags中的WQ_FLAG_EXCLUSIVE标志,该标志在唤醒函数中用到*/
 	wait->flags &= ~WQ_FLAG_EXCLUSIVE;
 	spin_lock_irqsave(&q->lock, flags);
 	if (list_empty(&wait->task_list))
+		/*将__wait节点加入到等待队列wq中*/
 		__add_wait_queue(q, wait);
+	/*将当前进程的状态设置为TASK_INTERRUPTIBLE*/
 	set_current_state(state);
 	spin_unlock_irqrestore(&q->lock, flags);
 }
@@ -101,10 +105,12 @@ EXPORT_SYMBOL(prepare_to_wait_exclusive);
  * the wait descriptor from the given waitqueue if still
  * queued.
  */
+/*该函数基本时prepare_to_wait的一个反向操作*/	\
 void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 {
 	unsigned long flags;
 
+	/*重新设置进程状态为TASK_RUNNING*/
 	__set_current_state(TASK_RUNNING);
 	/*
 	 * We can check for list emptiness outside the lock
@@ -121,6 +127,7 @@ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 	 */
 	if (!list_empty_careful(&wait->task_list)) {
 		spin_lock_irqsave(&q->lock, flags);
+		/*将__wait节点从wq中删除*/
 		list_del_init(&wait->task_list);
 		spin_unlock_irqrestore(&q->lock, flags);
 	}
