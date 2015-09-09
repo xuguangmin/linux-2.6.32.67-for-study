@@ -712,7 +712,7 @@ EXPORT_SYMBOL(schedule_work_on);
  * After waiting for a given time this puts a job in the kernel-global
  * workqueue.
  */
- /*延迟提交函数;对应queue_delayed_work*/
+ /*对于内核创建的工作队列的延迟提交函数;对应queue_delayed_work*/
 int schedule_delayed_work(struct delayed_work *dwork,
 					unsigned long delay)
 {
