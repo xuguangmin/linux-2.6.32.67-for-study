@@ -19,7 +19,30 @@
  * this explicit here.  Please be sure to use the decoding macros
  * below from now on.
  */
+
+/* 为构造ioctl的cmd参数,内核使用了一个32位无符号整数并将其分成四个部分
+
+   31   29            16 15            8 7              0
+   |DIR |     SIZE      |     TYPE      |      NR       |
+
+ * NR:为功能号,长度为8位(_IOC_NRBITS)
+ * TYPE:为一ASCII字符,假定对每个驱动程序而言都是唯一的,长度是8位(_IOC_TYPEBITS)
+ *      实际的宏定义中常常含有MAGIC字样,所以有时也称为魔数
+ * SIZE:表示ioctl调用中arg参数的大小,该字段的长度与体系架构相关,通常是14位
+        (_IOC_SIZEBITS),其实内核在ioctl的调用中并没有用到该字段
+ * DIR:表示cmd的类型:read,write和read-write,长度是2位,这个字段用于表示在ioctl
+       调用过程中用户空间和内核空间数据传输的方向,此处方向的定义是从用户空间的
+       视角触发,内核为该字段定义的宏有:_IOC_NONE,表示在ioctl调用过程中,用户空间
+       和内核空间没有需要传递的参数:_IOC_WRITE,表示在ioctl调用过程中,用户空间
+       需要向内核空间写入数据;_IOC_READ,表示在ioctl调用过程中,用户空间需要从内核
+       空间读取数据;_IOC_WRITE|_IOC_READ,表示在ioctl调用过程中,参数数据在用户
+       空间和内核空间进行双向传递
+ */
+
+ /* NR:为功能号,长度为8位(_IOC_NRBITS)*/
 #define _IOC_NRBITS	8
+ /* TYPE:为一ASCII字符,假定对每个驱动程序而言都是唯一的,长度是8位(_IOC_TYPEBITS)
+ *  实际的宏定义中常常含有MAGIC字样,所以有时也称为魔数*/
 #define _IOC_TYPEBITS	8
 
 /*
@@ -27,10 +50,15 @@
  * including this file.
  */
 
+ /* SIZE:表示ioctl调用中arg参数的大小,该字段的长度与体系架构相关,通常是14位
+  * (_IOC_SIZEBITS),其实内核在ioctl的调用中并没有用到该字段*/
 #ifndef _IOC_SIZEBITS
 # define _IOC_SIZEBITS	14
 #endif
 
+ /* DIR:表示cmd的类型:read,write和read-write,长度是2位,这个字段用于表示在ioctl
+  * 调用过程中用户空间和内核空间数据传输的方向,此处方向的定义是从用户空间的
+  * 视角触发*/
 #ifndef _IOC_DIRBITS
 # define _IOC_DIRBITS	2
 #endif
@@ -50,18 +78,24 @@
  * before including this file.
  */
 
+       
+       
+/*表示在ioctl调用过程中,用户空间和内核空间没有需要传递的参数.*/
 #ifndef _IOC_NONE
-# define _IOC_NONE	0U
+# define _IOC_NONE	0U	
 #endif
 
+/*表示在ioctl调用过程中,用户空间需要向内核空间写入数据*/
 #ifndef _IOC_WRITE
 # define _IOC_WRITE	1U
 #endif
 
+/*表示在ioctl调用过程中,用户空间需要从内核空间读取数据*/
 #ifndef _IOC_READ
 # define _IOC_READ	2U
 #endif
 
+/*内核用宏_IOC将NR,TYPE,SIZE和DIR构造cmd参数*/
 #define _IOC(dir,type,nr,size) \
 	(((dir)  << _IOC_DIRSHIFT) | \
 	 ((type) << _IOC_TYPESHIFT) | \
