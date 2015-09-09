@@ -34,6 +34,7 @@
  *
  * Returns 0 on success, -errno on error.
  */
+ /*最终执行驱动程序中实现的ioctl*/
 static long vfs_ioctl(struct file *filp, unsigned int cmd,
 		      unsigned long arg)
 {
@@ -42,13 +43,19 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
 	if (!filp->f_op)
 		goto out;
 
+	/*优先执行unlocked_ioctl函数,来自用户空间的cmd和arg将原样不动的传递给它们*/
 	if (filp->f_op->unlocked_ioctl) {
 		error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
 		if (error == -ENOIOCTLCMD)
 			error = -EINVAL;
 		goto out;
 	} else if (filp->f_op->ioctl) {
-		lock_kernel();
+		/** 
+		 * 互斥,属于一种粗粒度的所谓大内核锁BKL(BigKernelLock),
+		 * 会明显降低系统性能,现代的驱动程序应该使用unlocked_ioctl,
+		 * 它已经脱离了大内核锁的保护,因此驱动程序在实现unlocked_ioctl
+		 * 函数时,应该使用自己的互斥锁机制*/
+		lock_kernel();	
 		error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
 					  filp, cmd, arg);
 		unlock_kernel();
@@ -544,6 +551,8 @@ static int ioctl_fsthaw(struct file *filp)
  * do_vfs_ioctl() is not for drivers and not intended to be EXPORT_SYMBOL()'d.
  * It's just a simple helper for sys_ioctl and compat_sys_ioctl.
  */
+/**
+ * 通过ioctl的不同cmd参数,应用程序可以做很多事情*/
 int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
 	     unsigned long arg)
 {
@@ -601,18 +610,24 @@ int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
 		if (S_ISREG(filp->f_path.dentry->d_inode->i_mode))
 			error = file_ioctl(filp, cmd, arg);
 		else
+			/*后续的调用就是filp->f_ops->ioctl*/
 			error = vfs_ioctl(filp, cmd, arg);
 		break;
 	}
 	return error;
 }
 
+/**
+ * 当用户空间程序调用ioctl函数时,系统会经过sys_ioctl进入到内核空间,系统调用
+ * sys_ioctl的定义为:*/
 SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
 {
 	struct file *filp;
 	int error = -EBADF;
 	int fput_needed;
 
+	/**
+	 * 通过fd获得struct file对象的指针filp*/
 	filp = fget_light(fd, &fput_needed);
 	if (!filp)
 		goto out;
@@ -621,6 +636,7 @@ SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
 	if (error)
 		goto out_fput;
 
+	/**/
 	error = do_vfs_ioctl(filp, fd, cmd, arg);
  out_fput:
 	fput_light(filp, fput_needed);

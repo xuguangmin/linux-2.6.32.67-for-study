@@ -1496,7 +1496,12 @@ struct block_device_operations;
  * can be called without the big kernel lock held in all filesystems.
  */
 struct file_operations {
-	struct module *owner;	/*表示当前struct file_operations对象所属的内核模块,可以避免当file_operations中的函数正在被调用时，其所属的模块被从系统中卸载掉,如果设备驱动程序不是以模块的形式存在，而是被编译进内核，那么THIS_MODULE将被赋值为空指针，没有任何作用*/
+	/** 
+	 * 表示当前struct file_operations对象所属的内核模块,可以避免当
+	 * file_operations中的函数正在被调用时，其所属的模块被从系统中卸载掉,
+	 * 如果设备驱动程序不是以模块的形式存在，而是被编译进内核，那么,
+	 * THIS_MODULE将被赋值为空指针，没有任何作用*/
+	struct module *owner;	
 	loff_t (*llseek) (struct file *, loff_t, int);
 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
@@ -1504,7 +1509,13 @@ struct file_operations {
 	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
 	int (*readdir) (struct file *, void *, filldir_t);
 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+	/**
+	 * 设备文件的ioctl操作常用来对设备的行为进行某种控制,一般用来在用户空间的
+	 * 应用程序和驱动程序模块直接传递控制参数,很少用于大数据量的传递,对于
+	 * 设备驱动程序而言,实现的ioctl原形有两个,当用户空间程序调用ioctl函数时,
+	 * 系统会经过sys_ioctl进入到内核空间*/
 	int (*ioctl) (struct inode *, struct file *, unsigned int, unsigned long);
+	/* 驱动程序应该实现unlocked_ioctl,ioctl在内核中属于比较陈旧的代码*/
 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
 	int (*mmap) (struct file *, struct vm_area_struct *);
