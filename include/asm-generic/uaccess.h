@@ -161,6 +161,8 @@ static inline __must_check long __copy_to_user(void __user *to,
 	__pu_err;						\
 })
 
+/* 用来完成一些简单类型变量(char,int,long)的拷贝任务,对于复合类型的变量,如数据
+ * 结构,函数无法胜任*/
 #define put_user(x, ptr)					\
 ({								\
 	might_sleep();						\
@@ -217,6 +219,8 @@ extern int __put_user_bad(void) __attribute__((noreturn));
 	__gu_err;						\
 })
 
+/* 用来完成一些简单类型变量(char,int,long)的拷贝任务,对于复合类型的变量,如数据
+ * 结构,函数无法胜任*/
 #define get_user(x, ptr)					\
 ({								\
 	might_sleep();						\
@@ -241,20 +245,40 @@ extern int __get_user_bad(void) __attribute__((noreturn));
 #define __copy_to_user_inatomic __copy_to_user
 #endif
 
+/**
+ * @to:是内核空间的指针
+ * @from:是用户空间的指针
+ * @n: 表示从用户空间向内核空间拷贝数据的字节数
+ * 返回值:成功返回0,否则返回没有完成拷贝的字节数
+ */
 static inline long copy_from_user(void *to,
 		const void __user * from, unsigned long n)
 {
+	/* 函数在定义了CONFIG_PREEMPT_VOLUNTARY的情况下会形成一个显式的抢占调度
+	 * 点,即函数可能会自动放弃CPU,总之,copy_from_user有可能让当前进程进入
+	 * 睡眠状态*/
 	might_sleep();
+	/*access_ok用来对用户空间的地址指针from作某种有效性检验,宏体系架构相关的*/
 	if (access_ok(VERIFY_READ, from, n))
 		return __copy_from_user(to, from, n);
 	else
 		return n;
 }
 
+/**
+ * @to:用户空间指针
+ * @from:内核空间指针
+ * @n :要拷贝的字节数
+ * 返回值:拷贝成功返回0,否则返回尚未被拷贝的字节数
+ */
 static inline long copy_to_user(void __user *to,
 		const void *from, unsigned long n)
 {
+	/* 函数在定义了CONFIG_PREEMPT_VOLUNTARY的情况下会形成一个显式的抢占调度
+	 * 点,即函数可能会自动放弃CPU,总之,copy_from_user有可能让当前进程进入
+	 * 睡眠状态*/
 	might_sleep();
+	/*access_ok用来对用户空间的地址指针to作某种有效性检验,宏体系架构相关的*/
 	if (access_ok(VERIFY_WRITE, to, n))
 		return __copy_to_user(to, from, n);
 	else

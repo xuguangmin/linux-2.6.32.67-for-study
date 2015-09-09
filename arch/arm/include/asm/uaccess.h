@@ -187,6 +187,7 @@ static inline void set_fs(mm_segment_t fs)
 
 #endif /* CONFIG_MMU */
 
+/*copy_from_user中用来对from的地址指针做有效性检验,__range_ok的作用在于判断addr+size之后是否还在进程的用户空间范围之内*/
 #define access_ok(type,addr,size)	(__range_ok(addr,size) == 0)
 
 /*

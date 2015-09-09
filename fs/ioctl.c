@@ -560,22 +560,31 @@ int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
 	int __user *argp = (int __user *)arg;
 
 	switch (cmd) {
+	/* 执行时关闭标志,即File IOctl Close on EXec,通知内核在调用进程一个新程序
+	 * 时,比如exec()系统调用,自动关闭打开的文件*/
 	case FIOCLEX:
 		set_close_on_exec(fd, 1);
 		break;
 
+	/*清除执行时关闭标志,即File IOctl Not CLose on EXec,与FIOCLEX标志相反,
+	 * 清除由FIOCLEX命令设置的标志*/
 	case FIONCLEX:
 		set_close_on_exec(fd, 0);
 		break;
 
+	/*文件的ioctl为非阻塞型I/O操作,即File IOctl Non-Blocking I/O,这个调用修改
+	 * 在filp->f_flags中的O_NONBLOCK标志*/
 	case FIONBIO:
 		error = ioctl_fionbio(filp, argp);
 		break;
 
+	/*设置或者复位文件的异步通知,这两个动作在内核中实际的执行者是fcntl,所以
+	 * 内核代码并不使用该cmd*/
 	case FIOASYNC:
 		error = ioctl_fioasync(fd, filp, argp);
 		break;
 
+	/*获得一个文件或者目录的大小,用于设备文件时,将返回一个ENOTTY错误*/
 	case FIOQSIZE:
 		if (S_ISDIR(filp->f_path.dentry->d_inode->i_mode) ||
 		    S_ISREG(filp->f_path.dentry->d_inode->i_mode) ||
