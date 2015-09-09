@@ -2485,6 +2485,7 @@ static int try_to_wake_up(struct task_struct *p, unsigned int state,
 	smp_wmb();
 	rq = orig_rq = task_rq_lock(p, &flags);
 	update_rq_clock(rq);
+	/*将wake_up系列函数中的进程状态与要唤醒的进程的状态进行检查,如果==0那么唤醒操作返回0,是一次不成功的操作,因此wake_up_interruptible只能唤醒通过wait_event_interruptible睡眠的进程*/
 	if (!(p->state & state))
 		goto out;
 
@@ -5916,6 +5917,12 @@ static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
 	list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
 		unsigned flags = curr->flags;
 
+		/**
+		 * 如果函数结束遍历必须满足3个条件
+		 * 1, 负责唤醒进程的函数func成功返回
+		 * 2, 等待节点的flags成员设置了WQ_FLAG_EXCLUSIVE标志,这是个排他性的标志,如果设置有该标志,那么唤醒当前节点上的进程后将不会在继续唤醒操作
+		 * 3, nr_exclusive等于1
+		 */
 		if (curr->func(curr, mode, wake_flags, key) &&
 				(flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
 			break;

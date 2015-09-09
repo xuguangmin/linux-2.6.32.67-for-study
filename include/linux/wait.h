@@ -167,7 +167,10 @@ int out_of_line_wait_on_bit(void *, int, int (*)(void *), unsigned);
 int out_of_line_wait_on_bit_lock(void *, int, int (*)(void *), unsigned);
 wait_queue_head_t *bit_waitqueue(void *, int);
 
+/*对应wake_event*/
 #define wake_up(x)			__wake_up(x, TASK_NORMAL, 1, NULL)
+/*wake_up_nr和wake_up_all表示可以唤醒的排他性进程的数量,wake_up_nr可唤醒nr个这样的进程,
+ * wake_up_all可以唤醒队列中所有的排他性进程,wake_up则只能唤醒一个*/
 #define wake_up_nr(x, nr)		__wake_up(x, TASK_NORMAL, nr, NULL)
 #define wake_up_all(x)			__wake_up(x, TASK_NORMAL, 0, NULL)
 #define wake_up_locked(x)		__wake_up_locked((x), TASK_NORMAL)
@@ -216,8 +219,7 @@ do {									\
  * change the result of the wait condition.
  */
 /**
- * 该函数使调用的进程进入等待队列,赋予睡眠进程的状态是TASK_UNINTERRUPTIBLE,与wait_event_interruptible的区别是他使睡眠的进程不可被中断,而且当进程被唤醒时也不会检查是否有等待的信号需要处理
- */
+ * 该函数使调用的进程进入等待队列,赋予睡眠进程的状态是TASK_UNINTERRUPTIBLE,与wait_event_interruptible的区别是他使睡眠的进程不可被中断,而且当进程被唤醒时也不会检查是否有等待的信号需要处理,与wake_up对应*/
 #define wait_event(wq, condition) 					\
 do {									\
 	if (condition)	 						\
