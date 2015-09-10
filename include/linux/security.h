@@ -1938,6 +1938,7 @@ static inline int security_capset(struct cred *new,
 	return cap_capset(new, old, effective, inheritable, permitted);
 }
 
+/*权能检查;函数检查当前进程的权能证书中的cap_effective成员,以确定进程是否具有参数cap中指定的权能,如果有将返回0*/
 static inline int security_capable(int cap)
 {
 	return cap_capable(current, current_cred(), cap, SECURITY_CAP_AUDIT);

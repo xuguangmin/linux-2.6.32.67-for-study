@@ -267,6 +267,7 @@ static inline void put_cred(const struct cred *_cred)
  *
  * Access the subjective credentials of the current task.
  */
+/*用来获得当前进程的一个权能证书*/
 #define current_cred() \
 	(current->cred)
 

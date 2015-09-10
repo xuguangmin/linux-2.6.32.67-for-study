@@ -117,6 +117,7 @@ struct cpu_vfs_cap_data {
  ** POSIX-draft defined capabilities.
  **/
 
+/*系统定义的权能数值工33个*/
 /* In a system with the [_POSIX_CHOWN_RESTRICTED] option defined, this
    overrides the restriction of changing file ownership and group
    ownership. */
@@ -359,6 +360,7 @@ struct cpu_vfs_cap_data {
 
 #define CAP_LAST_CAP         CAP_MAC_ADMIN
 
+/*cap_valid用来检查cap所表示的权能值是否在内核定义的权限范围之内*/
 #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
 
 /*

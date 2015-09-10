@@ -298,17 +298,28 @@ error:
  * This sets PF_SUPERPRIV on the task if the capability is available on the
  * assumption that it's about to be used.
  */
+/**
+ * 驱动程序检查一个正试图访问他的进程是否有权限做某些事情,不妨把进程是否有权限使用驱动
+ * 提供的服务能力称为权能,此时驱动程序可以用capable这个函数,只有当试图访问他的进程有足够
+ * 的权限操作设备文件之后,驱动程序自身的这种权限才会介入检查
+ * @cap:用来指定对当前进程进行检查的权能数值,内核在include/linux/capability.h中工定义了
+       33个权能数值
+ */
 int capable(int cap)
 {
+	/*cap_valid用来检查cap所表示的权能值是否在内核定义的权限范围之内*/
 	if (unlikely(!cap_valid(cap))) {
 		printk(KERN_CRIT "capable() called with invalid cap=%u\n", cap);
 		BUG();
 	}
 
+	/*权能检查,如果有权能在当前进程的flags上设置PF_SUPERIV标志着一个超级用户的身份,同时返回1*/
 	if (security_capable(cap) == 0) {
 		current->flags |= PF_SUPERPRIV;
 		return 1;
 	}
+	/*如果进程不具有权能函数返回0,当驱动程序发现当前进程不具有进一步操作的权限时,
+	 *常常返回一个错误码-EPERM*/
 	return 0;
 }
 EXPORT_SYMBOL(capable);
