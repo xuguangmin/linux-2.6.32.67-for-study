@@ -16,6 +16,7 @@ struct siginfo;
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
+/*信号集*/
 typedef struct {
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
@@ -122,7 +123,10 @@ struct osf_sigaction {
 
 struct sigaction {
 	__sighandler_t	sa_handler;
+	/*包含了许多标志位*/
 	unsigned long	sa_flags;
+	/*指定在信号处理程序执行过程中，哪些信号应当被阻塞。缺省情况下当前信号本身被阻塞
+	 *，防止信号的嵌套发送，除非指定SA_NODEFER或者SA_NOMASK标志位。*/
 	sigset_t	sa_mask;	/* mask last for extensibility */
 };
 
