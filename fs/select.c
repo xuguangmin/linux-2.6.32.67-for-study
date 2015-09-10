@@ -113,9 +113,11 @@ struct poll_table_page {
 static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
 		       poll_table *p);
 
+/*struct poll_wqueues对象table的初始化发生在poll_initwait中*/
 void poll_initwait(struct poll_wqueues *pwq)
 {
 	init_poll_funcptr(&pwq->pt, __pollwait);
+	/*把当前进程的task_struct对象指针current放入pwq的polling_task中,唤醒操作将会用这个变量找到需要唤醒的进程*/
 	pwq->polling_task = current;
 	pwq->triggered = 0;
 	pwq->error = 0;
@@ -130,6 +132,7 @@ static void free_poll_entry(struct poll_table_entry *entry)
 	fput(entry->filp);
 }
 
+/*函数只做一些资源释放类的辅助工作*/
 void poll_freewait(struct poll_wqueues *pwq)
 {
 	struct poll_table_page * p = pwq->table;
@@ -202,6 +205,7 @@ static int __pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
 	return default_wake_function(&dummy_wait, mode, sync, key);
 }
 
+/**/
 static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
 {
 	struct poll_table_entry *entry;
@@ -216,7 +220,9 @@ static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
 static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
 				poll_table *p)
 {
+	/*通过p获得pwq指针*/
 	struct poll_wqueues *pwq = container_of(p, struct poll_wqueues, pt);
+	/*从pwq管理的数据结构上获得等待节点所在的空间*/
 	struct poll_table_entry *entry = poll_get_entry(pwq);
 	if (!entry)
 		return;
@@ -226,9 +232,11 @@ static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
 	entry->key = p->key;
 	init_waitqueue_func_entry(&entry->wait, pollwake);
 	entry->wait.private = pwq;
+	/*将其加入到等待队列wait_address中,后者是由各自的驱动程序维护的等待队列*/
 	add_wait_queue(wait_address, &entry->wait);
 }
 
+/*让进程睡眠*/
 int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
 			  ktime_t *expires, unsigned long slack)
 {
@@ -706,6 +714,7 @@ struct poll_list {
  * pwait poll_table will be used by the fd-provided poll handler for waiting,
  * if non-NULL.
  */
+/*函数的功能是根据当前的fd找到对应的struct file *filp,然后调用poll例程*/
 static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
 {
 	unsigned int mask;
@@ -728,6 +737,8 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
 				mask = file->f_op->poll(file, pwait);
 			}
 			/* Mask out unneeded events. */
+			/*由设备驱动程序中的poll例程返回,用来记录驱动程序中发生的事件,
+			 *然后do_pollfd将其记录在pollfd->revents中,并最终返回到用户空间*/
 			mask &= pollfd->events | POLLERR | POLLHUP;
 			fput_light(file, fput_needed);
 		}
@@ -737,6 +748,9 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
 	return mask;
 }
 
+/* 该函数可能会阻塞,当其返回时,其返回值将传递到用户空间用以指示本次操作的状态,fdcount>0
+ * 表明集合中有fdcount个文件描述符可以进行读或者写,fdcount=0表明集合中所有文件描述符尚
+ * 无状态变化,timeout指定的时间到,函数超时;fdcount<0表明函数调用失败,错误原因写入errno*/
 static int do_poll(unsigned int nfds,  struct poll_list *list,
 		   struct poll_wqueues *wait, struct timespec *end_time)
 {
@@ -754,6 +768,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
 	if (end_time && !timed_out)
 		slack = estimate_accuracy(end_time);
 
+	/**/
 	for (;;) {
 		struct poll_list *walk;
 
@@ -770,6 +785,9 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
 				 * this. They'll get immediately deregistered
 				 * when we break out and return.
 				 */
+				 /*首先对文件描述符集合中的每个描述符调用do_pollfd,同时
+				  *传入一个struct pollfd类型的指针,函数的功能是根据当前的
+				  *fd找到对应的struct file *filp,然后调用poll例程*/
 				if (do_pollfd(pfd, pt)) {
 					count++;
 					pt = NULL;
@@ -786,6 +804,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
 			if (signal_pending(current))
 				count = -EINTR;
 		}
+		/*设定timeout参数为0,或者当前设备执行poll时设备中恰好有就绪的数据*/
 		if (count || timed_out)
 			break;
 
@@ -799,6 +818,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
 			to = &expire;
 		}
 
+		/*让进程睡眠*/
 		if (!poll_schedule_timeout(wait, TASK_INTERRUPTIBLE, to, slack))
 			timed_out = 1;
 	}
@@ -808,10 +828,12 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
 #define N_STACK_PPS ((sizeof(stack_pps) - sizeof(struct poll_list))  / \
 			sizeof(struct pollfd))
 
+/*sys_poll系统调用的原形和用户空间的poll一样,函数内部主要调用do_sys_poll来实现其核心功能*/
 int do_sys_poll(struct pollfd __user *ufds, unsigned int nfds,
 		struct timespec *end_time)
 {
-	struct poll_wqueues table;
+	struct poll_wqueues table;	/* table变量是个关键元素,因为这个变量的成员
+					 * poll_table pt将被传递给驱动程序*/
  	int err = -EFAULT, fdcount, len, size;
 	/* Allocate small arguments on the stack to save memory and be
 	   faster - use long to make sure the buffer is aligned properly
@@ -848,8 +870,14 @@ int do_sys_poll(struct pollfd __user *ufds, unsigned int nfds,
 		}
 	}
 
+	/*struct poll_wqueues对象table的初始化发生在poll_initwait中*/
 	poll_initwait(&table);
+	/* do_sys_poll的核心实现在do_poll中,该函数可能会阻塞,当其返回时,其返回值将传递到
+	 * 用户空间用以指示本次操作的状态,fdcount>0表明集合中有fdcount个文件描述符可以
+	 * 进行读或者写,fdcount=0表明集合中所有文件描述符尚无状态变化,timeout指定的时间
+	 * 到,函数超时;fdcount<0表明函数调用失败,错误原因写入errno*/
 	fdcount = do_poll(nfds, head, &table, end_time);
+	/*函数只做一些资源释放类的辅助工作*/
 	poll_freewait(&table);
 
 	for (walk = head; walk; walk = walk->next) {
@@ -895,6 +923,7 @@ static long do_restart_poll(struct restart_block *restart_block)
 	return ret;
 }
 
+/*sys_poll系统调用的原形和用户空间的poll一样,函数内部主要调用do_sys_poll来实现其核心功能*/
 SYSCALL_DEFINE3(poll, struct pollfd __user *, ufds, unsigned int, nfds,
 		long, timeout_msecs)
 {

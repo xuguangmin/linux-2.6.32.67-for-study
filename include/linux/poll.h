@@ -58,7 +58,7 @@ struct poll_table_entry {
  * Structures and helpers for sys_poll/sys_poll
  */
 struct poll_wqueues {
-	poll_table pt;
+	poll_table pt;	/*将传递给驱动程序*/
 	struct poll_table_page *table;
 	struct task_struct *polling_task;
 	int triggered;
