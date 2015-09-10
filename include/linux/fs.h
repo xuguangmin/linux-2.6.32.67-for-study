@@ -1505,7 +1505,9 @@ struct file_operations {
 	loff_t (*llseek) (struct file *, loff_t, int);
 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
+	/*异步非阻塞型的I/O操作模式*/
 	ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+	/*异步非阻塞型的I/O操作模式*/
 	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
 	int (*readdir) (struct file *, void *, filldir_t);
 	unsigned int (*poll) (struct file *, struct poll_table_struct *);/*异步阻塞/非阻塞I/O*/
