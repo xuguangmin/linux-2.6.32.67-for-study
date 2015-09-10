@@ -84,13 +84,14 @@ struct kioctx;
  * once.  ki_retry must ensure forward progress, the AIO core will wait
  * indefinitely for kick_iocb() to be called.
  */
+/*驱动异步非阻塞I/O操作中,用来封装一个读写请求的完整上下文*/
 struct kiocb {
 	struct list_head	ki_run_list;
 	unsigned long		ki_flags;
 	int			ki_users;
 	unsigned		ki_key;		/* id of this request */
 
-	struct file		*ki_filp;
+	struct file		*ki_filp;	/*文件相关*/
 	struct kioctx		*ki_ctx;	/* may be NULL for sync ops */
 	int			(*ki_cancel)(struct kiocb *, struct io_event *);
 	ssize_t			(*ki_retry)(struct kiocb *);
@@ -99,7 +100,7 @@ struct kiocb {
 	union {
 		void __user		*user;
 		struct task_struct	*tsk;
-	} ki_obj;
+	} ki_obj;	/*与发出异步I/O请求的进程相关*/
 
 	__u64			ki_user_data;	/* user's data for completion */
 	wait_queue_t		ki_wait;

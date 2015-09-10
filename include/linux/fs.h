@@ -1505,9 +1505,11 @@ struct file_operations {
 	loff_t (*llseek) (struct file *, loff_t, int);
 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);/*同步阻塞/非阻塞*/
-	/*异步非阻塞型的I/O操作模式*/
+	/*异步非阻塞型的I/O操作模式
+	 *第一个参数用来封装一个读写请求的完整上下文*/
 	ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
-	/*异步非阻塞型的I/O操作模式*/
+	/*异步非阻塞型的I/O操作模式
+	 *第一个参数用来封装一个读写请求的完整上下文*/
 	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
 	int (*readdir) (struct file *, void *, filldir_t);
 	unsigned int (*poll) (struct file *, struct poll_table_struct *);/*异步阻塞/非阻塞I/O*/
@@ -1526,6 +1528,7 @@ struct file_operations {
 	int (*release) (struct inode *, struct file *);
 	int (*fsync) (struct file *, struct dentry *, int datasync);
 	int (*aio_fsync) (struct kiocb *, int datasync);
+	/*异步通知机制*/
 	int (*fasync) (int, struct file *, int);
 	int (*lock) (struct file *, int, struct file_lock *);
 	ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int);

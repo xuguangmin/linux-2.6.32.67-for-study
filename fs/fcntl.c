@@ -24,6 +24,17 @@
 #include <asm/siginfo.h>
 #include <asm/uaccess.h>
 
+
+/**
+ * EXAMPLE:facntl实现  参考文件fasync_demo.c
+ */
+
+
+
+
+
+
+
 void set_close_on_exec(unsigned int fd, int flag)
 {
 	struct files_struct *files = current->files;
@@ -144,6 +155,7 @@ SYSCALL_DEFINE1(dup, unsigned int, fildes)
 
 #define SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | O_DIRECT | O_NOATIME)
 
+/*函数在内部直接调用驱动程序提供的fasync例程*/
 static int setfl(int fd, struct file * filp, unsigned long arg)
 {
 	struct inode * inode = filp->f_path.dentry->d_inode;
@@ -182,6 +194,7 @@ static int setfl(int fd, struct file * filp, unsigned long arg)
 	 */
 	if (((arg ^ filp->f_flags) & FASYNC) && filp->f_op &&
 			filp->f_op->fasync) {
+		/*调用驱动程序实现的fasync例程*/
 		error = filp->f_op->fasync(fd, filp, (arg & FASYNC) != 0);
 		if (error < 0)
 			goto out;
@@ -228,6 +241,7 @@ int __f_setown(struct file *filp, struct pid *pid, enum pid_type type,
 }
 EXPORT_SYMBOL(__f_setown);
 
+/*f_setown函数将要通知进程的ID相关信息记录在filp->f_owner中*/
 int f_setown(struct file *filp, unsigned long arg, int force)
 {
 	enum pid_type type;
@@ -380,10 +394,12 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
 		 * current syscall conventions, the only way
 		 * to fix this will be in libc.
 		 */
+		 /**/
 		err = f_getown(filp);
 		force_successful_syscall_return();
 		break;
 	case F_SETOWN:
+		/*f_setown函数将要通知进程的ID相关信息记录在filp->f_owner中*/
 		err = f_setown(filp, arg, 1);
 		break;
 	case F_GETOWN_EX:
@@ -418,6 +434,7 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
 	return err;
 }
 
+/*fcntl通过系统调用sys_fcntl与内核空间交互*/
 SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
 {	
 	struct file *filp;
@@ -433,6 +450,7 @@ SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
 		return err;
 	}
 
+	/*核心调用*/
 	err = do_fcntl(fd, cmd, arg, filp);
 
  	fput(filp);
@@ -628,6 +646,7 @@ static struct kmem_cache *fasync_cache __read_mostly;
  * We always take the 'filp->f_lock', in since fasync_lock
  * needs to be irq-safe.
  */
+/*应用程序关闭异步通知功能,函数将进程从异步通知链表app中移除*/
 static int fasync_remove_entry(struct file *filp, struct fasync_struct **fapp)
 {
 	struct fasync_struct *fa, **fp;
@@ -656,6 +675,7 @@ static int fasync_remove_entry(struct file *filp, struct fasync_struct **fapp)
  * NOTE! It is very important that the FASYNC flag always
  * match the state "is the filp on a fasync list".
  */
+/*将需要异步通知的进程加入到驱动程序维护的通知链表app中*/
 static int fasync_add_entry(int fd, struct file *filp, struct fasync_struct **fapp)
 {
 	struct fasync_struct *new, *fa, **fp;
@@ -695,6 +715,11 @@ out:
  * lease code. It returns negative on error, 0 if it did no changes
  * and positive if it added/deleted the entry.
  */
+/*驱动程序在其fasync例程中需要fasync_helper和kill_fasync两个函数,前者主要将当前要通知的
+ *进程加入一个链表或者从链表中移除,这主要取决于应用程序调用fcntl时是否设置了FASYNC标志,
+ *而kill_fasync则在设备中的某一事件发生时通知链表上的所有相关的进程*/
+/**
+ * @on:在setfl函数中,传递给他的是一个条件表达式(arg&FASYNC)!=0,意味着如果应用程序在调用fcntl时,对于F_SETFL命令使用的参数arg设置了FASYNC,那么(arg&FASYNC)!=0结果为1,所以fasync_helper中的参数on将为1,表明应用程序正在启用驱动程序的异步通知机制,反之,若对fcntl函数使用F_SETFL命令时清除了FASYNC标志,将导致驱动程序的fasync例程关闭异步通知特性.所以fasync_helper的主要功能是维护一个需要通知的进程链表fapp,如果应用程序需要获得异步通知的能力,那么需要通过fcntl的F_SETFL命令设置FASYNC标志,如果设置了该标志,驱动程序的fasync例程在调用fasync_helper时将用fasync_add_entry将需要通知的进程加入到驱动程序维护的一个链表中,否在调用fasync_remove_entry将其从链表中移除*/
 int fasync_helper(int fd, struct file * filp, int on, struct fasync_struct **fapp)
 {
 	if (!on)
@@ -706,6 +731,7 @@ EXPORT_SYMBOL(fasync_helper);
 
 void __kill_fasync(struct fasync_struct *fa, int sig, int band)
 {
+	/*通过while循环变脸fasync链表,对每个进程调用send_sigio来向其发送信号SIGIO以通知进程*/
 	while (fa) {
 		struct fown_struct * fown;
 		if (fa->magic != FASYNC_MAGIC) {
@@ -725,6 +751,9 @@ void __kill_fasync(struct fasync_struct *fa, int sig, int band)
 
 EXPORT_SYMBOL(__kill_fasync);
 
+/*驱动程序在其fasync例程中需要fasync_helper和kill_fasync两个函数,前者主要将当前要通知的
+ *进程加入一个链表或者从链表中移除,这主要取决于应用程序调用fcntl时是否设置了FASYNC标志,
+ *而kill_fasync则在设备中的某一事件发生时通知链表上的所有相关的进程,用来发送通知信号*/
 void kill_fasync(struct fasync_struct **fp, int sig, int band)
 {
 	/* First a quick test without locking: usually
