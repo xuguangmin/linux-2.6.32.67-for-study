@@ -1186,6 +1186,7 @@ EXPORT_SYMBOL(generic_file_open);
  * This is used by subsystems that don't want seekable
  * file descriptors
  */
+/*关闭FMODE_LSEEK标志*/
 int nonseekable_open(struct inode *inode, struct file *filp)
 {
 	filp->f_mode &= ~(FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE);

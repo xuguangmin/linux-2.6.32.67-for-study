@@ -21,6 +21,45 @@
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
 
+/**
+ *   EXAMPLE:llseek实现例程
+     satic loff_t vol_cdev_llseek(struct file *file, loff_t offset, int origin)
+     {
+     	struct ubi_volume_desc * desc = file->private_data;
+	struct ubi_volume *vol = desc->vol;
+	loff_t new_offset;
+
+	if(vol->updating) {
+		return -EBUSY;
+	}
+	switch(origin) {
+		case 0: //SEEK_SET
+			new_offset = offset;
+			break;
+		case 1: //SEEK_CUR
+			new_offset = f_pos + offset;
+			break;
+		case 2: //SEEK_END
+			new_offset = vol->used_bytes + offset;
+			break;
+		default:
+			return -EINVAL;
+	}
+	if (new_offset < 0 || new_offset > vol->used_bytes) {
+		dbg_err("bad seek %lld", new_offset);
+		return -EINVAL
+	}
+
+	file->f_pos = new_offset;
+	return new_offset;
+     }
+ */
+
+
+
+
+
+
 const struct file_operations generic_ro_fops = {
 	.llseek		= generic_file_llseek,
 	.read		= do_sync_read,
@@ -133,11 +172,17 @@ out:
 }
 EXPORT_SYMBOL(default_llseek);
 
+/*关注函数指针fn的赋值,fn在函数中有三个可能的值:no_llseek,default_llseek和驱动程序提供的llseek例程(file->f_op->llseek)*/
 loff_t vfs_llseek(struct file *file, loff_t offset, int origin)
 {
 	loff_t (*fn)(struct file *, loff_t, int);
 
 	fn = no_llseek;
+	/*如果FMODE_LSEEK标志没有设置,最终调用的是no_llseek,函数直接返回一个错误码-ESPIPE
+	 *因为设备文件上的open操作默认是设置FMODE_LSEEK标志的,所有如果驱动程序提供了
+	 *llseek例程,将调用它,否则调用系统默认的default_llseek,该函数通过直接修改
+	 *file->f_ops来达到定位文件的目的.如果调用到驱动提供的llseek例程,驱动需要根据
+	 *用户传入的偏移值off和调整的起始位置参数来决定如果定位文件*/
 	if (file->f_mode & FMODE_LSEEK) {
 		fn = default_llseek;
 		if (file->f_op && file->f_op->llseek)
@@ -159,6 +204,8 @@ SYSCALL_DEFINE3(lseek, unsigned int, fd, off_t, offset, unsigned int, origin)
 		goto bad;
 
 	retval = -EINVAL;
+	/*应用程序调用lseek时,对于origin参数只有三个选择SEEK_SET,SEEK_CUR,SEEK_END,
+	 *这里的检查就是确保origin参数的有效性*/
 	if (origin <= SEEK_MAX) {
 		loff_t res = vfs_llseek(file, offset, origin);
 		retval = res;
