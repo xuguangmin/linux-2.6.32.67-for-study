@@ -7,14 +7,66 @@
 #include <linux/debugobjects.h>
 #include <linux/stringify.h>
 
-struct tvec_base;
 
+
+/**
+ * EXAMPLE:设备驱动程序通过使用内核定时器来轮询设备状态
+   struct device_regs *devreg = NULL;//定义一个用于表示设备寄存器的结构体指针
+   struct timer_list demo_timer;//定义一个内核定时器对象
+
+   //
+   //定义定时器函数,当定时器对象demo_timer中expires成员指定的时间到期后,该函数将被调用
+   static void demo_timer_func(unsigned long data)
+   {
+   	//定时器函数中重新启动定时器以实现轮询的目的
+	demo_timer.expires = jiffies + HZ;
+	add_timer(&demo_timer);
+
+	//定时器函数将data参数通过类型转换获得设备寄存器的结构体指针
+	struct device_reg *preg = (struct device_regs*)data;
+	//定时器函数此后将会读取设备状态
+	...
+   }
+
+   //用于打开设备的函数实现
+   static int demo_dev_open(...);
+   {
+   	...
+	//分配设备寄存器结构体的指针变量,最好放在模块初始化函数中
+	devreg = kmalloc(sizeof(struct device_regs), GFP_KERNEL);
+	...
+	init_timer(&demo_timer);//调用内核函数init_timer来初始化定时器对象 demo_timer
+	demo_timer.expires = jiffies + HZ;//设定定时器到期时间点,从先在开始的1分钟
+	demo_timer.data = (unsigned long)devreg;//将设备寄存器指针地址作为参数
+	demo_timer.function = &demo_timer_func;
+	add_timer(&demo_timer);
+	...
+   }
+
+
+   //用于关闭设备的函数实现
+   static int demo_dev_release(...)
+   {
+   	...
+	del_timer_sync(&demo_timer);//删除定时器对象
+	...
+   }
+ */
+
+
+
+
+struct tvec_base;
+/*用来表示定时器的数据结构*/
 struct timer_list {
 	struct list_head entry;
-	unsigned long expires;
+	unsigned long expires;	/*指定定时器的到期时间*/
 
-	void (*function)(unsigned long);
-	unsigned long data;
+	void (*function)(unsigned long);/*定时器函数,当expires中指定的时间到期时,
+					 *该函数被触发*/
+	unsigned long data;/*定时器对象中携带的数据,通常的用途是把该成员作为实际参数传递
+			    *给定时器函数,因为定时器函数将在中断上下文中执行,而非当前
+			    *进程的地址空间*/
 
 	struct tvec_base *base;
 #ifdef CONFIG_TIMER_STATS
@@ -64,6 +116,7 @@ void init_timer_deferrable_key(struct timer_list *timer,
 			       struct lock_class_key *key);
 
 #ifdef CONFIG_LOCKDEP
+/*初始化定时器对象*/
 #define init_timer(timer)						\
 	do {								\
 		static struct lock_class_key __key;			\

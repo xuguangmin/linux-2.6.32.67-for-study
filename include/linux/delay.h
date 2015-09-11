@@ -9,6 +9,7 @@
 
 #include <linux/kernel.h>
 
+/*用来表示一个完整的jiffies时间段内运行一个内部循环的次数,知道了该值就能计算出比如1us循环的次数,通过在一个循环中对该循环的次数递减就可以在1us的时间到期时退出循环,从而实现1us的延迟,这就时短延时实现的基本原理*/
 extern unsigned long loops_per_jiffy;
 
 #include <asm/delay.h>

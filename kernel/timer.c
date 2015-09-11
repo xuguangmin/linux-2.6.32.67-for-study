@@ -71,11 +71,13 @@ struct tvec_root {
 	struct list_head vec[TVR_SIZE];
 };
 
+/*用来管理系统中添加的所有定时器,内核为系统中的每个CPU都定义了一个该类型的变量*/
 struct tvec_base {
 	spinlock_t lock;
 	struct timer_list *running_timer;
 	unsigned long timer_jiffies;
 	unsigned long next_timer;
+	/*tv1,tv2,tv3,tv4,tv5被内核用来对系统中注册的定时器进行散列式的管理*/
 	struct tvec_root tv1;
 	struct tvec tv2;
 	struct tvec tv3;
@@ -85,6 +87,7 @@ struct tvec_base {
 
 struct tvec_base boot_tvec_bases;
 EXPORT_SYMBOL(boot_tvec_bases);
+/*内核为系统中的每个CPU都定义了一个该类型的变量*/
 static DEFINE_PER_CPU(struct tvec_base *, tvec_bases) = &boot_tvec_bases;
 
 /*
@@ -543,6 +546,8 @@ static inline void debug_deactivate(struct timer_list *timer)
 	trace_timer_cancel(timer);
 }
 
+/*主要初始化定时器对象中与内核实现相关的成员,所以设备驱动程序在开始使用定时器对象前应该
+ *调用innit_timer*/
 static void __init_timer(struct timer_list *timer,
 			 const char *name,
 			 struct lock_class_key *key)
@@ -572,6 +577,7 @@ void init_timer_key(struct timer_list *timer,
 		    struct lock_class_key *key)
 {
 	debug_init(timer);
+	/*kernel/timer.c*/
 	__init_timer(timer, name, key);
 }
 EXPORT_SYMBOL(init_timer_key);
@@ -786,6 +792,7 @@ EXPORT_SYMBOL(mod_timer_pinned);
  * Timers with an ->expires field in the past will be executed in the next
  * timer tick.
  */
+/*将定时器对象加入到系统中,这样定时器才会在expires表示的时间点到期后被触发*/
 void add_timer(struct timer_list *timer)
 {
 	BUG_ON(timer_pending(timer));
@@ -964,6 +971,8 @@ static int cascade(struct tvec_base *base, struct tvec *tv, int index)
  * This function cascades all vectors and executes all expired timer
  * vectors.
  */
+/**
+ *函数的整体思想是,对tvec_bases管理的定时器队列进行扫描,如果发现有定时器到期(time_after_eq),则调用该定时器对象的fn函数()*/
 static inline void __run_timers(struct tvec_base *base)
 {
 	struct timer_list *timer;
@@ -1212,6 +1221,8 @@ void update_process_times(int user_tick)
 
 /*
  * This function runs timers and the timer-tq in bottom half context.
+ * 当时钟中断的softirq部分被调度执行时,函数负责扫描tvec_bases所在的定时器管理队列,找到
+ * 已经到期的函数,然后调用到期定时器对象节点上的定时器函数
  */
 static void run_timer_softirq(struct softirq_action *h)
 {
@@ -1222,6 +1233,7 @@ static void run_timer_softirq(struct softirq_action *h)
 	hrtimer_run_pending();
 
 	if (time_after_eq(jiffies, base->timer_jiffies))
+		/*对于那些到期的定时器队列调用后面的函数进一步处理*/
 		__run_timers(base);
 }
 
@@ -1654,6 +1666,7 @@ static struct notifier_block __cpuinitdata timers_nb = {
 };
 
 
+/*时钟中断的softirq为TIMER_SOFTIRQ,对应的软中断处理函数的安装发生在该函数中*/
 void __init init_timers(void)
 {
 	int err = timer_cpu_notify(&timers_nb, (unsigned long)CPU_UP_PREPARE,
@@ -1663,6 +1676,9 @@ void __init init_timers(void)
 
 	BUG_ON(err == NOTIFY_BAD);
 	register_cpu_notifier(&timers_nb);
+	/*当时钟中断的softirq被调度执行时,它将运行对应的run_timer_softirq函数
+	 *在给个时钟中断处理的上半部分,都会调用run_local_timers,后者则通过raise_softirq
+	 *函数来触发时钟中断的softirq部分*/
 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq);
 }
 

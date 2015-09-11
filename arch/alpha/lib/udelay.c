@@ -37,6 +37,7 @@ __delay(int loops)
 #define LPJ	 loops_per_jiffy
 #endif
 
+/*基础宏,基于忙等*/
 void
 udelay(unsigned long usecs)
 {
