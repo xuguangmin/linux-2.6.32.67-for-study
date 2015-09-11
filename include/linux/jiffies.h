@@ -78,12 +78,18 @@
  * without sampling the sequence number in xtime_lock.
  * get_jiffies_64() will do this for you as appropriate.
  */
+/*__jiffy_data表明这两个变量将出现在内核最终映像的.data区中*/
 extern u64 __jiffy_data jiffies_64;
+/*通常jiffies在linux系统启动引导阶段被初始化为0,当系统完成了对时钟中断的初始化之后,在每个
+ *时钟中断处理例程中该值都会被加1,该值存储了系统自最近一次启动以来的时钟滴答*/
 extern unsigned long volatile __jiffy_data jiffies;
 
 #if (BITS_PER_LONG < 64)
 u64 get_jiffies_64(void);
 #else
+/*如果在32系统上读取jiffies_64的值,必须使用get_jiffies_64函数,因为直接读取jiffies_64的
+ *高32位或者低32位时,对应的低32位或者高32位可能已经发生更新,get_jiffies_64函数使用顺序锁
+ *的方式来保证对jiffies_64变量读取操作的原子性*/
 static inline u64 get_jiffies_64(void)
 {
 	return (u64)jiffies;
@@ -99,25 +105,61 @@ static inline u64 get_jiffies_64(void)
  *
  * time_after(a,b) returns true if the time a is after time b.
  *
+ *EXAMPLE:假设驱动程序的某个函数demo_function需要调用比如do_time_task函数来完成
+ *一个任务,但是对任务完成的时间有特定的要求(比如要在2毫秒内完成),如果在规定的时间内
+ *没有完成,就需要调用task_timeout函数来处理,否则demo_function函数就算顺利完成
+ * 下面的代码将是不安全的:
+   int demo_function()
+   {
+   	unsigned long timeout = jiffies + 2*HZ/1000;  //设定超时的时间为2毫秒
+	do_time_task();	//调用do_time_task来完成某一任务
+	if(timeout < jiffies)	//根据当前最新的jiffies值来判断是否超时
+		return task_timeout();
+	return 0;
+   }
+
+   正确的用法:
+   int demo_function()
+   {
+   	unsigned long timeout = jiffies + 2*HZ/1000;
+	do_time_task();
+	if(time_after(jiffies, timeout))
+		return task_timeout();
+	return 0;
+   }
+
+   延迟操作:
+   write_command_reg(...); //CPU写外设的寄存器以发起一个操作指令
+   delay(...);  //等待设备操作完成
+   read_status_reg(...);  //CPU读取外设的寄存器以获得设备执行结果
+
+
+
  * Do this with "<0" and ">=0" to only test the sign of the result. A
  * good compiler would generate better code (and a really good compiler
  * wouldn't care). Gcc is currently neither.
  */
+ /*判定时间点先后顺序的宏,如果时间点a在时间点b之后,该宏返回true*/
 #define time_after(a,b)		\
 	(typecheck(unsigned long, a) && \
 	 typecheck(unsigned long, b) && \
 	 ((long)(b) - (long)(a) < 0))
+/*判定时间点先后顺序的宏,如果时间点a在时间点b之前,该宏返回true*/
 #define time_before(a,b)	time_after(b,a)
 
+/*该宏类似于time_after,但是在a和b两个时间点相等时,该宏也返回true*/
 #define time_after_eq(a,b)	\
 	(typecheck(unsigned long, a) && \
 	 typecheck(unsigned long, b) && \
 	 ((long)(a) - (long)(b) >= 0))
+/*该宏类似于time_before,但是在a和b两个时间点相等时,该宏也返回true*/
 #define time_before_eq(a,b)	time_after_eq(b,a)
 
 /*
  * Calculate whether a is in the range of [b, c].
  */
+/*该宏用来检查时间点a是否包含在时间间隔[b,c]内,因为检查包含边界,所以当a等于b或者c时,该
+ *宏也返回true*/
 #define time_in_range(a,b,c) \
 	(time_after_eq(a,b) && \
 	 time_before_eq(a,c))
@@ -293,13 +335,17 @@ extern unsigned long preset_lpj;
 /*
  * Convert various time units to each other:
  */
+/*转换时间单位为为ms,易于人类理解*/
 extern unsigned int jiffies_to_msecs(const unsigned long j);
+/*换算成微妙us*/
 extern unsigned int jiffies_to_usecs(const unsigned long j);
 extern unsigned long msecs_to_jiffies(const unsigned int m);
 extern unsigned long usecs_to_jiffies(const unsigned int u);
+/*jiffies变量和数据结构之间的转换*/
 extern unsigned long timespec_to_jiffies(const struct timespec *value);
 extern void jiffies_to_timespec(const unsigned long jiffies,
 				struct timespec *value);
+/*jiffies变量和数据结构之间的转换*/
 extern unsigned long timeval_to_jiffies(const struct timeval *value);
 extern void jiffies_to_timeval(const unsigned long jiffies,
 			       struct timeval *value);

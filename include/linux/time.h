@@ -11,15 +11,17 @@
 
 #ifndef _STRUCT_TIMESPEC
 #define _STRUCT_TIMESPEC
+/*一般由函数int clock_gettime(clockid_t, struct timespec *)获取特定时钟的时间*/
 struct timespec {
-	__kernel_time_t	tv_sec;			/* seconds */
-	long		tv_nsec;		/* nanoseconds */
+	__kernel_time_t	tv_sec;			/* 秒   seconds */
+	long		tv_nsec;		/* 纳秒 nanoseconds */
 };
 #endif
 
+/*一般由函数int gettimeofday(struct timeval *tv, struct timezone *tz)获取系统的时间 */
 struct timeval {
-	__kernel_time_t		tv_sec;		/* seconds */
-	__kernel_suseconds_t	tv_usec;	/* microseconds */
+	__kernel_time_t		tv_sec;		/* 秒   seconds */
+	__kernel_suseconds_t	tv_usec;	/* 微妙 microseconds */
 };
 
 struct timezone {
