@@ -1356,6 +1356,7 @@ static void process_timeout(unsigned long __data)
  *
  * In all cases the return value is guaranteed to be non-negative.
  */
+ /**/
 signed long __sched schedule_timeout(signed long timeout)
 {
 	struct timer_list timer;
@@ -1390,6 +1391,7 @@ signed long __sched schedule_timeout(signed long timeout)
 		}
 	}
 
+	/*当expire指定的时钟滴答到期时,setup_timer_on_stack函数调用的第二个参数process_timeout会被调用,同时指向当前进程的current指针作为第三个实参传给了setup_timer_on_stack*/
 	expire = timeout + jiffies;
 
 	setup_timer_on_stack(&timer, process_timeout, (unsigned long)current);
@@ -1425,8 +1427,10 @@ signed long __sched schedule_timeout_killable(signed long timeout)
 }
 EXPORT_SYMBOL(schedule_timeout_killable);
 
+/*释放处理器,同时会将当前进程从cpu运行队列中移出*/
 signed long __sched schedule_timeout_uninterruptible(signed long timeout)
 {
+	/*设置当前进程不可中断的,确保进程至少休眠用参数msecs指定的时间*/
 	__set_current_state(TASK_UNINTERRUPTIBLE);
 	return schedule_timeout(timeout);
 }
@@ -1666,11 +1670,13 @@ void __init init_timers(void)
  * msleep - sleep safely even with waitqueue interruptions
  * @msecs: Time in milliseconds to sleep for
  */
+/*基于schedule_timeout版本实现的毫秒级睡眠的函数*/
 void msleep(unsigned int msecs)
 {
 	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
 
 	while (timeout)
+		/*释放处理器,同时会将当前进程从cpu运行队列中移出*/
 		timeout = schedule_timeout_uninterruptible(timeout);
 }
 
@@ -1684,6 +1690,7 @@ unsigned long msleep_interruptible(unsigned int msecs)
 {
 	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
 
+	/*进程可中断,如果在msecs指定的延迟时间到期之前,进程因为接收到了信号而被唤醒,while循环中的signal_pending将返回true,那么schedule_timeout_interruptible将返回原先指定休眠时间msecs的剩余时间值,意味着msleep_interruptible无法保证进程完整的休眠了指定的时间值*/
 	while (timeout && !signal_pending(current))
 		timeout = schedule_timeout_interruptible(timeout);
 	return jiffies_to_msecs(timeout);

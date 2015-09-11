@@ -91,6 +91,7 @@ extern void release_thread(struct task_struct *);
 
 unsigned long get_wchan(struct task_struct *p);
 
+/*不会导致让出处理器,实现是一个内存屏障类的函数调用*/
 #define cpu_relax()			barrier()
 
 /*
