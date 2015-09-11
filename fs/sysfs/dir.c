@@ -709,6 +709,7 @@ int sysfs_create_subdir(struct kobject *kobj, const char *name,
  */
 int sysfs_create_dir(struct kobject * kobj)
 {
+	/*目录对应的数据结构的实例*/
 	struct sysfs_dirent *parent_sd, *sd;
 	int error = 0;
 
@@ -717,10 +718,13 @@ int sysfs_create_dir(struct kobject * kobj)
 	if (kobj->parent)
 		parent_sd = kobj->parent->sd;
 	else
+		/*意味着在sysfs文件树的根目录下为kobj创建一个新目录,否则就是在parent_sd
+		 *对应的目录下创建新目录*/
 		parent_sd = &sysfs_root;
 
 	error = create_dir(kobj, parent_sd, kobject_name(kobj), &sd);
 	if (!error)
+		/*sd为创建的目录实例*/
 		kobj->sd = sd;
 	return error;
 }

@@ -47,6 +47,7 @@ struct sysfs_inode_attrs {
  * accessible.  Dereferencing s_elem or any other outer entity
  * requires s_active reference.
  */
+/*目录对应的数据结构的实例*/
 struct sysfs_dirent {
 	atomic_t		s_count;
 	atomic_t		s_active;
