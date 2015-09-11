@@ -109,6 +109,8 @@ static inline const char *kobject_name(const struct kobject *kobj)
 
 /*kobject初始化函数,设置 kobject 引用计数为 1*/
 extern void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
+/*一是建立kobject对象间的层次关系,二是在sysfs文件系统中建立一个目录,将一个kobject对象通过
+kobject_add函数调用加入系统前,kobject对象必须已经初始化*/
 extern int __must_check kobject_add(struct kobject *kobj,
 				    struct kobject *parent,
 				    const char *fmt, ...);
@@ -141,7 +143,7 @@ kobject 的属性对应这个目录下的文件。调用 show 和 store 函数�
 struct kobj_type {
 	void (*release)(struct kobject *kobj);	/*释放kobject使用release函数*/
 	struct sysfs_ops *sysfs_ops;		/*sysfs_ops 是指向如何读写的函数的指针*/
-	struct attribute **default_attrs;	/*属性数组*/
+	struct attribute **default_attrs;	/*为kobject内核对象定义的属性成员,是数组*/
 };
 
 struct kobj_uevent_env {

@@ -44,6 +44,7 @@ static int populate_dir(struct kobject *kobj)
 	return error;
 }
 
+/*在sysfs文件树中创建目录*/
 static int create_dir(struct kobject *kobj)
 {
 	int error = 0;
@@ -173,18 +174,25 @@ static int kobject_add_internal(struct kobject *kobj)
 	parent = kobject_get(kobj->parent);
 
 	/* join kset if set, use it as parent if we do not already have one */
+	/*在kobj有所属的kset的情况下*/
 	if (kobj->kset) {
+		/*如果调用kobject_add时,传入的parent参数是NULL指针*/
 		if (!parent)
+			/*就把kobj所在的kset中的kobj作为它的parent*/
 			parent = kobject_get(&kobj->kset->kobj);
+		/*将kobj加入到所属kset链表的末尾*/
 		kobj_kset_join(kobj);
 		kobj->parent = parent;
 	}
+	/*在kobj没有所属的kset的情况下,如果调用kobject_add时parent为NULL,
+	 *那么kobj->parent页将为NULL*/
 
 	pr_debug("kobject: '%s' (%p): %s: parent: '%s', set: '%s'\n",
 		 kobject_name(kobj), kobj, __func__,
 		 parent ? kobject_name(parent) : "<NULL>",
 		 kobj->kset ? kobject_name(&kobj->kset->kobj) : "<NULL>");
 
+	/*在sysfs文件树中创建目录*/
 	error = create_dir(kobj);
 	if (error) {
 		kobj_kset_leave(kobj);
@@ -290,6 +298,7 @@ void kobject_init(struct kobject *kobj, struct kobj_type *ktype)
 		dump_stack();
 	}
 
+	/*kobject初始化函数,设置 kobject 引用计数为 1*/
 	kobject_init_internal(kobj);
 	kobj->ktype = ktype;
 	return;
@@ -342,6 +351,8 @@ static int kobject_add_varg(struct kobject *kobj, struct kobject *parent,
  /*
  *将kobject对象注册到Linux系统
  */
+/*一是建立kobject对象间的层次关系,二是在sysfs文件系统中建立一个目录,将一个kobject对象通过
+kobject_add函数调用加入系统前,kobject对象必须已经初始化*/
 int kobject_add(struct kobject *kobj, struct kobject *parent,
 		const char *fmt, ...)
 {
@@ -378,7 +389,8 @@ EXPORT_SYMBOL(kobject_add);
  * kobject_add() and kobject lifetime rules are the same here.
  */
  /*
- *初始化kobject,并将其注册到linux系统
+ *该函数实际的工作是将kobject_init和kobject_add两个函数的功能合并到了一起,初始化kobject,
+ *并将其注册到linux系统
  */
 int kobject_init_and_add(struct kobject *kobj, struct kobj_type *ktype,
 			 struct kobject *parent, const char *fmt, ...)
@@ -518,7 +530,8 @@ out:
  * kobject_del - unlink kobject from hierarchy.
  * @kobj: object.
  */
- /*系统中删除kobject对象*/
+/*在sysfs文件树中把kobj对应的目录删除,另外如果kobj隶属于某一kset的话,
+ *将其从kset链表中删除*/
 void kobject_del(struct kobject *kobj)
 {
 	if (!kobj)
@@ -632,6 +645,10 @@ static struct kobj_type dynamic_kobj_ktype = {
  * call to kobject_put() and not kfree(), as kobject_init() has
  * already been called on this structure.
  */
+/*该函数用来分配并初始化一个kobject对象
+ *如果调用kobject_create来产生一个kobject对象,那么调用者将无法为该kobject对象另行指定
+ *kobj_type,kobject_create为产生的kobject对象指定了一个默认的kobj_type对象dynamic_kobj_type,这个行为将影响kobject对象上的sysfs文件操作,如果调用者需要明确指定一个自己的kobj_type对象
+ *给该kobject对象,可以使用kobject_init_and_add函数*/
 struct kobject *kobject_create(void)
 {
 	struct kobject *kobj;
@@ -657,15 +674,18 @@ struct kobject *kobject_create(void)
  *
  * If the kobject was not able to be created, NULL will be returned.
  */
+/**/
 struct kobject *kobject_create_and_add(const char *name, struct kobject *parent)
 {
 	struct kobject *kobj;
 	int retval;
 
+	/*分配并初始化一个kobject对象*/
 	kobj = kobject_create();
 	if (!kobj)
 		return NULL;
 
+	/*在sysfs文件系统中为新生成的kobject对象建立一个新的目录*/
 	retval = kobject_add(kobj, parent, "%s", name);
 	if (retval) {
 		printk(KERN_WARNING "%s: kobject_add error: %d\n",

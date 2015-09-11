@@ -25,6 +25,7 @@ struct module;
  * x86 tree has been cleaned up. The owner
  * attribute is still left for other arches.
  */
+/*为kobject内核对象定义的属性成员,是数组*/
 struct attribute {
 	const char		*name;
 	struct module		*owner;
@@ -74,6 +75,7 @@ struct bin_attribute {
 		    struct vm_area_struct *vma);
 };
 
+/*定义了一组针对struct attribute对象操作的函数的集合*/
 struct sysfs_ops {
 	ssize_t	(*show)(struct kobject *, struct attribute *,char *);/*相当于read*/
 	ssize_t	(*store)(struct kobject *,struct attribute *,const char *, size_t);/*相当于write*/
