@@ -73,6 +73,8 @@ static int sysfs_fill_super(struct super_block *sb, void *data, int silent)
 	return 0;
 }
 
+/*函数实际上在内核空间创造了一颗独立的VFS树,内核创建这颗VFS树主要用来沟通系统中总线,设备
+ *与驱动,同时向用户空间提供接口及展示系统中各种设备的拓展视图等,函数用来产生sysfs文件系统的超级块,其内部调用的最主要函数是sysfs_fill_super*/
 static int sysfs_get_sb(struct file_system_type *fs_type,
 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
 {
@@ -80,8 +82,8 @@ static int sysfs_get_sb(struct file_system_type *fs_type,
 }
 
 static struct file_system_type sysfs_fs_type = {
-	.name		= "sysfs",
-	.get_sb		= sysfs_get_sb,
+	.name		= "sysfs",	/*文件系统名字sysfs*/
+	.get_sb		= sysfs_get_sb,	
 	.kill_sb	= kill_anon_super,
 };
 
@@ -101,7 +103,8 @@ int __init sysfs_init(void)
 	if (err)
 		goto out_err;
 
-	/*把sysfs文件系统插入到文件系统的总链表中*/
+	/*向系统中注册一个类型为sysfs_fs_type的文件系统,把sysfs文件系统插入到文件系统的
+	 *总链表中*/
 	err = register_filesystem(&sysfs_fs_type);
 	if (!err) {
 		sysfs_mount = kern_mount(&sysfs_fs_type);

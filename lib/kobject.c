@@ -142,6 +142,7 @@ static void kobj_kset_leave(struct kobject *kobj)
 	kset_put(kobj->kset);
 }
 
+/*kobject初始化函数,设置 kobject 引用计数为 1*/
 static void kobject_init_internal(struct kobject *kobj)
 {
 	if (!kobj)
@@ -242,6 +243,7 @@ int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
  * kobject to the system, you must call kobject_rename() in order to
  * change the name of the kobject.
  */
+/*设置kobject中的name*/
 int kobject_set_name(struct kobject *kobj, const char *fmt, ...)
 {
 	va_list vargs;
@@ -268,9 +270,7 @@ EXPORT_SYMBOL(kobject_set_name);
  * the memory is cleaned up properly.
  */
 
- /*
- *初始化kobject结构
- */
+/*kobject初始化函数,设置 kobject 引用计数为 1*/
 void kobject_init(struct kobject *kobj, struct kobj_type *ktype)
 {
 	char *err_str;

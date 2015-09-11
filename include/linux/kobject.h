@@ -56,22 +56,47 @@ enum kobject_action {
 	KOBJ_MAX
 };
 
+/*表示一个内核对象,kobject数据结构最通用的用法时嵌在表示某一对象的数据结构中,
+ *比如内核中定义的字符型设备对象cdev中就嵌入了kobject结构*/
 struct kobject {
-	const char		*name;	/*只想设备的名字*/
-	struct list_head	entry;	/*链接到所在kset中去的单元*/
-	struct kobject		*parent;/*指向父对象的指针*/
-	struct kset		*kset;	/*所属kset的指针*/
-	struct kobj_type	*ktype;	/*指向其对象类型描述附的指针*/
-	struct sysfs_dirent	*sd;	/*sysfs文件系统中与该对象对应的目录实体的指针*/
-	struct kref		kref;
-	unsigned int state_initialized:1;
-	unsigned int state_in_sysfs:1;
+	const char		*name;	/*表示内核对象的名字,如果内核对象加入系统,name
+					 *将会出现在sysfs文件系统中*/
+
+	struct list_head	entry;	/*用来将一系列的内核对象构成链表,链接到所在kset
+					 *中去的单元*/
+
+	struct kobject		*parent;/*指向该内核对象的上层节点,通过引入该成员构建
+					 *内核对象之间的层次关系,父对象的指针*/
+
+	struct kset		*kset;	/*内核对象所属的kset对象的指针,kset对象代表一个
+					*subsystem,其中容纳了一系列同类型的kobject对象*/
+
+	/*定义了该内核对象的一组sysfs文件系统相关的操作函数和属性,显然不同类型的内核对象
+	会有不同的ktype,用以体现kobject所代表的内核对象的特质,同时内核通过ktype成员
+	*将kobject对象的sysfs文件操作与其属性文件关联起来*/
+	struct kobj_type	*ktype;
+
+	struct sysfs_dirent	*sd;/*用来表示内核对象在sysfs文件系统中对应的目录项的实例*/
+
+	struct kref		kref;	/*其核心数据是一原子型变量,用来表示内核对象的
+					*引用计数,内核通过该成员追踪内核对象的生命周期*/
+
+	unsigned int state_initialized:1;/*表示该kobject所代表的内核对象初始化的状态,
+					  *1表示对象已被初始化,0表示未初始化*/
+
+	unsigned int state_in_sysfs:1;	/*表示该kobject所代表的内核对象有没有在sysfs文件
+					 *中建立一个入口点*/
+
 	unsigned int state_add_uevent_sent:1;
 	unsigned int state_remove_uevent_sent:1;
-	unsigned int uevent_suppress:1;
+
+	/*如果该kobject对象隶属于某一个kset,那么它的状态变化可以导致其所在的kset对象向
+	 *用户空间发送event消息,成员uevent_suppress用来表示当该kobject状态发生变化时,
+	 *是否让其所在的kset向用户空间发送event消息,值1表示不让kset发送这种event消息*/
+	unsigned int uevent_suppress:1;	
 };
 
-/*设置kobject的名字*/
+/*设置kobject中的name*/
 extern int kobject_set_name(struct kobject *kobj, const char *name, ...)
 			    __attribute__((format(printf, 2, 3)));
 extern int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
@@ -82,7 +107,7 @@ static inline const char *kobject_name(const struct kobject *kobj)
 	return kobj->name;
 }
 
-/*kobject 初始化函数,设置 kobject 引用计数为 1*/
+/*kobject初始化函数,设置 kobject 引用计数为 1*/
 extern void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
 extern int __must_check kobject_add(struct kobject *kobj,
 				    struct kobject *parent,
