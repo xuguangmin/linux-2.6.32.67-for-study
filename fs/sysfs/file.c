@@ -534,7 +534,8 @@ int sysfs_add_file(struct sysfs_dirent *dir_sd, const struct attribute *attr,
  *	@attr:	attribute descriptor.
  */
 
-/*为一个kobject对象创建一个属性文件*/
+/*为一个kobject对象创建一个属性文件,使用这个函数时,必须确保要添加属性文件的kobj对象之前
+ *已经加入了sysfs,sysfs_add_file函数将在kobj->sd对应的目录下生成一个属性文件*/
 int sysfs_create_file(struct kobject * kobj, const struct attribute * attr)
 {
 	BUG_ON(!kobj || !kobj->sd || !attr);
