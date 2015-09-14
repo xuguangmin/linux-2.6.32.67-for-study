@@ -168,6 +168,8 @@ int __request_module(bool wait, const char *fmt, ...)
 EXPORT_SYMBOL(__request_module);
 #endif /* CONFIG_MODULES */
 
+/*sub_info是一struct subprocess_info类型的变量,工作队列节点作为它的一个内嵌对象,
+ *sub_info其他成员用来存储运行用户态进程的一些信息,主要是环境变量*/
 struct subprocess_info {
 	struct work_struct work;
 	struct completion *complete;
@@ -302,6 +304,7 @@ static int wait_for_helper(void *data)
 }
 
 /* This is run by khelper thread  */
+/**/
 static void __call_usermodehelper(struct work_struct *work)
 {
 	struct subprocess_info *sub_info =
@@ -321,6 +324,10 @@ static void __call_usermodehelper(struct work_struct *work)
 		pid = kernel_thread(wait_for_helper, sub_info,
 				    CLONE_FS | CLONE_FILES | SIGCHLD);
 	else
+		/*生成一个新的进程,kernel_thread的调用将会导致__user_usermodehelper中出现
+		 *两条执行路径,一是父进程,二是子进程;父进程在调用kernel_thread后会直接返回
+		 *,而子进程则需要等到首次被调度的机会才会从kernel_thread返回,因此函数接下
+		 *来出现三个case来处理父子进程间的同步问题*/
 		pid = kernel_thread(____call_usermodehelper, sub_info,
 				    CLONE_VFORK | SIGCHLD);
 
@@ -460,6 +467,9 @@ struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
 	if (!sub_info)
 		goto out;
 
+	/*初始化一个工作队列节点,其中sub_info是一struct subprocess_info类型的变量,工作
+	 *队列节点作为它的一个内嵌对象,sub_info其他成员用来存储运行用户态进程的一些信息,
+	 *主要是环境变量,__call_usermodehelper是工作队列节点上的延迟执行的函数*/
 	INIT_WORK(&sub_info->work, __call_usermodehelper);
 	sub_info->path = path;
 	sub_info->argv = argv;
@@ -554,6 +564,8 @@ EXPORT_SYMBOL(call_usermodehelper_stdinpipe);
 int call_usermodehelper_exec(struct subprocess_info *sub_info,
 			     enum umh_wait wait)
 {
+	/*通过引入一个completion变量done来实现和工作节点sub_info->work上的延迟函数
+	 *__call_usermodehelper的同步*/
 	DECLARE_COMPLETION_ONSTACK(done);
 	int retval = 0;
 
@@ -576,6 +588,9 @@ int call_usermodehelper_exec(struct subprocess_info *sub_info,
 	sub_info->complete = &done;
 	sub_info->wait = wait;
 
+	/*提交工作工作节点到khelper_wq,将等待在wait_for_completion(&done)语句上,当
+__call_usermodehelper执行完毕,会通过complete函数来唤醒睡眠的call_usermodehelper_exec函数,
+	 *khelper_wq这是一个工作队列,其创建发生在linux系统的初始化阶段*/
 	queue_work(khelper_wq, &sub_info->work);
 	if (wait == UMH_NO_WAIT)	/* task has freed sub_info */
 		goto unlock;
@@ -637,6 +652,7 @@ EXPORT_SYMBOL(call_usermodehelper_pipe);
 
 void __init usermodehelper_init(void)
 {
+	/*创建并初始化一个工作队列*/
 	khelper_wq = create_singlethread_workqueue("khelper");
 	BUG_ON(!khelper_wq);
 }

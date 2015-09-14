@@ -26,6 +26,8 @@
 
 
 u64 uevent_seqnum;
+/*通过调用call_usermodehelper来达到从内核空间运行一个用户空间进程的目的,用户空间进程的
+ *二进制文件由uevent_helper提供,该变量是一字符数组*/
 char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
 static DEFINE_SPINLOCK(sequence_lock);
 #if defined(CONFIG_NET)
@@ -86,6 +88,7 @@ out:
  * Returns 0 if kobject_uevent() is completed with success or the
  * corresponding error when it fails.
  */
+ /*kobject_uevent的核心功能函数*/
 int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		       char *envp_ext[])
 {
@@ -104,10 +107,12 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		 kobject_name(kobj), kobj, __func__);
 
 	/* search the kset we belong to */
+	/*此处的while循环用来查找kobj所隶属的最顶层kset*/
 	top_kobj = kobj;
 	while (!top_kobj->kset && top_kobj->parent)
 		top_kobj = top_kobj->parent;
 
+	/*如果当前kobj没有隶属的kset,那么它将不能使用uevent机制*/
 	if (!top_kobj->kset) {
 		pr_debug("kobject: '%s' (%p): %s: attempted to send uevent "
 			 "without kset!\n", kobject_name(kobj), kobj,
@@ -115,10 +120,12 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		return -EINVAL;
 	}
 
+	/*得到kobj所属的顶层kset的uevent操作集对象uevent_ops*/
 	kset = top_kobj->kset;
 	uevent_ops = kset->uevent_ops;
 
 	/* skip the event, if uevent_suppress is set*/
+	/*如果kobj->uevent_suppress=1表明该kobj不希望使用uevent机制*/
 	if (kobj->uevent_suppress) {
 		pr_debug("kobject: '%s' (%p): %s: uevent_suppress "
 				 "caused the event to drop!\n",
@@ -126,6 +133,7 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		return 0;
 	}
 	/* skip the event, if the filter returns zero. */
+	/*首先调用filter函数,如果函数返回0,表明kobj希望发送的event消息被顶层kset过滤掉了*/
 	if (uevent_ops && uevent_ops->filter)
 		if (!uevent_ops->filter(kset, kobj)) {
 			pr_debug("kobject: '%s' (%p): %s: filter function "
@@ -146,6 +154,7 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		return 0;
 	}
 
+	/*准备使用uevent机制向用户空间发送event消息,通过add_uevent_var添加环境变量信息*/
 	/* environment buffer */
 	env = kzalloc(sizeof(struct kobj_uevent_env), GFP_KERNEL);
 	if (!env)
@@ -178,8 +187,11 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		}
 	}
 
+	/*此处在向用户空间发送event消息之前,给kset最后一次机会以完成一些私人事情*/
 	/* let the kset specific function add its stuff */
 	if (uevent_ops && uevent_ops->uevent) {
+		/*处理完环境变量之后,调用kset对象的uevent_ops操作集中的uevent函数,这是
+		 *内核赋予kset通过该函数完成自己特定功能的最后一次机会*/
 		retval = uevent_ops->uevent(kset, kobj, env);
 		if (retval) {
 			pr_debug("kobject: '%s' (%p): %s: uevent() returned "
@@ -208,6 +220,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 	if (retval)
 		goto exit;
 
+/*如果配置了CONFIG_NET宏,表明内核打算使用netlink机制实现uevent消息的发送,这部分代码通过
+ *netlink的方式向用户空间广播当前kset对象中的uevent消息*/
 #if defined(CONFIG_NET)
 	/* send netlink message */
 	if (uevent_sock) {
@@ -242,6 +256,7 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 	}
 #endif
 
+	/*使用uevent_helper机制实现uevent*/
 	/* call uevent_helper, usually only enabled during early boot */
 	if (uevent_helper[0]) {
 		char *argv [3];
@@ -257,6 +272,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		if (retval)
 			goto exit;
 
+		/*通过调用call_usermodehelper来达到从内核空间运行一个用户空间进程的目的,
+		 *用户空间进程的二进制文件由uevent_helper提供,该变量是一字符数组*/
 		retval = call_usermodehelper(argv[0], argv,
 					     env->envp, UMH_WAIT_EXEC);
 	}
@@ -277,8 +294,12 @@ EXPORT_SYMBOL_GPL(kobject_uevent_env);
  * Returns 0 if kobject_uevent() is completed with success or the
  * corresponding error when it fails.
  */
+/*热插拔在内核中通过kobject_uevent函数来实现,它通过发送一个uevent消息和调用
+ *call_usermodulehelper来与用户名称空间进行沟通.kobject_uevent所实现的功能和linux系统中
+ *用以实现热插拔的特性息息相关,它是udev和/sbin/hotplug等工具赖以工作的基石*/
 int kobject_uevent(struct kobject *kobj, enum kobject_action action)
 {
+	/*枚举型变量,定义了kset对象的一些状态变化,此处使用的是KOBJ_ADD*/
 	return kobject_uevent_env(kobj, action, NULL);
 }
 EXPORT_SYMBOL_GPL(kobject_uevent);

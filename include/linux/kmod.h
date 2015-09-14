@@ -73,6 +73,10 @@ int call_usermodehelper_exec(struct subprocess_info *info, enum umh_wait wait);
    to call call_usermodehelper_exec */
 void call_usermodehelper_freeinfo(struct subprocess_info *info);
 
+/*通过调用call_usermodehelper来达到从内核空间运行一个用户空间进程的目的,
+ *用户空间进程的二进制文件由uevent_helper提供,该变量是一字符数组*/
+/*函数的设计思想采用工作队列的方式,在call_usermodehelper_setup函数内部会初始化一个工作
+ *队列的节点*/
 static inline int
 call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
 {

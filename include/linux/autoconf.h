@@ -156,6 +156,9 @@
 #define CONFIG_ZBOOT_ROM_TEXT 0x0
 #define CONFIG_STACKTRACE_SUPPORT 1
 #define CONFIG_SERIO 1
+/*是一内核编译阶段的配置宏,依赖于CONFIG_HOTPLUG,这意味着如果系统需要支持设备的热插拔等特性
+ *,则需要给出用户空间进程的文件路径信息,通常CONFIG_UEVENT_HELPER_PATH会指向/sbin/hotplug,
+ *后者用来处理系统中出现的热插拔事件,不过现在的linux系统多半没有这个文件*/
 #define CONFIG_UEVENT_HELPER_PATH "/sbin/hotplug"
 #define CONFIG_HAVE_KRETPROBES 1
 #define CONFIG_FILE_LOCKING 1

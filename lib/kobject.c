@@ -157,6 +157,7 @@ static void kobject_init_internal(struct kobject *kobj)
 }
 
 
+/*向系统注册kset对象,因为kset对象本身就是一个由kobject代表的内核对象,所以kobject_add_internal函数会为代表该kset对象的k->kobj在sysfs文件树中生成一个新目录*/
 static int kobject_add_internal(struct kobject *kobj)
 {
 	int error = 0;
@@ -701,6 +702,7 @@ EXPORT_SYMBOL_GPL(kobject_create_and_add);
  * kset_init - initialize a kset for use
  * @k: kset
  */
+/*用来初始化一个kset对象*/
 void kset_init(struct kset *k)
 {
 	kobject_init_internal(&k->kobj);
@@ -742,6 +744,7 @@ struct sysfs_ops kobj_sysfs_ops = {
  * kset_register - initialize and add a kset.
  * @k: kset.
  */
+/*用来初始化并向系统注册一个kset对象*/
 int kset_register(struct kset *k)
 {
 	int err;
@@ -761,6 +764,7 @@ int kset_register(struct kset *k)
  * kset_unregister - remove a kset.
  * @k: kset.
  */
+/*用来将k指向的kset对象从系统中注销,完成的是kset_register的反向操作*/
 void kset_unregister(struct kset *k)
 {
 	if (!k)
@@ -864,6 +868,9 @@ static struct kset *kset_create(const char *name,
  *
  * If the kset was not able to be created, NULL will be returned.
  */
+/*主要作用是动态产生一kset对象然后将其加入到sysfs文件系统中,参数name是创建的kset对象的名,
+ *uevent_ops是新kset对象上用来处理用户空间event消息的操作集,parent_kobj是kset对象的上层
+ *(父级)的内核对象指针*/
 struct kset *kset_create_and_add(const char *name,
 				 struct kset_uevent_ops *uevent_ops,
 				 struct kobject *parent_kobj)

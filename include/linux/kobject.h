@@ -46,9 +46,10 @@ extern u64 uevent_seqnum;
  * kobject_uevent_env(kobj, KOBJ_CHANGE, env) with additional event
  * specific variables added to the event environment.
  */
+/*枚举型变量,定义了kset对象的一些状态变化*/
 enum kobject_action {
-	KOBJ_ADD,
-	KOBJ_REMOVE,
+	KOBJ_ADD,	/*表明将向系统添加一个kset对象*/
+	KOBJ_REMOVE,	/*从系统删除一个kset对象*/
 	KOBJ_CHANGE,
 	KOBJ_MOVE,
 	KOBJ_ONLINE,
@@ -137,12 +138,16 @@ extern void kobject_put(struct kobject *kobj);
 extern char *kobject_get_path(struct kobject *kobj, gfp_t flag);
 
 /*show 相当于 read,store 相当于 write。
-struct attribute **default_attrs;是属性数组。在 sysfs 中,kobject 对应目录,
+struct attribute **default_attrs;是属性数组。在sysfs中,kobject 对应目录,
 kobject 的属性对应这个目录下的文件。调用 show 和 store 函数来读写文件,
 就可以得到属性中的内容*/
 struct kobj_type {
 	void (*release)(struct kobject *kobj);	/*释放kobject使用release函数*/
-	struct sysfs_ops *sysfs_ops;		/*sysfs_ops 是指向如何读写的函数的指针*/
+	struct sysfs_ops *sysfs_ops;/*sysfs_ops 是指向如何读写的函数的指针;sysfs_ops实际
+				     *上定义了一组针对struct attribute对象的操作函数的集合
+				     *, struct attribute数据结构则认为是kobject内核对象
+				     *定义的属性成员*/
+
 	struct attribute **default_attrs;	/*为kobject内核对象定义的属性成员,是数组*/
 };
 
@@ -153,8 +158,12 @@ struct kobj_uevent_env {
 	int buflen;
 };
 
-/*对热插拔事件的控制*/
+/*对热插拔事件的控制,定义了一组函数指针,当kset中的某些kobject对象发生状态变化需要
+ *通知用户空间时,调用其中的函数来完成*/
 struct kset_uevent_ops {
+	/*一个kset对象状态的变化,将会首先调用隶属于该kset对象的uevent_ops操作集中的filter
+	 *函数,决定kset对象当前状态的改变是否要通知到用户层,如果uevent_ops->filter返回0,
+	 *将不再通知用户层*/
 	int (*filter)(struct kset *kset, struct kobject *kobj);
 	const char *(*name)(struct kset *kset, struct kobject *kobj);
 	int (*uevent)(struct kset *kset, struct kobject *kobj,
@@ -188,16 +197,31 @@ extern struct sysfs_ops kobj_sysfs_ops;
  * can add new environment variables, or filter out the uevents if so
  * desired.
  */
+/*kset可以任务是一组kobject的集合,是kobject的容器,kset本身也是一个内核对象,所以需要内嵌
+ *一个kobject对象*/
+/*kset对象与单个的kobject对象不一样的地方在于,将一个kset对象向系统注册时,如果linux内核
+ *编译时启用了CONFIG_HOTPLUG,那么需要将这一事件通知用户空间,这个过程有kobject_uevent完成,
+ *如果一个kobject对象不属于任一kset,那么这个孤立的kobject对象将无法通过uevent机制向用户
+ *空间发送event消息*/
 struct kset {
-	struct list_head list;	/*用于连接该kset中所有kobject的链表头*/
-	spinlock_t list_lock;	/*用于互斥访问*/
-	struct kobject kobj;	/*嵌入的kobject*/
-	struct kset_uevent_ops *uevent_ops;/*对热插拔事件的控制*/
+	struct list_head list;	/*用来将其中的kobject对象构建成链表*/
+	spinlock_t list_lock;	/*对kset上的list链表进行访问操作时用来作为互斥保护使用的自旋锁*/
+	struct kobject kobj;	/*嵌入的kobject,代表当前kset内核对象的kobject变量*/
+
+	/*对热插拔事件的控制,定义了一组函数指针,当kset中的某些kobject对象发生状态变化需要
+	 *通知用户空间时,调用其中的函数来完成*/
+	struct kset_uevent_ops *uevent_ops;
 };
 
+/*用来初始化一个kset对象*/
 extern void kset_init(struct kset *kset);
+/*用来初始化并向系统注册一个kset对象*/
 extern int __must_check kset_register(struct kset *kset);
+/*用来将k指向的kset对象从系统中注销,完成的是kset_register的反向操作*/
 extern void kset_unregister(struct kset *kset);
+/*主要作用是动态产生一kset对象然后将其加入到sysfs文件系统中,参数name是创建的kset对象的名,
+ *uevent_ops是新kset对象上用来处理用户空间event消息的操作集,parent_kobj是kset对象的上层
+ *(父级)的内核对象指针*/
 extern struct kset * __must_check kset_create_and_add(const char *name,
 						struct kset_uevent_ops *u,
 						struct kobject *parent_kobj);
@@ -246,6 +270,9 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
 int kobject_action_type(const char *buf, size_t count,
 			enum kobject_action *type);
 #else
+/*热插拔在内核中通过kobject_uevent函数来实现,它通过发送一个uevent消息和调用
+ *call_usermodulehelper来与用户名称空间进行沟通.kobject_uevent所实现的功能和linux系统中
+ *用以实现热插拔的特性息息相关,它是udev和/sbin/hotplug等工具赖以工作的基石*/
 static inline int kobject_uevent(struct kobject *kobj,
 				 enum kobject_action action)
 { return 0; }

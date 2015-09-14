@@ -330,6 +330,7 @@ static void sysfs_put_open_dirent(struct sysfs_dirent *sd,
 	kfree(od);
 }
 
+/*用户空间的程序在使用一个内核对象kobject的属性文件时,会首先open这个属性文件,然后通过一系列潜在的调用链,最终调用到sysfs_open_file*/
 static int sysfs_open_file(struct inode *inode, struct file *file)
 {
 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
@@ -349,6 +350,7 @@ static int sysfs_open_file(struct inode *inode, struct file *file)
 
 	/* every kobject with an attribute needs a ktype assigned */
 	if (kobj->ktype && kobj->ktype->sysfs_ops)
+		/*i将ktype->sysfs_ops赋值给了ops*/
 		ops = kobj->ktype->sysfs_ops;
 	else {
 		WARN(1, KERN_ERR "missing sysfs attribute operations for "
@@ -378,12 +380,17 @@ static int sysfs_open_file(struct inode *inode, struct file *file)
 	 * it in file->private_data for easy access.
 	 */
 	error = -ENOMEM;
+	/*分配buffer空间*/
 	buffer = kzalloc(sizeof(struct sysfs_buffer), GFP_KERNEL);
 	if (!buffer)
 		goto err_out;
 
 	mutex_init(&buffer->mutex);
 	buffer->needs_read_fill = 1;
+	/*通过新分配的buffer空间间接的将ktype->sysfs_ops放到了file的private_data成员中,
+	 *这样用户空间的程序在后续对该属性文件的read操作中,将会利用file->private_data来
+	 *获得kobj->ktype中定义的显示kobj属性值的show函数,只要改变kobj的某一属性值,则应该
+	 *使用sysfs_ops中的store函数*/
 	buffer->ops = ops;
 	file->private_data = buffer;
 
@@ -521,6 +528,7 @@ int sysfs_add_file_mode(struct sysfs_dirent *dir_sd,
 }
 
 
+/*函数将在dir_sd对应的目录下生成一个属性文件*/
 int sysfs_add_file(struct sysfs_dirent *dir_sd, const struct attribute *attr,
 		   int type)
 {
@@ -533,13 +541,13 @@ int sysfs_add_file(struct sysfs_dirent *dir_sd, const struct attribute *attr,
  *	@kobj:	object we're creating for. 
  *	@attr:	attribute descriptor.
  */
-
 /*为一个kobject对象创建一个属性文件,使用这个函数时,必须确保要添加属性文件的kobj对象之前
  *已经加入了sysfs,sysfs_add_file函数将在kobj->sd对应的目录下生成一个属性文件*/
 int sysfs_create_file(struct kobject * kobj, const struct attribute * attr)
 {
 	BUG_ON(!kobj || !kobj->sd || !attr);
 
+	/*函数将在kobj->sd对应的目录下生成一个属性文件*/
 	return sysfs_add_file(kobj->sd, attr, SYSFS_KOBJ_ATTR);
 
 }
@@ -634,6 +642,7 @@ EXPORT_SYMBOL_GPL(sysfs_chmod_file);
  *	Hash the attribute name and kill the victim.
  */
 
+/*如果要删除一个属性文件使用该函数*/
 void sysfs_remove_file(struct kobject * kobj, const struct attribute * attr)
 {
 	sysfs_hash_and_remove(kobj->sd, attr->name);
