@@ -16,14 +16,24 @@
  * bus_type to be statically allocated safely.  Nothing outside of the driver
  * core should ever touch these fields.
  */
+/*一个用来管理其上设备与驱动的数据结构*/
 struct bus_type_private {
-	struct kset subsys;
+	/*用来表示该bus所在的子系统,在内核中所有通过bus_register注册进系统的bus所在的kset
+	 *都将指向bus_kset,换句话说,bus_kset是系统中所有bus内核对象的容器,而新注册的bus
+	 *本身也是一个kset型对象,标识了系统中当前总线对象与bus_kset间的隶属关系*/
+	struct kset subsys;	
+	/*表示该bus上所有驱动的集合,容纳该总线上所有驱动的kset,与此对应klist成员则以链表
+	 *的形式将该总线上的所有驱动链接到了一起*/
 	struct kset *drivers_kset;
+	/*表示该bus上所有设备的一个集合,容纳该总线上所有设备的kset,与klist对应*/
 	struct kset *devices_kset;
+	/*表示bus上所有设备和驱动的链表*/
 	struct klist klist_devices;
 	struct klist klist_drivers;
 	struct blocking_notifier_head bus_notifier;
+	/*表示当向系统中注册某一设备或者驱动的时候,是否进行设备与驱动的绑定操作*/
 	unsigned int drivers_autoprobe:1;
+	/*指向与struct buf_type_private对象相关联的bus*/
 	struct bus_type *bus;
 };
 

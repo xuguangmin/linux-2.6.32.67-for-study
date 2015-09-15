@@ -745,6 +745,7 @@ struct sysfs_ops kobj_sysfs_ops = {
  * @k: kset.
  */
 /*用来初始化并向系统注册一个kset对象*/
+/*在kset/bus目录下为当前注册的bus生成一个新的目录*/
 int kset_register(struct kset *k)
 {
 	int err;

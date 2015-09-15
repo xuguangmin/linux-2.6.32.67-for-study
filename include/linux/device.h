@@ -48,13 +48,21 @@ extern int __must_check bus_create_file(struct bus_type *,
 					struct bus_attribute *);
 extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
 
+/*总线对象数据结构*/
 struct bus_type {
-	const char		*name;
-	struct bus_attribute	*bus_attrs;
-	struct device_attribute	*dev_attrs;
-	struct driver_attribute	*drv_attrs;
+	const char		*name;	/*总线的名称*/
 
+	struct bus_attribute	*bus_attrs;/*总线的属性,包括操作这些属性的一组函数*/
+
+	struct device_attribute	*dev_attrs;/*挂载到该总线上的设备的属性,功能逻辑与
+					    *总线属性一样*/
+
+	struct driver_attribute	*drv_attrs;/*挂载到该总线上的驱动的属性,
+					    *功能逻辑与总线属性一样*/
+
+	/*总线用来对试图挂载到其上的设备与驱动程序执行的匹配操作*/
 	int (*match)(struct device *dev, struct device_driver *drv);
+
 	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
 	int (*probe)(struct device *dev);
 	int (*remove)(struct device *dev);
@@ -63,9 +71,10 @@ struct bus_type {
 	int (*suspend)(struct device *dev, pm_message_t state);
 	int (*resume)(struct device *dev);
 
-	const struct dev_pm_ops *pm;
+	const struct dev_pm_ops *pm;/*总线上一组跟电源管理相关的操作集,
+				     *用来对总线上的设备进行电源管理*/
 
-	struct bus_type_private *p;
+	struct bus_type_private *p;/*一个用来管理其上设备与驱动的数据结构*/
 };
 
 extern int __must_check bus_register(struct bus_type *bus);
