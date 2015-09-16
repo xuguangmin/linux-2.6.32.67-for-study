@@ -241,12 +241,15 @@ static int __device_attach(struct device_driver *drv, void *data)
  *
  * When called for a USB interface, @dev->parent->sem must be held.
  */
+/*将当前的设备绑定到它的驱动程序上*/
 int device_attach(struct device *dev)
 {
 	int ret = 0;
 
 	down(&dev->sem);
+	/*不为空,表明已经进行了绑定*/
 	if (dev->driver) {
+		/*这种情况下只需调用该函数在sysfs文件树中建立dev与其驱动程序之间的互联关系*/
 		ret = device_bind_driver(dev);
 		if (ret == 0)
 			ret = 1;
@@ -256,6 +259,7 @@ int device_attach(struct device *dev)
 		}
 	} else {
 		pm_runtime_get_noresume(dev);
+		/*遍历dev所在总线dev->bus上挂载的所有驱动程序对象*/
 		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
 		pm_runtime_put_sync(dev);
 	}

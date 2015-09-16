@@ -30,6 +30,7 @@
 int (*platform_notify)(struct device *dev) = NULL;
 int (*platform_notify_remove)(struct device *dev) = NULL;
 static struct kobject *dev_kobj;
+/*内核将系统中的设备分为两大类:block和char,每类对应一个内核对象*/
 struct kobject *sysfs_dev_char_kobj;
 struct kobject *sysfs_dev_block_kobj;
 
@@ -258,6 +259,7 @@ static struct kset_uevent_ops device_uevent_ops = {
 	.uevent =	dev_uevent,
 };
 
+/*系统提供的显示设备属性的默认函数*/
 static ssize_t show_uevent(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
@@ -301,6 +303,7 @@ out:
 	return count;
 }
 
+/*系统提供的修改设备属性值的默认方法*/
 static ssize_t store_uevent(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
 {
@@ -318,6 +321,7 @@ out:
 	return count;
 }
 
+/*设备注册时用到的属性结构对象*/
 static struct device_attribute uevent_attr =
 	__ATTR(uevent, S_IRUGO | S_IWUSR, show_uevent, store_uevent);
 
@@ -555,8 +559,10 @@ static void klist_children_put(struct klist_node *n)
  * NOTE: Use put_device() to give up your reference instead of freeing
  * @dev directly once you have called this function.
  */
+ /*针对设备的操作,用于设备的初始化*/
 void device_initialize(struct device *dev)
 {
+	/*表明了dev所属的kset对象为devices_kset*/
 	dev->kobj.kset = devices_kset;
 	kobject_init(&dev->kobj, &device_ktype);
 	INIT_LIST_HEAD(&dev->dma_pools);
@@ -564,6 +570,7 @@ void device_initialize(struct device *dev)
 	spin_lock_init(&dev->devres_lock);
 	INIT_LIST_HEAD(&dev->devres_head);
 	device_init_wakeup(dev, 0);
+	/*dev_pm_init用来初始化dev与电源管理相关的部分*/
 	device_pm_init(dev);
 	set_dev_node(dev, -1);
 }
@@ -825,6 +832,10 @@ EXPORT_SYMBOL_GPL(dev_set_name);
  * device_remove_sys_dev_entry() will disagree about the the presence
  * of the link.
  */
+/*链接的产生;假设dev对象的设备号major=251,minor=0,设备名称为dev->init_name,那么
+ *如果dev->class为空,则新链接为/sys/dev/char/251:0 /sys/devices/dev->init_name
+ *如果dev->class不为空,那么链接文件的源头将在/dev->class->dev_kobj所对应的目录产生
+ *目的链接则为/sys/devices/virtual/dev->init_name*/
 static struct kobject *device_to_dev_kobj(struct device *dev)
 {
 	struct kobject *kobj;
@@ -837,8 +848,10 @@ static struct kobject *device_to_dev_kobj(struct device *dev)
 	return kobj;
 }
 
+/*建立一个新的链接,该链接的目的和源取决于dev->class*/
 static int device_create_sys_dev_entry(struct device *dev)
 {
+	/*链接的产生*/
 	struct kobject *kobj = device_to_dev_kobj(dev);
 	int error = 0;
 	char devt_str[15];
@@ -942,16 +955,18 @@ int device_add(struct device *dev)
 	if (error)
 		goto attrError;
 
-	/*设备的属性文件*/
+	/*设备的属性文件,主设备号不为0*/
 	if (MAJOR(dev->devt)) {
+		/*新增一个属性文件dev*/
 		error = device_create_file(dev, &devt_attr);
 		if (error)
 			goto ueventattrError;
 
+		/*建立一个新的链接,该链接的目的和源取决于dev->class*/
 		error = device_create_sys_dev_entry(dev);
 		if (error)
 			goto devtattrError;
-
+		/*在/dev目录下动态生成一个设备节点*/
 		devtmpfs_create_node(dev);
 	}
 
@@ -962,6 +977,7 @@ int device_add(struct device *dev)
 	error = device_add_attrs(dev);
 	if (error)
 		goto AttrsError;
+	/*在/sys/bus/devices目录下创建一个链接文件指向/sys/devices/dev->init_name*/
 	error = bus_add_device(dev);
 	if (error)
 		goto BusError;
@@ -978,6 +994,7 @@ int device_add(struct device *dev)
 					     BUS_NOTIFY_ADD_DEVICE, dev);
 
 	kobject_uevent(&dev->kobj, KOBJ_ADD);
+	/*一个体现设备驱动模型中总线 设备与驱动相互沟通的重要函数*/
 	bus_probe_device(dev);
 	if (parent)
 		klist_add_tail(&dev->p->knode_parent,
@@ -1041,9 +1058,11 @@ name_error:
  * if it returned an error! Always use put_device() to give up the
  * reference initialized in this function instead.
  */
+/*用来向系统注册一个设备*/
 int device_register(struct device *dev)
 {
 	device_initialize(dev);
+	/*将设备对象dev加入到系统中*/
 	return device_add(dev);
 }
 
@@ -1095,13 +1114,18 @@ void device_del(struct device *dev)
 	if (dev->bus)
 		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
 					     BUS_NOTIFY_DEL_DEVICE, dev);
+	/*设备电源管理函数,关闭本设备电源同时通知其父设备*/
 	device_pm_remove(dev);
 	dpm_sysfs_remove(dev);
+	/*有父设备*/
 	if (parent)
 		klist_del(&dev->p->knode_parent);
+	/*如果dev设备对象的主设备号不为0*/
 	if (MAJOR(dev->devt)) {
+		/*动态删除设备节点文件*/
 		devtmpfs_delete_node(dev);
 		device_remove_sys_dev_entry(dev);
+		/*删除设备的属性文件*/
 		device_remove_file(dev, &devt_attr);
 	}
 	if (dev->class) {
@@ -1150,6 +1174,7 @@ void device_del(struct device *dev)
  * via device_release() above. Otherwise, the structure will
  * stick around until the final reference to the device is dropped.
  */
+/*将一个设备从系统中注销掉*/
 void device_unregister(struct device *dev)
 {
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
@@ -1274,8 +1299,10 @@ struct device *device_find_child(struct device *parent, void *data,
 	return child;
 }
 
+/*内核将系统中的设备分为两大类,block和char,每类对应一个内核对象,分别为sysfs_dev_block_kobj和sysfs_dev_char_kobj,自然的这些内核对象也在sysfs文件树中占有对应的入口点,block和char内核对象的上级内核对象为dev_kobj,设备相关的事发生的比较早,在系统初始化时发生,由该函数完成*/
 int __init devices_init(void)
 {
+	/*以下操作反应到/sys目录下,就生成了/sys/devices, /sys/dev, /sys/dev/block和/sys/dev/char*/
 	devices_kset = kset_create_and_add("devices", &device_uevent_ops, NULL);
 	if (!devices_kset)
 		return -ENOMEM;

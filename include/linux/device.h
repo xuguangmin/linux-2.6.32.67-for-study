@@ -392,17 +392,22 @@ struct device_dma_parameters {
 struct device {
 	struct device		*parent;/*当前设备的父设备*/
 
-	struct device_private	*p;
+	struct device_private	*p;/*指向该设备驱动相关的数据*/
 
-	struct kobject kobj;
+	struct kobject kobj;	/*代表struct device的内核对象*/
+	/*设备对象的名称,在将该设备对象加入到系统中时,内核会把init_name设置成kobj成员
+	 *的名称,后者在sysfs中表现为一个目录*/
 	const char		*init_name; /* initial name of the device */
 	struct device_type	*type;
 
 	struct semaphore	sem;	/* semaphore to synchronize calls to
 					 * its driver.
 					 */
-
+	/*设备所在的总线对象指针*/
 	struct bus_type	*bus;		/* type of bus device is on */
+
+	/*用以表示当前设备是否已经与它的driver进行了绑定,如果该值为NULL,
+	 *说明当前设备还没有找到它的driver*/
 	struct device_driver *driver;	/* which driver has allocated this
 					   device */
 	void		*platform_data;	/* Platform specific data, device

@@ -402,6 +402,7 @@ static struct device_driver *next_driver(struct klist_iter *i)
  * in the callback. It must also be sure to increment the refcount
  * so it doesn't disappear before returning to the caller.
  */
+/*遍历dev所在总线dev->bus上挂载的所有驱动程序对象*/
 int bus_for_each_drv(struct bus_type *bus, struct device_driver *start,
 		     void *data, int (*fn)(struct device_driver *, void *))
 {
@@ -516,12 +517,14 @@ out_put:
  *
  * - Automatically probe for a driver if the bus allows it.
  */
+/*一个体现设备驱动模型中总线 设备与驱动相互沟通的重要函数*/
 void bus_probe_device(struct device *dev)
 {
 	struct bus_type *bus = dev->bus;
 	int ret;
 
 	if (bus && bus->p->drivers_autoprobe) {
+		/*将当前的设备绑定到它的驱动程序上*/
 		ret = device_attach(dev);
 		WARN_ON(ret < 0);
 	}
