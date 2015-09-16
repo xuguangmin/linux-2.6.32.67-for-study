@@ -228,15 +228,18 @@ static ssize_t driver_bind(struct device_driver *drv,
 }
 static DRIVER_ATTR(bind, S_IWUSR, NULL, driver_bind);
 
+/*显示总线属性的函数*/
 static ssize_t show_drivers_autoprobe(struct bus_type *bus, char *buf)
 {
 	return sprintf(buf, "%d\n", bus->p->drivers_autoprobe);
 }
 
+/*修改总线属性的函数*/
 static ssize_t store_drivers_autoprobe(struct bus_type *bus,
 				       const char *buf, size_t count)
 {
 	if (buf[0] == '0')
+		/*是否进行设备与驱动的绑定工作*/
 		bus->p->drivers_autoprobe = 0;
 	else
 		bus->p->drivers_autoprobe = 1;
@@ -607,6 +610,7 @@ static void remove_bind_files(struct device_driver *drv)
 }
 
 static BUS_ATTR(drivers_probe, S_IWUSR, NULL, store_drivers_probe);
+/*表明对root用户而言具有读与写的权限*/
 static BUS_ATTR(drivers_autoprobe, S_IWUSR | S_IRUGO,
 		show_drivers_autoprobe, store_drivers_autoprobe);
 
@@ -614,6 +618,7 @@ static int add_probe_files(struct bus_type *bus)
 {
 	int retval;
 
+	/*生成总线属性文件*/
 	retval = bus_create_file(bus, &bus_attr_drivers_probe);
 	if (retval)
 		goto out;
@@ -633,6 +638,7 @@ static void remove_probe_files(struct bus_type *bus)
 #else
 static inline int add_bind_files(struct device_driver *drv) { return 0; }
 static inline void remove_bind_files(struct device_driver *drv) {}
+/*为当前bus增加probe相关的属性文件*/
 static inline int add_probe_files(struct bus_type *bus) { return 0; }
 static inline void remove_probe_files(struct bus_type *bus) {}
 #endif

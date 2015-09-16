@@ -44,9 +44,13 @@ static void driver_bound(struct device *dev)
 		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
 					     BUS_NOTIFY_BOUND_DRIVER, dev);
 
+	/*用来将设备private结构中的knode_driver节点加入到与该设备绑定的驱动private结构中
+	 *的klist_devices链表中;所以设备与驱动的绑定,其实是在两者之间通过某种数据结构的
+	 *使用建立了一种关联的渠道*/
 	klist_add_tail(&dev->p->knode_driver, &dev->driver->p->klist_devices);
 }
 
+/*在sysfs文件系统中建立绑定的设备与驱动程序之间的链接符号文件*/
 static int driver_sysfs_add(struct device *dev)
 {
 	int ret;
@@ -87,10 +91,12 @@ static void driver_sysfs_remove(struct device *dev)
  *
  * This function must be called with @dev->sem held.
  */
+/*将设备与它的驱动程序绑定起来*/
 int device_bind_driver(struct device *dev)
 {
 	int ret;
 
+	/*在sysfs文件系统中建立绑定的设备与驱动程序之间的链接符号文件*/
 	ret = driver_sysfs_add(dev);
 	if (!ret)
 		driver_bound(dev);

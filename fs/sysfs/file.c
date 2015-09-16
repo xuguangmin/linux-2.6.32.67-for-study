@@ -89,6 +89,7 @@ static int fill_read_buffer(struct dentry * dentry, struct sysfs_buffer * buffer
 		return -ENODEV;
 
 	buffer->event = atomic_read(&attr_sd->s_attr.open->event);
+	/**/
 	count = ops->show(kobj, attr_sd->s_attr.attr, buffer->page);
 
 	sysfs_put_active_two(attr_sd);
@@ -495,6 +496,10 @@ void sysfs_notify(struct kobject *k, const char *dir, const char *attr)
 }
 EXPORT_SYMBOL_GPL(sysfs_notify);
 
+/*在构造sysfs文件系统的超级块时,内核会调用到sysfs_init_inode函数,这个函数为sysfs文件系统的
+ *inode初始化了相关的操作对象i_op和i_fop,这样对于在sysfs文件系统中生成总线属性文件的
+ *bus_create_file而言,它生成的属性文件被用户空间的shell命令cat时,将利用到inode上i_fop操作集*/
+/*sysfs文件操作函数集*/
 const struct file_operations sysfs_file_operations = {
 	.read		= sysfs_read_file,
 	.write		= sysfs_write_file,
