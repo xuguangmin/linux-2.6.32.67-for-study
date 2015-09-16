@@ -186,6 +186,7 @@ int __class_register(struct class *cls, struct lock_class_key *key)
 	cp->class = cls;
 	cls->p = cp;
 
+	/*将之前生成的class加入到系统中*/
 	error = kset_register(&cp->class_subsys);
 	if (error) {
 		kfree(cp);
@@ -222,6 +223,7 @@ static void class_create_release(struct class *cls)
  * Note, the pointer created here is to be destroyed when finished by
  * making a call to class_destroy().
  */
+ /*向系统注册新生成的类对象*/
 struct class *__class_create(struct module *owner, const char *name,
 			     struct lock_class_key *key)
 {
@@ -238,6 +240,7 @@ struct class *__class_create(struct module *owner, const char *name,
 	cls->owner = owner;
 	cls->class_release = class_create_release;
 
+	/**/
 	retval = __class_register(cls, key);
 	if (retval)
 		goto error;
@@ -257,6 +260,7 @@ EXPORT_SYMBOL_GPL(__class_create);
  * Note, the pointer to be destroyed must have been created with a call
  * to class_create().
  */
+/*用于从系统中注销一个class对象*/
 void class_destroy(struct class *cls)
 {
 	if ((cls == NULL) || (IS_ERR(cls)))
@@ -577,8 +581,11 @@ void class_compat_remove_link(struct class_compat *cls, struct device *dev,
 }
 EXPORT_SYMBOL_GPL(class_compat_remove_link);
 
+/*系统中类的起源函数,在系统初始化期间调用,主要作用是产生类对象的顶层kset---class_kset*/
 int __init classes_init(void)
 {
+	/*在/sys目录下生成一个class目录,在以后的class相关操作中,class_kset将作为系统中
+	 *所有class内核对象的顶层kset*/
 	class_kset = kset_create_and_add("class", NULL, NULL);
 	if (!class_kset)
 		return -ENOMEM;

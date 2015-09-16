@@ -131,17 +131,27 @@ extern int bus_unregister_notifier(struct bus_type *bus,
 extern struct kset *bus_get_kset(struct bus_type *bus);
 extern struct klist *bus_get_device_klist(struct bus_type *bus);
 
+/*驱动对象结构类型*/
 struct device_driver {
-	const char		*name;
-	struct bus_type		*bus;
+	const char		*name;/*驱动的名称*/
+	struct bus_type		*bus;/*驱动所属的总线*/
 
-	struct module		*owner;
+	struct module		*owner;/*驱动所在的内核模块*/
 	const char		*mod_name;	/* used for built-in modules */
 
 	bool suppress_bind_attrs;	/* disables bind/unbind via sysfs */
 
+	/*驱动程序所定义的探测函数,当在总线bus中将该驱动与对应的设备进行绑定时
+	 *内核会先调用bus中的probe函数,如果bus没有实现自己的probe函数,那么内核会
+	 *调用驱动程序中实现的probe函数*/
 	int (*probe) (struct device *dev);
+
+	/*驱动程序所定义的卸载函数,当调用driver_unregister从系统卸载一个驱动对象时
+	 *内核会首先调用bus的remove函数,如果bus没有实现自己的remove函数,那么内核会
+	 *调用驱动程序中实现的remove函数*/
 	int (*remove) (struct device *dev);
+
+
 	void (*shutdown) (struct device *dev);
 	int (*suspend) (struct device *dev, pm_message_t state);
 	int (*resume) (struct device *dev);
@@ -153,11 +163,13 @@ struct device_driver {
 };
 
 
+ /*函数用来向系统注册一个驱动*/
 extern int __must_check driver_register(struct device_driver *drv);
 extern void driver_unregister(struct device_driver *drv);
 
 extern struct device_driver *get_driver(struct device_driver *drv);
 extern void put_driver(struct device_driver *drv);
+/*在一个bus的drivers_kset集合中查找指定的驱动*/
 extern struct device_driver *driver_find(const char *name,
 					 struct bus_type *bus);
 extern int driver_probe_done(void);
@@ -173,6 +185,7 @@ struct driver_attribute {
 			 size_t count);
 };
 
+/*驱动程序的属性有宏DRIVER_ATTR来定义*/
 #define DRIVER_ATTR(_name, _mode, _show, _store)	\
 struct driver_attribute driver_attr_##_name =		\
 	__ATTR(_name, _mode, _show, _store)
@@ -199,12 +212,12 @@ struct device *driver_find_device(struct device_driver *drv,
  * device classes
  */
 struct class {
-	const char		*name;
-	struct module		*owner;
+	const char		*name;/*类的名称*/
+	struct module		*owner;/*拥有该类的模块的指针*/
 
-	struct class_attribute		*class_attrs;
-	struct device_attribute		*dev_attrs;
-	struct kobject			*dev_kobj;
+	struct class_attribute		*class_attrs;/*类的属性*/
+	struct device_attribute		*dev_attrs;/*设备的属性*/
+	struct kobject			*dev_kobj;/*当前类中设备的内核对象*/
 
 	int (*dev_uevent)(struct device *dev, struct kobj_uevent_env *env);
 	char *(*devnode)(struct device *dev, mode_t *mode);
@@ -217,7 +230,7 @@ struct class {
 
 	const struct dev_pm_ops *pm;
 
-	struct class_private *p;
+	struct class_private *p;/*类的私有数据区,用于处理类的子系统及其包含的设备链表*/
 };
 
 struct class_dev_iter {
@@ -289,10 +302,12 @@ extern void class_interface_unregister(struct class_interface *);
 extern struct class * __must_check __class_create(struct module *owner,
 						  const char *name,
 						  struct lock_class_key *key);
+/*用于从系统中注销一个class对象*/
 extern void class_destroy(struct class *cls);
 
 /* This is a #define to keep the compiler from merging different
  * instances of the __key variable */
+/*宏用来生成一个类对象,其用途主要是将同类型的设备添加到其中*/
 #define class_create(owner, name)		\
 ({						\
 	static struct lock_class_key __key;	\
@@ -547,10 +562,13 @@ extern struct device *device_create_vargs(struct class *cls,
 					  void *drvdata,
 					  const char *fmt,
 					  va_list vargs);
+/*设备的创建*/
 extern struct device *device_create(struct class *cls, struct device *parent,
 				    dev_t devt, void *drvdata,
 				    const char *fmt, ...)
 				    __attribute__((format(printf, 5, 6)));
+
+/*用于从系统中移除通过device_create增加的设备device*/
 extern void device_destroy(struct class *cls, dev_t devt);
 
 /*

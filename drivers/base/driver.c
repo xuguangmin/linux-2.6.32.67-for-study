@@ -97,6 +97,7 @@ EXPORT_SYMBOL_GPL(driver_find_device);
  * @drv: driver.
  * @attr: driver attribute descriptor.
  */
+/*在新建的驱动目录中生成属性文件*/
 int driver_create_file(struct device_driver *drv,
 		       struct driver_attribute *attr)
 {
@@ -218,7 +219,7 @@ static void driver_remove_groups(struct device_driver *drv,
  * since most of the things we have to do deal with the bus
  * structures.
  */
- /*注册驱动*/
+ /*函数用来向系统注册一个驱动*/
 int driver_register(struct device_driver *drv)
 {
 	int ret;
@@ -232,6 +233,7 @@ int driver_register(struct device_driver *drv)
 		printk(KERN_WARNING "Driver '%s' needs updating - please use "
 			"bus_type methods\n", drv->name);
 
+	/*在drv->bus上查找当前要注册的drv,这主要是防止向系统重复注册同一个驱动*/
 	other = driver_find(drv->name, drv->bus);
 	if (other) {
 		put_driver(other);
@@ -240,6 +242,7 @@ int driver_register(struct device_driver *drv)
 		return -EBUSY;
 	}
 
+	/*进行实际的注册*/
 	ret = bus_add_driver(drv);
 	if (ret)
 		return ret;
@@ -256,12 +259,15 @@ EXPORT_SYMBOL_GPL(driver_register);
  *
  * Again, we pass off most of the work to the bus-level call.
  */
+ /*将某一指定的驱动从系统中注销掉,在注销一个驱动对象的过程中,如果其所在总线定义了remove方法,内核会调用它,否则要看驱动有没有实现该方法
+  *@drv:将要注销的驱动对象*/
 void driver_unregister(struct device_driver *drv)
 {
 	if (!drv || !drv->p) {
 		WARN(1, "Unexpected driver unregister!\n");
 		return;
 	}
+	/*主要的工作在此函数中完成*/
 	driver_remove_groups(drv, drv->groups);
 	bus_remove_driver(drv);
 }
@@ -277,6 +283,9 @@ EXPORT_SYMBOL_GPL(driver_unregister);
  *
  * Note that kset_find_obj increments driver's reference count.
  */
+/*在一个bus的drivers_kset集合中查找指定的驱动
+ *@name:要查找的驱动的名称
+ *@bus:在哪个总线上进行当前的查找*/
 struct device_driver *driver_find(const char *name, struct bus_type *bus)
 {
 	struct kobject *k = kset_find_obj(bus->p->drivers_kset, name);

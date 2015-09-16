@@ -661,6 +661,7 @@ static DRIVER_ATTR(uevent, S_IWUSR, NULL, driver_uevent_store);
  * bus_add_driver - Add a driver to the bus.
  * @drv: driver.
  */
+/*进行实际的驱动注册*/
 int bus_add_driver(struct device_driver *drv)
 {
 	struct bus_type *bus;
@@ -673,22 +674,27 @@ int bus_add_driver(struct device_driver *drv)
 
 	pr_debug("bus: '%s': add driver %s\n", bus->name, drv->name);
 
+	/*首先分配了一块类型为struct driver_private的空间对象priv*/
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
 		error = -ENOMEM;
 		goto out_put_bus;
 	}
 	klist_init(&priv->klist_devices, NULL, NULL);
+	/*将priv与drv对象建立了关联*/
 	priv->driver = drv;
 	drv->p = priv;
 	priv->kobj.kset = bus->p->drivers_kset;
+	/*把drv所对应的内核对象加入到sysfs文件树中,如此将在/sys/bus/drivers目录下新建
+	 *一目录,其名称为drv->name*/
 	error = kobject_init_and_add(&priv->kobj, &driver_ktype, NULL,
 				     "%s", drv->name);
 	if (error)
 		goto out_unregister;
 
 	if (drv->bus->p->drivers_autoprobe) {
-		/*执行驱动加载*/
+		/*将当前注册的drv与该bus上所属的设备进行绑定,绑定的过程将遍历bus上的
+		 *所有设备*/
 		error = driver_attach(drv);
 		if (error)
 			goto out_unregister;
@@ -697,6 +703,7 @@ int bus_add_driver(struct device_driver *drv)
 	klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
 	module_add_driver(drv->owner, drv);
 
+	/*在新建的drv目录中生成属性文件*/
 	error = driver_create_file(drv, &driver_attr_uevent);
 	if (error) {
 		printk(KERN_ERR "%s: uevent attr (%s) failed\n",
