@@ -35,12 +35,14 @@ struct class_private;
 struct bus_type;
 struct bus_type_private;
 
+/*总线属性*/
 struct bus_attribute {
-	struct attribute	attr;
-	ssize_t (*show)(struct bus_type *bus, char *buf);
-	ssize_t (*store)(struct bus_type *bus, const char *buf, size_t count);
+	struct attribute	attr;/*总线的属性信息*/
+	ssize_t (*show)(struct bus_type *bus, char *buf);/*显示总线的属性*/
+	ssize_t (*store)(struct bus_type *bus, const char *buf, size_t count);/*更改总线属性*/
 };
 
+/*用来方便为总线定义一个属性对象*/
 #define BUS_ATTR(_name, _mode, _show, _store)	\
 struct bus_attribute bus_attr_##_name = __ATTR(_name, _mode, _show, _store)
 
@@ -77,6 +79,7 @@ struct bus_type {
 	struct bus_type_private *p;/*一个用来管理其上设备与驱动的数据结构*/
 };
 
+/*向系统注册一个bus*/
 extern int __must_check bus_register(struct bus_type *bus);
 extern void bus_unregister(struct bus_type *bus);
 
@@ -385,8 +388,9 @@ struct device_dma_parameters {
 	unsigned long segment_boundary_mask;
 };
 
+/*设备在内核中的数据结构,该类型的实例是对具体设备的一个抽象*/
 struct device {
-	struct device		*parent;
+	struct device		*parent;/*当前设备的父设备*/
 
 	struct device_private	*p;
 
