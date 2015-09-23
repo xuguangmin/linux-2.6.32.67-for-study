@@ -35,6 +35,7 @@
 #include <asm/param.h>
 #include <asm/page.h>
 
+/*建立内存内存布局相关的函数*/
 static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
 static int load_elf_library(struct file *);
 static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
@@ -561,6 +562,7 @@ static unsigned long randomize_stack_top(unsigned long stack_top)
 #endif
 }
 
+/*建立内存内存布局相关的函数*/
 static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 {
 	struct file *interpreter = NULL; /* to shut gcc up */
