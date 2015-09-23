@@ -285,6 +285,7 @@ extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 
 /* to find an entry in a page-table-directory. */
 #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+/*用来获得某一虚拟地址在页目录表中的对应单元的地址pgd*/
 #define pgd_offset(mm, address)	((mm)->pgd+pgd_index(address))
 
 /*

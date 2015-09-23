@@ -143,6 +143,7 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addres
  * vma end wraps to 0, rounded up __boundary may wrap to 0 throughout.
  */
 
+/*用来获取addr对应页表项的下一个entry对应的虚拟起始地址*/
 #define pgd_addr_end(addr, end)						\
 ({	unsigned long __boundary = ((addr) + PGDIR_SIZE) & PGDIR_MASK;	\
 	(__boundary - 1 < (end) - 1)? __boundary: (end);		\

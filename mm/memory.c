@@ -1696,6 +1696,7 @@ static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
 	return 0;
 }
 
+/*最终的页表建立*/
 static inline int remap_pmd_range(struct mm_struct *mm, pud_t *pud,
 			unsigned long addr, unsigned long end,
 			unsigned long pfn, pgprot_t prot)
@@ -1709,6 +1710,7 @@ static inline int remap_pmd_range(struct mm_struct *mm, pud_t *pud,
 		return -ENOMEM;
 	do {
 		next = pmd_addr_end(addr, end);
+		/*建立对应的页表项*/
 		if (remap_pte_range(mm, pmd, addr, next,
 				pfn + (addr >> PAGE_SHIFT), prot))
 			return -ENOMEM;
@@ -1716,6 +1718,7 @@ static inline int remap_pmd_range(struct mm_struct *mm, pud_t *pud,
 	return 0;
 }
 
+/*用来做实际的页目录表项的操作*/
 static inline int remap_pud_range(struct mm_struct *mm, pgd_t *pgd,
 			unsigned long addr, unsigned long end,
 			unsigned long pfn, pgprot_t prot)
@@ -1729,6 +1732,7 @@ static inline int remap_pud_range(struct mm_struct *mm, pgd_t *pgd,
 		return -ENOMEM;
 	do {
 		next = pud_addr_end(addr, end);
+		/*最终的页表建立*/
 		if (remap_pmd_range(mm, pud, addr, next,
 				pfn + (addr >> PAGE_SHIFT), prot))
 			return -ENOMEM;
@@ -1746,6 +1750,7 @@ static inline int remap_pud_range(struct mm_struct *mm, pgd_t *pgd,
  *
  *  Note: this is only safe if the mm semaphore is held when called.
  */
+/*用来将参数addr起始的大小为size的虚拟地址空间映射到Pfn表示的一组连续的物理页面上,pfn是页框号,在页面大小为4KB的系统中,一个物理地址右移12位即可得到该物理地址对应的页框号,简言之,函数为[add,add+size]范围的虚拟地址建立页目录表项,将其映射到以pfn开始的物理页面上,通常将用户空间的地址通过remap_pfn_range映射到设备内存上,尤其是设备的寄存器所在的地址空间,都不希望cache机制发挥作用,驱动程序可以通过最后一个参数prot来影响页表项中属性位的建立,比如使用pgprot_noncached()*/
 int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 		    unsigned long pfn, unsigned long size, pgprot_t prot)
 {
@@ -1773,6 +1778,7 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 	 * behaviour that some programs depend on. We mark the "original"
 	 * un-COW'ed pages by matching them up with "vma->vm_pgoff".
 	 */
+	/*条件满足,操作页表建立虚拟内存到物理内存之间的映射*/
 	if (addr == vma->vm_start && end == vma->vm_end) {
 		vma->vm_pgoff = pfn;
 		vma->vm_flags |= VM_PFN_AT_MMAP;
@@ -1794,10 +1800,15 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 
 	BUG_ON(addr >= end);
 	pfn -= addr >> PAGE_SHIFT;
+	/*用来获得某一虚拟地址在页目录表中的对应单元的地址pgd*/
 	pgd = pgd_offset(mm, addr);
+	/*将(addr,end)地址范围对应的cache内容同步到主存中*/
 	flush_cache_range(vma, addr, end);
+	/*循环用来在页目录中建立对应的映射页表项*/
 	do {
+		/*用来获取addr对应页表项的下一个entry对应的虚拟起始地址*/
 		next = pgd_addr_end(addr, end);
+		/*用来做实际的页目录表项的操作*/
 		err = remap_pud_range(mm, pgd, addr, next,
 				pfn + (addr >> PAGE_SHIFT), prot);
 		if (err)
