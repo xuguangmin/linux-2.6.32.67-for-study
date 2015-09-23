@@ -296,6 +296,7 @@ void __fput(struct file *file)
 	mntput(mnt);
 }
 
+/*由fget函数由文件描述符获得对应的struct file对象指针*/
 struct file *fget(unsigned int fd)
 {
 	struct file *file;

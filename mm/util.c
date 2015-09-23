@@ -285,6 +285,7 @@ int __attribute__((weak)) get_user_pages_fast(unsigned long start,
 }
 EXPORT_SYMBOL_GPL(get_user_pages_fast);
 
+/*当用户空间程序调用mmap函数时,linux系统调用将通过系统调用sys_mmap_pgoff进入内核,但由当前设备文件中实现的mmap方法来完成用户程序所要求的映射,sys_mmap_pgoff函数实现*/
 SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
 		unsigned long, prot, unsigned long, flags,
 		unsigned long, fd, unsigned long, pgoff)
@@ -295,6 +296,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
 	if (!(flags & MAP_ANONYMOUS)) {
 		if (unlikely(flags & MAP_HUGETLB))
 			return -EINVAL;
+		/*由fget函数由文件描述符获得对应的struct file对象指针*/
 		file = fget(fd);
 		if (!file)
 			goto out;
@@ -316,6 +318,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
 
 	down_write(&current->mm->mmap_sem);
+	/*完成后续的内存映射*/
 	retval = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
 	up_write(&current->mm->mmap_sem);
 

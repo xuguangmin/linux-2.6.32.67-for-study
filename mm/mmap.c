@@ -916,6 +916,7 @@ void vm_stat_account(struct mm_struct *mm, unsigned long flags,
  * The caller must hold down_write(&current->mm->mmap_sem).
  */
 
+/*完成后续的内存映射,根据用户空间进程调用mmap api时传入的参数构造一个struct vm_area_struct对象的实例,然后调用file->f_op->mmap()*/
 unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 			unsigned long len, unsigned long prot,
 			unsigned long flags, unsigned long pgoff)
@@ -926,6 +927,7 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 	int error;
 	unsigned long reqprot = prot;
 
+	/*一些防御性代码的常规检查*/
 	/*
 	 * Does the application expect PROT_READ to imply PROT_EXEC?
 	 *
@@ -943,11 +945,13 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 		addr = round_hint_to_min(addr);
 
 	/* Careful about overflows.. */
+	/*映射发生时,最小的单位是一个页,确保映射区的长度是一个PAGE大小的整数倍*/
 	len = PAGE_ALIGN(len);
 	if (!len)
 		return -ENOMEM;
 
 	/* offset overflow? */
+	/*检查参数的pgoff是否溢出(OVERFLOW),告诉用户空间程序员在使用mmap API时保证offset参数的合法性*/
 	if ((pgoff + (len >> PAGE_SHIFT)) < pgoff)
                return -EOVERFLOW;
 
@@ -958,6 +962,7 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 	/* Obtain the address to map to. we verify (or select) it and ensure
 	 * that it represents a valid section of the address space.
 	 */
+	/*用来在进程的3GB的虚拟地址空间中分配一块空闲区域*/
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);
 	if (addr & ~PAGE_MASK)
 		return addr;
@@ -1053,6 +1058,7 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 	if (error)
 		return error;
 
+	/*实际的映射在此函数中完成*/
 	return mmap_region(file, addr, len, flags, vm_flags, pgoff);
 }
 EXPORT_SYMBOL(do_mmap_pgoff);
@@ -1105,6 +1111,7 @@ static inline int accountable_mapping(struct file *file, unsigned int vm_flags)
 	return (vm_flags & (VM_NORESERVE | VM_SHARED | VM_WRITE)) == VM_WRITE;
 }
 
+/*实际的映射在此函数中完成,当该函数被调用时,参数addr已经指向了一块空闲的待映射的MMAP区域中的起始地址*/
 unsigned long mmap_region(struct file *file, unsigned long addr,
 			  unsigned long len, unsigned long flags,
 			  unsigned int vm_flags, unsigned long pgoff)
@@ -1167,6 +1174,7 @@ munmap_back:
 	 * specific mapper. the address has already been validated, but
 	 * not unmapped, but the maps are removed from the list.
 	 */
+	/*分配出一个struct vm_area_struct对象,然后对其初始化*/
 	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
 	if (!vma) {
 		error = -ENOMEM;
@@ -1192,6 +1200,7 @@ munmap_back:
 		}
 		vma->vm_file = file;
 		get_file(file);
+		/*调用驱动程序实现的mmap方法*/
 		error = file->f_op->mmap(file, vma);
 		if (error)
 			goto unmap_and_free_vma;
@@ -1440,6 +1449,7 @@ void arch_unmap_area_topdown(struct mm_struct *mm, unsigned long addr)
 		mm->free_area_cache = mm->mmap_base;
 }
 
+/*用来在进程的3GB的虚拟地址空间中分配一块空闲区域*/
 unsigned long
 get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		unsigned long pgoff, unsigned long flags)
@@ -1456,6 +1466,7 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		return -ENOMEM;
 
 	get_area = current->mm->get_unmapped_area;
+	/*如果驱动程序在其file_operations对象中没有定义get_unmapped_area方法,即file->f_op->get_unmapped_area为空,那么函数将利用当前进程mm对象中的get_unmapped_area函数来分配空闲的虚拟地址空间,否则将利用file->f_op->get_unmapped_area*/
 	if (file && file->f_op && file->f_op->get_unmapped_area)
 		get_area = file->f_op->get_unmapped_area;
 	addr = get_area(file, addr, len, pgoff, flags);

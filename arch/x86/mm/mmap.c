@@ -66,8 +66,12 @@ static int mmap_is_ia32(void)
 	return 0;
 }
 
+/*函数用来判断一个进程的虚拟地址空间是传统布局还是新布局*/
 static int mmap_is_legacy(void)
 {
+	/*1 如果current->personality设置了ADDR_COMPAT_LAYOUT位,将采用传统布局
+	 *2 如果进程空间对栈的增长没有限制,那么将采用传统布局
+	 *3 如果以上两个条件都未能满足,布局的方式将由sysctl的sysctl_legacy_va_layout参数来控制*/
 	if (current->personality & ADDR_COMPAT_LAYOUT)
 		return 1;
 
@@ -124,6 +128,7 @@ static unsigned long mmap_legacy_base(void)
  */
 void arch_pick_mmap_layout(struct mm_struct *mm)
 {
+	/*函数用来判断一个进程的虚拟地址空间是传统布局还是新布局*/
 	if (mmap_is_legacy()) {
 		mm->mmap_base = mmap_legacy_base();
 		mm->get_unmapped_area = arch_get_unmapped_area;

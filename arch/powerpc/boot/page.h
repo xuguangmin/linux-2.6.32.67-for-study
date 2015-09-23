@@ -29,6 +29,7 @@
 #define _ALIGN(addr,size)     _ALIGN_UP(addr,size)
 
 /* to align the pointer to the (next) page boundary */
+/*映射发生时,最小的单位是一个页,确保映射区的长度是一个PAGE大小的整数倍*/
 #define PAGE_ALIGN(addr)	_ALIGN(addr, PAGE_SIZE)
 
 #endif				/* _PPC_BOOT_PAGE_H */
