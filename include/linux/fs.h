@@ -1522,11 +1522,7 @@ struct file_operations {
 	/* 驱动程序应该实现unlocked_ioctl,ioctl在内核中属于比较陈旧的代码*/
 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
-<<<<<<< HEAD
 	/*将用户空间的一段虚拟地址映射到设备的I/O空间中*/
-=======
-	/*映射用户空间的一段虚拟地址到设备的I/O空间*/
->>>>>>> 050a7b3877ee8b373d63f7aa67d18b22b1110bba
 	int (*mmap) (struct file *, struct vm_area_struct *);
 	int (*open) (struct inode *, struct file *);
 	int (*flush) (struct file *, fl_owner_t id);
