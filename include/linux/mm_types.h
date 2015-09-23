@@ -134,16 +134,23 @@ struct vm_region {
  * space that has a special rule for the page-fault handlers (ie a shared
  * library, the executable area etc).
  */
+/*表示一段的一段内存区域,它是访问MMAP地址空间的最小单元,*/
 struct vm_area_struct {
+	/*当前struct vm_area_struct对象所表示的虚拟地址段所归属的进程虚拟地址空间*/
 	struct mm_struct * vm_mm;	/* The address space we belong to. */
+	/*当前struct vm_area_struct对象所表示的虚拟地址段的起始地址*/
 	unsigned long vm_start;		/* Our start address within vm_mm. */
+	/*当前struct vm_area_struct对象所表示的虚拟地址段的结束地址*/
 	unsigned long vm_end;		/* The first byte after our end address
 					   within vm_mm. */
 
 	/* linked list of VM areas per task, sorted by address */
+	/*用来将一系列的struct vm_area_struct对象构建成链表.代表进程虚拟地址空间的struct mm_struct对象的struct vm_area_struct *mmap成员用来指向该链表*/
 	struct vm_area_struct *vm_next, *vm_prev;
 
+	/*在将当前struct vm_area_struct对象所表示的虚拟地址段映射到设备内存时的页保护属性,主要体现在页目录项的映射属性当中*/
 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
+	/*当前struct vm_area_struct对象所表示的虚拟地址段的访问熟悉,比如VM_READ_,VM_WRITE,VM_EXEC及VM_SHARED*/
 	unsigned long vm_flags;		/* Flags, see mm.h. */
 
 	struct rb_node vm_rb;
@@ -174,6 +181,7 @@ struct vm_area_struct {
 	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
 
 	/* Function pointers to deal with this struct. */
+	/*用来定义当前struct vm_area_struct对象所表示的虚拟地址段上的一组操作集*/
 	const struct vm_operations_struct *vm_ops;
 
 	/* Information about our backing store: */
