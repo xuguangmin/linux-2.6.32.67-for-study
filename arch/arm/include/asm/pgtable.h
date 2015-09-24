@@ -441,6 +441,10 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
  * remap a physical page `pfn' of size `size' with page protection `prot'
  * into virtual address `from'
  */
+/*它与remap_pfn_range的区别是io_remap_pfn_range用来将用户地址映射到设备的I/O
+ *空间,而remap_pfn_range则是将用户地址映射到主存RAM中,对于绝大多少体系架构这
+ *两个函数是完全等价的.建议如果映射的目标地址是在RAM或者是,比如PCI设备的MM空间
+ *中,使用remap_pfn_range函数,如果映射的目标地址是在设备I/O空间,则应该使用io_rema *p_pfn_range*/
 #define io_remap_pfn_range(vma,from,pfn,size,prot) \
 		remap_pfn_range(vma, from, pfn, size, prot)
 

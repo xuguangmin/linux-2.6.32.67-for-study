@@ -225,6 +225,7 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
  * 要映射的目标地址是I/O空间，不是物理内存*/
  /*ioremap返回的地址应该统一使用readb/writeb、readw/writew这样的宏*/
  /*如果被映射的空间不再使用，应该使用iounmap函数来做相关清除工作*/
+/*将设备的I/O空间映射到内核空间*/
 #define ioremap(cookie,size)		__arm_ioremap(cookie, size, MT_DEVICE)
 /* 通过清除页表项中的C(ache)标志，使得处理器在访问这段地址时不会倍cache,
  * 这对外设空间的地址非常重要*/

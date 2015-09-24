@@ -1975,6 +1975,7 @@ int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
 
 EXPORT_SYMBOL(do_munmap);
 
+/*munmap系统调用*/
 SYSCALL_DEFINE2(munmap, unsigned long, addr, size_t, len)
 {
 	int ret;
@@ -1983,6 +1984,7 @@ SYSCALL_DEFINE2(munmap, unsigned long, addr, size_t, len)
 	profile_munmap(addr);
 
 	down_write(&mm->mmap_sem);
+	/*核心函数*/
 	ret = do_munmap(mm, addr, len);
 	up_write(&mm->mmap_sem);
 	return ret;
