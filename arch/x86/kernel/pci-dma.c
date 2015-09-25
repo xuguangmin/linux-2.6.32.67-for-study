@@ -56,6 +56,7 @@ EXPORT_SYMBOL(x86_dma_fallback_dev);
 /* Number of entries preallocated for DMA-API debugging */
 #define PREALLOC_DMA_DEBUG_ENTRIES       32768
 
+/*查询设备的DMA寻址范围*/
 int dma_set_mask(struct device *dev, u64 mask)
 {
 	if (!dev->dma_mask || !dma_supported(dev, mask))
@@ -241,6 +242,7 @@ static __init int iommu_setup(char *p)
 }
 early_param("iommu", iommu_setup);
 
+/*通过获得设备dev上定义的struct dma_map_ops对象的dma_supported成员来获得设备上DMA的寻址范围信息,如果设备没有实现其dma_supported方法,内核将采用默认值*/
 int dma_supported(struct device *dev, u64 mask)
 {
 	struct dma_map_ops *ops = get_dma_ops(dev);
