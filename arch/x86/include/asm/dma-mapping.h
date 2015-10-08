@@ -118,6 +118,7 @@ static inline gfp_t dma_alloc_coherent_gfp_flags(struct device *dev, gfp_t gfp)
        return gfp;
 }
 
+/*一致性DMA映射*/
 static inline void *
 dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
 		gfp_t gfp)
@@ -127,6 +128,7 @@ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
 
 	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM | __GFP_DMA32);
 
+	/*在per-device的一致性存储区域中分配所需的DMA缓冲区*/
 	if (dma_alloc_from_coherent(dev, size, dma_handle, &memory))
 		return memory;
 
@@ -139,6 +141,7 @@ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
 	if (!ops->alloc_coherent)
 		return NULL;
 
+	/*为当前DMA传输分配缓冲区*/
 	memory = ops->alloc_coherent(dev, size, dma_handle,
 				     dma_alloc_coherent_gfp_flags(dev, gfp));
 	debug_dma_alloc_coherent(dev, size, *dma_handle, memory);
