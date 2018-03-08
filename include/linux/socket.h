@@ -54,7 +54,7 @@ struct linger {
  *	system, not 4.3. Thus msg_accrights(len) are now missing. They
  *	belong in an obscure libc emulation or the bin.
  */
- 
+ /* 描述用户空间负载数据*/
 struct msghdr {
 	void	*	msg_name;	/* Socket name			*/
 	int		msg_namelen;	/* Length of name		*/
@@ -142,45 +142,46 @@ struct ucred {
 	__u32	gid;
 };
 
+//linux 支持的协议族
 /* Supported address families. */
-#define AF_UNSPEC	0
-#define AF_UNIX		1	/* Unix domain sockets 		*/
-#define AF_LOCAL	1	/* POSIX name for AF_UNIX	*/
-#define AF_INET		2	/* Internet IP Protocol 	*/
-#define AF_AX25		3	/* Amateur Radio AX.25 		*/
-#define AF_IPX		4	/* Novell IPX 			*/
-#define AF_APPLETALK	5	/* AppleTalk DDP 		*/
-#define AF_NETROM	6	/* Amateur Radio NET/ROM 	*/
-#define AF_BRIDGE	7	/* Multiprotocol bridge 	*/
-#define AF_ATMPVC	8	/* ATM PVCs			*/
-#define AF_X25		9	/* Reserved for X.25 project 	*/
-#define AF_INET6	10	/* IP version 6			*/
-#define AF_ROSE		11	/* Amateur Radio X.25 PLP	*/
-#define AF_DECnet	12	/* Reserved for DECnet project	*/
-#define AF_NETBEUI	13	/* Reserved for 802.2LLC project*/
-#define AF_SECURITY	14	/* Security callback pseudo AF */
-#define AF_KEY		15      /* PF_KEY key management API */
-#define AF_NETLINK	16
-#define AF_ROUTE	AF_NETLINK /* Alias to emulate 4.4BSD */
-#define AF_PACKET	17	/* Packet family		*/
-#define AF_ASH		18	/* Ash				*/
-#define AF_ECONET	19	/* Acorn Econet			*/
-#define AF_ATMSVC	20	/* ATM SVCs			*/
-#define AF_RDS		21	/* RDS sockets 			*/
-#define AF_SNA		22	/* Linux SNA Project (nutters!) */
-#define AF_IRDA		23	/* IRDA sockets			*/
-#define AF_PPPOX	24	/* PPPoX sockets		*/
-#define AF_WANPIPE	25	/* Wanpipe API Sockets */
-#define AF_LLC		26	/* Linux LLC			*/
-#define AF_CAN		29	/* Controller Area Network      */
-#define AF_TIPC		30	/* TIPC sockets			*/
-#define AF_BLUETOOTH	31	/* Bluetooth sockets 		*/
-#define AF_IUCV		32	/* IUCV sockets			*/
-#define AF_RXRPC	33	/* RxRPC sockets 		*/
-#define AF_ISDN		34	/* mISDN sockets 		*/
-#define AF_PHONET	35	/* Phonet sockets		*/
+#define AF_UNSPEC	0	/* 无特定地址族 */
+#define AF_UNIX		1	/* Unix 域套接字		*/
+#define AF_LOCAL	1	/* AF_UNIX 的POSIX 名 	*/
+#define AF_INET		2	/* Internet,  TCP/IP 协议族 	*/
+#define AF_AX25		3	/* AX.25 协议		*/
+#define AF_IPX		4	/* Novell IPX 	协议套接字		*/
+#define AF_APPLETALK	5	/* AppleTalk DDP 	套接字	*/
+#define AF_NETROM	6	/*  NET/ROM 	套接字 */
+#define AF_BRIDGE	7	/* 多协议桥套接字 	*/
+#define AF_ATMPVC	8	/* ATM PVCs	套接字		*/
+#define AF_X25		9	/* 为 X.25 套接字预留 	*/
+#define AF_INET6	10	/* IP V6	套接字		*/
+#define AF_ROSE		11	/* X.25 PLP	套接字*/
+#define AF_DECnet	12	/* 为DECnet 预留的套接字	*/
+#define AF_NETBEUI	13	/* 为802.2LLC 预留的套接字*/
+#define AF_SECURITY	14	/* 安全回调 pseudo 地址族 */
+#define AF_KEY		15      /* PF_KEY 关键管理API 套接字 */
+#define AF_NETLINK	16	/* NETLINK 协议栈，在应用层与内核之间传递信息 */
+#define AF_ROUTE	AF_NETLINK /* 仿4.4BSD 路由套接字的别名，与linux中的AF_NETLINK一样 */
+#define AF_PACKET	17	/* Packet 族套接字		*/
+#define AF_ASH		18	/* Ash	套接字			*/
+#define AF_ECONET	19	/* Acorn Econet	套接字		*/
+#define AF_ATMSVC	20	/* ATM SVCs	套接字		*/
+#define AF_RDS		21	/* RDS 套接字 			*/
+#define AF_SNA		22	/* Linux SNA SVC 套接字 */
+#define AF_IRDA		23	/* IRDA 套接字			*/
+#define AF_PPPOX	24	/* PPPoX 套接字		*/
+#define AF_WANPIPE	25	/* Wanpipe API 套接字 */
+#define AF_LLC		26	/* Linux LLC	套接字		*/
+#define AF_CAN		29	/* Controller Area Network   (CAN)套接字   */
+#define AF_TIPC		30	/* TIPC 套接字			*/
+#define AF_BLUETOOTH	31	/* Bluetooth 套接字 		*/
+#define AF_IUCV		32	/* IUCV 套接字			*/
+#define AF_RXRPC	33	/* RxRPC 套接字 		*/
+#define AF_ISDN		34	/* mISDN 套接字 		*/
+#define AF_PHONET	35	/* Phonet 套接字		*/
 #define AF_IEEE802154	36	/* IEEE802154 sockets		*/
-#define AF_MAX		37	/* For now.. */
+#define AF_MAX		37	/* 目前未用 */
 
 /* Protocol families, same as address families. */
 #define PF_UNSPEC	AF_UNSPEC

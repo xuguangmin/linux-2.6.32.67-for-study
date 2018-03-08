@@ -42,12 +42,13 @@
 #define SYS_RECVMSG	17		/* sys_recvmsg(2)		*/
 #define SYS_ACCEPT4	18		/* sys_accept4(2)		*/
 
+// struct socket socket_state 域的合法取值
 typedef enum {
-	SS_FREE = 0,			/* not allocated		*/
-	SS_UNCONNECTED,			/* unconnected to any socket	*/
-	SS_CONNECTING,			/* in process of connecting	*/
-	SS_CONNECTED,			/* connected to socket		*/
-	SS_DISCONNECTING		/* in process of disconnecting	*/
+	SS_FREE = 0,			/* 套接字未分配 */
+	SS_UNCONNECTED,		/* 套接字未连接*/
+	SS_CONNECTING,			/* 正在连接*/
+	SS_CONNECTED,			/* 套接字已连接*/
+	SS_DISCONNECTING		/* 正在断开连接*/
 } socket_state;
 
 #define __SO_ACCEPTCON	(1 << 16)	/* performed a listen		*/
@@ -64,6 +65,7 @@ struct pipe_inode_info;
 struct inode;
 struct net;
 
+//套接字等待缓冲区的状态信息,struct socket flag域取值
 #define SOCK_ASYNC_NOSPACE	0
 #define SOCK_ASYNC_WAITDATA	1
 #define SOCK_NOSPACE		2
@@ -86,14 +88,15 @@ struct net;
  * grep ARCH_HAS_SOCKET_TYPE include/asm-* /socket.h, at least MIPS
  * overrides this enum for binary compat reasons.
  */
+ //struct socket 结构type域取值
 enum sock_type {
-	SOCK_STREAM	= 1,
-	SOCK_DGRAM	= 2,
-	SOCK_RAW	= 3,
-	SOCK_RDM	= 4,
-	SOCK_SEQPACKET	= 5,
-	SOCK_DCCP	= 6,
-	SOCK_PACKET	= 10,
+	SOCK_STREAM	= 1,	// 流式套接字
+	SOCK_DGRAM	= 2,	// 报式套接字
+	SOCK_RAW	= 3,		// 裸套接字
+	SOCK_RDM	= 4,		// 可靠-传递消息
+	SOCK_SEQPACKET	= 5,	//顺序数据报套接字
+	SOCK_DCCP	= 6,		// 数据拥塞控制协议套接字
+	SOCK_PACKET	= 10,	// linux中以特定方式从设备层获取数据包
 };
 
 #define SOCK_MAX (SOCK_PACKET + 1)
@@ -126,32 +129,35 @@ enum sock_shutdown_cmd {
  *  @sk: internal networking protocol agnostic socket representation
  *  @wait: wait queue for several uses
  */
+ /* 套接字通用属性,独立于协议，由具体的协议族与协议实例继承，其中
+   * 其中存放的是套接字层的控制和状态信息 */
 struct socket {
-	socket_state		state;
+	socket_state		state;	// 描述当前套接字状态，他反应的是用户地址空间套接字状态，与传输层协议连接的建立与关闭没有关系。其合法取值定义在 enum socket_state中
 
 	kmemcheck_bitfield_begin(type);
-	short			type;
+	short			type;	// 套接字的类型。其值定义在enum sock_type
 	kmemcheck_bitfield_end(type);
 
-	unsigned long		flags;
+	unsigned long		flags;	//存放套接字等待缓冲区的状态信息
 	/*
 	 * Please keep fasync_list & wait fields in the same cache line
 	 */
-	struct fasync_struct	*fasync_list;
-	wait_queue_head_t	wait;
+	struct fasync_struct	*fasync_list;/* 等待被唤醒的套接字列表，该列表用于异步调用 */
+	wait_queue_head_t	wait;/* 套接字的等待队列 */
 
-	struct file		*file;
-	struct sock		*sk;
-	const struct proto_ops	*ops;
+	struct file		*file;	// 套接字所属的文件描述符，创建或打开套接字时，该文件描述符从套接字层返回给应用层，应用层通过该文件描述符操作套接字
+	struct sock		*sk;		/* 指向套接字属性的结构指针 */
+	const struct proto_ops	*ops;	// 套接字的操作函数块
 };
-
+ 
 struct vm_area_struct;
 struct page;
 struct kiocb;
 struct sockaddr;
 struct msghdr;
 struct module;
-
+/* 供应用程序使用的套接字层标准操作函数指针，与socketcall系统调用
+  * 中存放的函数指针一一对应*/
 struct proto_ops {
 	int		family;
 	struct module	*owner;
@@ -162,7 +168,7 @@ struct proto_ops {
 	int		(*connect)   (struct socket *sock,
 				      struct sockaddr *vaddr,
 				      int sockaddr_len, int flags);
-	int		(*socketpair)(struct socket *sock1,
+	int		(*socketpair)(struct socket *sock1,	//将两个套接字配对建立连接
 				      struct socket *sock2);
 	int		(*accept)    (struct socket *sock,
 				      struct socket *newsock, int flags);

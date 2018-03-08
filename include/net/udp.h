@@ -54,6 +54,7 @@ struct udp_hslot {
 	struct hlist_nulls_head	head;
 	spinlock_t		lock;
 } __attribute__((aligned(2 * sizeof(long))));
+//udpµÄ¹þÏ£Á´±í
 struct udp_table {
 	struct udp_hslot	hash[UDP_HTABLE_SIZE];
 };
