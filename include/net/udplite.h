@@ -7,6 +7,7 @@
 #include <net/ip6_checksum.h>
 
 /* UDP-Lite socket options */
+/* 控制发送和接收的checksum 覆盖范围 */
 #define UDPLITE_SEND_CSCOV   10 /* sender partial coverage (as sent)      */
 #define UDPLITE_RECV_CSCOV   11 /* receiver partial coverage (threshold ) */
 

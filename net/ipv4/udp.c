@@ -276,14 +276,15 @@ static inline int compute_score(struct sock *sk, struct net *net, __be32 saddr,
 /* UDP is nearly always wildcards out the wazoo, it makes no sense to try
  * harder than this. -DaveM
  */
+ //在udptable哈希链表中搜索目标套接字,实际完成搜索功能的函数
 static struct sock *__udp4_lib_lookup(struct net *net, __be32 saddr,
 		__be16 sport, __be32 daddr, __be16 dport,
 		int dif, struct udp_table *udptable)
 {
 	struct sock *sk, *result;
 	struct hlist_nulls_node *node;
-	unsigned short hnum = ntohs(dport);
-	unsigned int hash = udp_hashfn(net, hnum);
+	unsigned short hnum = ntohs(dport);		//查询关键字为目标端口号
+	unsigned int hash = udp_hashfn(net, hnum);	//根据目标端口号子算hash值
 	struct udp_hslot *hslot = &udptable->hash[hash];
 	int score, badness;
 
@@ -291,7 +292,11 @@ static struct sock *__udp4_lib_lookup(struct net *net, __be32 saddr,
 begin:
 	result = NULL;
 	badness = -1;
+	/* 以目标端口为条件在哈希链表中查找与输入数据包目标地址最匹配的
+	  * 打开套接字，首先找到第一个匹配的套接字，这个套接字会接收输入
+	  * 的数据包*/
 	sk_nulls_for_each_rcu(sk, node, &hslot->head) {
+		// 使用更多条件搜索匹配的套接字
 		score = compute_score(sk, net, saddr, hnum, sport,
 				      daddr, dport, dif);
 		if (score > badness) {
@@ -319,7 +324,7 @@ begin:
 	rcu_read_unlock();
 	return result;
 }
-
+//在udptable哈希链表中搜索目标套接字
 static inline struct sock *__udp4_lib_lookup_skb(struct sk_buff *skb,
 						 __be16 sport, __be16 dport,
 						 struct udp_table *udptable)
@@ -577,6 +582,12 @@ out:
 }
 EXPORT_SYMBOL(udp_push_pending_frames);
 
+/*	
+ *	用户态应用程序调用sendmsg系统调用发送数据。Sendmsg系统调用然后
+ 	调用传输层udp协议函数udp_sendmsg发送数据。用户地址空间的负载数据
+ 	用struct msghdr数据结构描述, 在udp协议实例中struct msghdr将负载数据传给
+ 	udp_sendmsg，形成数据向外发送。
+ */
 int udp_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 		size_t len)
 {
@@ -1283,13 +1294,17 @@ static inline int udp4_csum_init(struct sk_buff *skb, struct udphdr *uh,
 /*
  *	All we need to do is get the socket, and then do a checksum.
  */
-
+/* udp从ip层接收数据实际使用函数
+ *  skb:存放输入数据包的Socket Buffer
+ *  proto:传输层使用的协议编码
+ *  udptable:UDP哈希链表
+*/
 int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 		   int proto)
 {
-	struct sock *sk;
-	struct udphdr *uh;
-	unsigned short ulen;
+	struct sock *sk;	//指向UDP套接字数据结构的指针
+	struct udphdr *uh;//指向UDP 协议头
+	unsigned short ulen;//UDP数据包长度，包括UDP协议头和负载数据
 	struct rtable *rt = skb_rtable(skb);
 	__be32 saddr, daddr;
 	struct net *net = dev_net(skb->dev);
@@ -1322,6 +1337,7 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 		return __udp4_lib_mcast_deliver(net, skb, uh,
 				saddr, daddr, udptable);
 
+	//在udptable哈希链表中搜索目标套接字
 	sk = __udp4_lib_lookup_skb(skb, uh->source, uh->dest, udptable);
 
 	if (sk != NULL) {
@@ -1590,6 +1606,8 @@ unsigned int udp_poll(struct file *file, struct socket *sock, poll_table *wait)
 }
 EXPORT_SYMBOL(udp_poll);
 
+// UDP 协议实例，在初始化AF_INET地址族协议时由proto_register函数
+//注册net/af_inet.c/af_inet.c
 struct proto udp_prot = {
 	.name		   = "UDP",
 	.owner		   = THIS_MODULE,

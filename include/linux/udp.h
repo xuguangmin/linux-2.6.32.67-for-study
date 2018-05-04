@@ -19,11 +19,12 @@
 
 #include <linux/types.h>
 
+//udpÊı¾İ±¨Ğ­ÒéÍ·
 struct udphdr {
-	__be16	source;
-	__be16	dest;
-	__be16	len;
-	__sum16	check;
+	__be16	source;	//Ô´¶Ë¿Ú
+	__be16	dest;	//Ä¿µÄ¶Ë¿Ú
+	__be16	len;		// Êı¾İ°ü³¤¶È
+	__sum16	check;	// UDPĞ£ÑéºÍµÄ¼ÆËã°üÀ¨Ğ­ÒéÍ·ºÍÊı¾İ
 };
 
 /* UDP socket options */
@@ -52,33 +53,48 @@ static inline int udp_hashfn(struct net *net, const unsigned num)
 	return (num + net_hash_mix(net)) & (UDP_HTABLE_SIZE - 1);
 }
 
+//udpĞ­Òé½á¹¹Ìå
 struct udp_sock {
 	/* inet_sock has to be the first member */
-	struct inet_sock inet;
-	int		 pending;	/* Any pending frames ? */
-	unsigned int	 corkflag;	/* Cork is required */
+	struct inet_sock inet;		//ÔÚstruct inet_sock½á¹¹»ù´¡ÉÏÌí¼ÓåudpĞ­Òé×¨ÓĞÊôĞÔ
+	int		 pending;		/* µ±Ç°ÊÇ·ñÓĞµÈ´ı·¢ËÍµÄÊı¾İ±¨ü*/
+	unsigned int	 corkflag;	/* ÊÇ·ñĞèÒªÔİÊ±×èÈûÌ×½Ó×Ö */
   	__u16		 encap_type;	/* Is this an Encapsulation socket? */
 	/*
 	 * Following member retains the information to create a UDP header
 	 * when the socket is uncorked.
 	 */
-	__u16		 len;		/* total length of pending frames */
+	__u16		 len;		/*´ı·¢ËÍÊı¾İ±¨×Ü³¤¶È */
 	/*
 	 * Fields specific to UDP-Lite.
 	 */
-	__u16		 pcslen;
-	__u16		 pcrlen;
+	__u16		 pcslen;		/*for udp-lite socket ,¼ÇÂ¼´ı·¢ËÍÊı¾İ°ü³¤¶È*/
+	__u16		 pcrlen;		/*for udp-lite socket,¼ÇÂ¼´ı·¢ËÍÊı¾İ°ü³¤¶È*/
 /* indicator bits used by pcflag: */
 #define UDPLITE_BIT      0x1  		/* set by udplite proto init function */
 #define UDPLITE_SEND_CC  0x2  		/* set via udplite setsockopt         */
 #define UDPLITE_RECV_CC  0x4		/* set via udplite setsocktopt        */
-	__u8		 pcflag;        /* marks socket as UDP-Lite if > 0    */
+	__u8		 pcflag;        /* ±ê¼Ç¸ÃÌ×½Ó×ÖÊÇ·ñÎª udp-liteĞ­ÒéÌ×½Ó×Ö if > 0    */
 	__u8		 unused[3];
 	/*
 	 * For encapsulation sockets.
 	 */
 	int (*encap_rcv)(struct sock *sk, struct sk_buff *skb);
 };
+/*
+	Udp-liteÊÊÓÃÓÚÍøÂç²î´íÂÊ±È½Ï´ó£¬µ«ÊÇ¶ÔÇáÎ¢²î´í²»Ãô¸ĞµÄÇé¿öÏÂ£¬
+	ÈçÊµÊ±ÊÓÆµµÄ´«Êä¡£Linux¶Ôudp-liteĞ­ÒéµÄÖ§³ÖÒ²ÊÇÍ¨¹ıÔÚÔ­À´µÄudpĞ­
+	ÒéµÄ»ù´¡ÉÏÌí¼ÓÁËÒ»¸ösetsockoptÑ¡ÏîÀ´ÊµÏÖ¿ØÖÆ·¢ËÍºÍ½ÓÊÕµÄchecksum coverage¡£
+	Int val = 20;
+	Setsockopt(s, SOL_UDPLITE,  UDPLITE_SEND_CSCOV,  &val,  sizeof(val));
+	
+	Int min = 20;
+	Setsockopt(s, SOL_UDPLITE,  UDPLITE_RECV_CSCOV,  &min,  sizeof(min));
+	´´½¨Ò»¸öUDP-LiteÌ×½Ó×Ö£º
+	S = socket(PF_INET,  SOCK_DGRAM, IPPROTO_UDPLITE);
+
+*/
+
 
 static inline struct udp_sock *udp_sk(const struct sock *sk)
 {

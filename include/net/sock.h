@@ -106,11 +106,11 @@ struct net;
  *	struct sock_common - minimal network layer representation of sockets
  *	@skc_node: main hash linkage for various protocol lookup tables
  *	@skc_nulls_node: main hash linkage for UDP/UDP-Lite protocol
- *	@skc_refcnt: reference count
+ *	@skc_refcnt: 套接字引用计数 
  *	@skc_hash: hash value used with various protocol lookup tables
- *	@skc_family: network address family
- *	@skc_state: Connection state
- *	@skc_reuse: %SO_REUSEADDR setting
+ *	@skc_family:  网络地址家族，如IPV4是AF_INET 
+ *	@skc_state: 套接字连接状态 
+ *	@skc_reuse: 存放SO_REUSEADDR 套接字选项，套接字地址重用
  *	@skc_bound_dev_if: bound device index if != 0
  *	@skc_bind_node: bind hash linkage for various protocol lookup tables
  *	@skc_prot: protocol handlers inside a network family
@@ -119,52 +119,55 @@ struct net;
  *	This is the minimal network layer representation of sockets, the header
  *	for struct sock and struct inet_timewait_sock.
  */
+ /* struct sock_common结构包含了内核管理套接字最重要的信息，是套接字在网络中的最小描述 */
 struct sock_common {
 	/*
 	 * first fields are not copied in sock_copy()
 	 */
 	union {
-		struct hlist_node	skc_node;
-		struct hlist_nulls_node skc_nulls_node;
+		struct hlist_node	skc_node;	/*主哈希链表，与各协议实例查询表相链接*/
+		struct hlist_nulls_node skc_nulls_node;/*UDP/UDP-Lite协议的主哈希链表*/
 	};
-	atomic_t		skc_refcnt;
+	atomic_t		skc_refcnt;			/* 套接字引用计数 */
 
-	unsigned int		skc_hash;
-	unsigned short		skc_family;
-	volatile unsigned char	skc_state;
-	unsigned char		skc_reuse;
-	int			skc_bound_dev_if;
-	struct hlist_node	skc_bind_node;
-	struct proto		*skc_prot;
+	unsigned int		skc_hash;		/*各协议实例查询哈希链表的关键字*/
+	unsigned short		skc_family;	/* 网络地址家族，如IPV4是AF_INET */
+	volatile unsigned char	skc_state;	/* 套接字连接状态 */
+	unsigned char		skc_reuse;		/*存放SO_REUSEADDR 套接字选项，套接字地址重用*/
+	int			skc_bound_dev_if;	/*存放与套接字绑定的网络接口索引号if !=0 */
+	struct hlist_node	skc_bind_node;	/*与各协议实例查询表绑定的哈希链表*/
+	struct proto		*skc_prot;		/*网络协议族中协议处理函数块*/
 #ifdef CONFIG_NET_NS
-	struct net	 	*skc_net;
+	struct net	 	*skc_net;		/*该套接字引用的网络名字空间*/
 #endif
 };
 
 /**
   *	struct sock - network layer representation of sockets
   *	@__sk_common: shared layout with inet_timewait_sock
-  *	@sk_shutdown: mask of %SEND_SHUTDOWN and/or %RCV_SHUTDOWN
-  *	@sk_userlocks: %SO_SNDBUF and %SO_RCVBUF settings
-  *	@sk_lock:	synchronizer
-  *	@sk_rcvbuf: size of receive buffer in bytes
-  *	@sk_sleep: sock wait queue
-  *	@sk_dst_cache: destination cache
+  *	@sk_shutdown:存放套接字的SEND_SHUTDOWN and/or %RCV_SHUTDOWN选项
+  *	@sk_userlocks: 套接字的SO_SNDBUF and %SO_RCVBUF 选项的设置，分别设置套接字的发送缓冲区和接收缓冲区的大小
+  *	@sk_lock:	防止对套接字并发访问的锁
+  *	@sk_rcvbuf: 套接字的接收缓冲区的大小，其度量单位为字节,应用程序可以通过SO_RCVBUF设置
+  *	@sk_sleep: 套接字所在的等待队列
+  *	@sk_dst_cache: 套接字目标地址在路由表高速缓冲区中的入口
   *	@sk_dst_lock: destination cache lock
-  *	@sk_policy: flow policy
-  *	@sk_rmem_alloc: receive queue bytes committed
+  *	@sk_policy: 用于安全策略库的字段
+  
+  *	@sk_rmem_alloc: 在接收队列中收到数据包的字节数
   *	@sk_receive_queue: incoming packets
-  *	@sk_wmem_alloc: transmit queue bytes committed
+  *	@sk_wmem_alloc: 在发送队列中发送数据包的字节数
   *	@sk_write_queue: Packet sending queue
   *	@sk_async_wait_queue: DMA copied packets
-  *	@sk_omem_alloc: "o" is "option" or "other"
+  *	@sk_omem_alloc: 套接字选项或其它设置的长度，以字节计算，"o" is "option" or "other"
   *	@sk_wmem_queued: persistent queue size
   *	@sk_forward_alloc: space allocated forward
   *	@sk_allocation: allocation mode
-  *	@sk_sndbuf: size of send buffer in bytes
+  *	@sk_sndbuf: 套接字发送缓冲区的大小，以字节计算，由SO_SNDBUF套接字
+  				选项设置，SO_SNDBUF选项值保存在sk_userlocks数据域中
   *	@sk_flags: %SO_LINGER (l_onoff), %SO_BROADCAST, %SO_KEEPALIVE,
   *		   %SO_OOBINLINE settings, %SO_TIMESTAMPING settings
-  *	@sk_no_check: %SO_NO_CHECK setting, wether or not checkup packets
+  *	@sk_no_check: 套接字SO_NO_CHECK 选项的设置, 指明是否禁止校验和
   *	@sk_route_caps: route capabilities (e.g. %NETIF_F_TSO)
   *	@sk_gso_type: GSO type (e.g. %SKB_GSO_TCPV4)
   *	@sk_gso_max_size: Maximum GSO segment size to build
@@ -181,8 +184,8 @@ struct sock_common {
   *	@sk_ack_backlog: current listen backlog
   *	@sk_max_ack_backlog: listen backlog set in listen()
   *	@sk_priority: %SO_PRIORITY setting
-  *	@sk_type: socket type (%SOCK_STREAM, etc)
-  *	@sk_protocol: which protocol this socket belongs in this network family
+  *	@sk_type: 套接字类型，其格式为SOCK_XXX形式，例如IPV4,其类型为SOCK_STREAM (%SOCK_STREAM, etc)
+  *	@sk_protocol: 在网络协议族中，套接字属于哪个协议使用
   *	@sk_peercred: %SO_PEERCRED setting
   *	@sk_rcvlowat: %SO_RCVLOWAT setting
   *	@sk_rcvtimeo: %SO_RCVTIMEO setting
@@ -206,6 +209,7 @@ struct sock_common {
   *	@sk_backlog_rcv: callback to process the backlog
   *	@sk_destruct: called at sock freeing time, i.e. when all refcnt == 0
  */
+ /* struct sock结构包含了套接字全部信息与特点 */
 struct sock {
 	/*
 	 * Now struct inet_timewait_sock also uses sock_common, so please just
@@ -239,6 +243,8 @@ struct sock {
 	 * the per-socket spinlock held and requires low latency
 	 * access. Therefore we special case it's implementation.
 	 */
+	 /* 套接字的backlog队列 ,如tcp中分为fast path和slow path, fast path过来的数据包
+	   * 存放在prequeue队列,slow path过来的数据包存放在backlog队列*/
 	struct {
 		struct sk_buff *head;
 		struct sk_buff *tail;
@@ -607,6 +613,7 @@ struct raw_hashinfo;
  * socket layer -> transport layer interface
  * transport -> network interface is defined by struct inet_proto
  */
+ /* 套接字API 的网络功能部分描述 */
 struct proto {
 	void			(*close)(struct sock *sk, 
 					long timeout);

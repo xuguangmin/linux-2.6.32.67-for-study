@@ -116,9 +116,10 @@ struct rtable;
  * @mc_list - Group array
  * @cork - info to build ip hdr on each ip frag while socket is corked
  */
+ //inet地址族协议结构
 struct inet_sock {
 	/* sk and pinet6 has to be the first two members of inet_sock */
-	struct sock		sk;
+	struct sock		sk;	// 扩展通用套接字结构
 #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 	struct ipv6_pinfo	*pinet6;
 #endif

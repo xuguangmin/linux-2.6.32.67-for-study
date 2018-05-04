@@ -309,7 +309,7 @@ typedef unsigned char *sk_buff_data_t;
  *	@secmark: security marking
  *	@vlan_tci: vlan tag control information
  */
-
+/* 结构中存放了套接字接收/发送的数据 */
 struct sk_buff {
 	/* These two members must be first. */
 	struct sk_buff		*next;

@@ -943,6 +943,7 @@ static struct net_proto_family inet_family_ops = {
 /* Upon startup we insert all the elements in inetsw_array[] into
  * the linked list inetsw.
  */
+ /* 为IP 协议注册套接字接口,  协议交换表 */
 static struct inet_protosw inetsw_array[] =
 {
 	{
@@ -1443,6 +1444,7 @@ static const struct net_protocol igmp_protocol = {
 };
 #endif
 
+//tcp协议与IP层的接口
 static const struct net_protocol tcp_protocol = {
 	.handler =	tcp_v4_rcv,
 	.err_handler =	tcp_v4_err,
@@ -1453,10 +1455,14 @@ static const struct net_protocol tcp_protocol = {
 	.no_policy =	1,
 	.netns_ok =	1,
 };
-
+/* udp协议与IP层的接口,inet_add_protocol函数把udp与IP层之间的接口实例
+	加入inet_protos数组中,收到数据时，由IP协议头中的protocol数据域译码
+	的结果作为索引值查询哈希链表inet_protos[MAX_INET_PROTOS],以确定由
+	传输层的哪个协议接收数据包
+*/
 static const struct net_protocol udp_protocol = {
-	.handler =	udp_rcv,
-	.err_handler =	udp_err,
+	.handler =	udp_rcv,		/* udp数据包接收函数 */
+	.err_handler =	udp_err,	/* udp数据接收错误处理函数 */
 	.gso_send_check = udp4_ufo_send_check,
 	.gso_segment = udp4_ufo_fragment,
 	.no_policy =	1,
@@ -1548,6 +1554,7 @@ static struct packet_type ip_packet_type __read_mostly = {
 	.gro_complete = inet_gro_complete,
 };
 
+// AF_INET协议族域初始化函数，该函数在协议栈初始化之后调用
 static int __init inet_init(void)
 {
 	struct sk_buff *dummy_skb;
@@ -1556,11 +1563,11 @@ static int __init inet_init(void)
 	int rc = -EINVAL;
 
 	BUILD_BUG_ON(sizeof(struct inet_skb_parm) > sizeof(dummy_skb->cb));
-
+	// 将TCP协议实例网络功能函数放入套接字协议交换表
 	rc = proto_register(&tcp_prot, 1);
 	if (rc)
 		goto out;
-
+	// 将UDP协议实例网络功能函数放入套接字协议交换表
 	rc = proto_register(&udp_prot, 1);
 	if (rc)
 		goto out_unregister_tcp_proto;
@@ -1585,6 +1592,7 @@ static int __init inet_init(void)
 
 	if (inet_add_protocol(&icmp_protocol, IPPROTO_ICMP) < 0)
 		printk(KERN_CRIT "inet_init: Cannot add ICMP protocol\n");
+	//添加udp与IP层的接口,注册数据包接收处理函数到inet_protos全局哈希链表
 	if (inet_add_protocol(&udp_protocol, IPPROTO_UDP) < 0)
 		printk(KERN_CRIT "inet_init: Cannot add UDP protocol\n");
 	if (inet_add_protocol(&tcp_protocol, IPPROTO_TCP) < 0)
@@ -1594,10 +1602,11 @@ static int __init inet_init(void)
 		printk(KERN_CRIT "inet_init: Cannot add IGMP protocol\n");
 #endif
 
-	/* Register the socket-side information for inet_create. */
+	/* 初始化协议交换表的套接字层的存放各协议族API的链表*/
 	for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
 		INIT_LIST_HEAD(r);
 
+	// 将AF_INET地址族的套接字API注册到协议交换表
 	for (q = inetsw_array; q < &inetsw_array[INETSW_ARRAY_LEN]; ++q)
 		inet_register_protosw(q);
 
@@ -1619,6 +1628,7 @@ static int __init inet_init(void)
 	tcp_init();
 
 	/* Setup UDP memory threshold */
+	//初始化udp协议
 	udp_init();
 
 	/* Add UDP-Lite (RFC 3828) */

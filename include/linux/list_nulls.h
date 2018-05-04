@@ -14,6 +14,9 @@
  * Set to 0 : This is a pointer to some object (ptr)
  */
 
+/*  linux ÄÚºËµÄ¹şÏ£Á´±í */
+
+
 struct hlist_nulls_head {
 	struct hlist_nulls_node *first;
 };
