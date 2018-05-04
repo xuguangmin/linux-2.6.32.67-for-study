@@ -1,19 +1,30 @@
+/*  所有的内核代码，基本都包含了include/linux/compile.h这个文件，所以它是基础，涵盖了分析内核所需要的一些列编译知识 */
+
 #ifndef __LINUX_COMPILER_H
 #define __LINUX_COMPILER_H
 
+/* 这个变量是在编译汇编代码的时候，由编译器使用-D这样的参数加进去的，gcc会把这个宏定义为1 */
 #ifndef __ASSEMBLY__
 
+/* 如果使用Sparse对代码进行检查，那么内核代码就会定义__CHECKER__宏，否则就不定义 */
 #ifdef __CHECKER__
+/* 这个宏是重点，用来检查是否属于用户空间.0:normal space，即普通地址空间，对内核代码来说，当然就是内核空间地址。1:用户地址空间，2:设备地址映射空间 */
 # define __user		__attribute__((noderef, address_space(1)))
+/* 检查是否处于内核空间 */
 # define __kernel	/* default address space */
+/* 编译器对变量的检查有些苛刻，导致代码在编译的时候老是出问题,exp:int test( struct a * a, struct b * b, struct c * c )  */
 # define __safe		__attribute__((safe))
+/* 表示所定义的变量类型是可以做强制类型转换的，在进行Sparse分析的时候，是不用报告警信息的 */
 # define __force	__attribute__((force))
+/* 这里表示这个变量的参数类型与实际参数类型一定得对得上才行，要不就在Sparse的时候生产告警信息 */
 # define __nocast	__attribute__((nocast))
+/* 这个定义与__user一样，不过这里的变量地址需要在设备地址映射空间 */
 # define __iomem	__attribute__((noderef, address_space(2)))
 # define __acquires(x)	__attribute__((context(x,0,1)))
 # define __releases(x)	__attribute__((context(x,1,0)))
 # define __acquire(x)	__context__(x,1)
 # define __release(x)	__context__(x,-1)
+/* 条件锁 */
 # define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
 extern void __chk_user_ptr(const volatile void __user *);
 extern void __chk_io_ptr(const volatile void __iomem *);
@@ -40,6 +51,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 #include <linux/compiler-gcc.h>
 #endif
 
+/* 这个属性可以用来修饰一个函数，指定这个函数不被跟踪 */
 #define notrace __attribute__((no_instrument_function))
 
 /* Intel compiler defines __GNUC__. So we will overwrite implementations
@@ -80,6 +92,7 @@ struct ftrace_branch_data {
     && !defined(DISABLE_BRANCH_PROFILING) && !defined(__CHECKER__)
 void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 
+/* 用来作代码优化的 */
 #define likely_notrace(x)	__builtin_expect(!!(x), 1)
 #define unlikely_notrace(x)	__builtin_expect(!!(x), 0)
 
@@ -257,6 +270,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 #endif
 
 /* Simple shorthand for a section definition */
+/* 用来修饰一个函数是放在哪个区域里的，不使用编译器默认的方式 */
 #ifndef __section
 # define __section(S) __attribute__ ((__section__(#S)))
 #endif
