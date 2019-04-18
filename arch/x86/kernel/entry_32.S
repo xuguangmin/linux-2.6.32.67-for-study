@@ -515,7 +515,7 @@ sysexit_audit:
 ENDPROC(ia32_sysenter_target)
 
 	# system call handler stub
-ENTRY(system_call)
+ENTRY(system_call)  #首先把系统调用号和异常处理程序用到的所有CPU寄存器保存到相应栈中
 	RING0_INT_FRAME			# can't unwind into user space anyway
 	pushl %eax			# save orig_eax
 	CFI_ADJUST_CFA_OFFSET 4
@@ -524,10 +524,10 @@ ENTRY(system_call)
 					# system call tracing in operation / emulation
 	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags(%ebp)
 	jnz syscall_trace_entry
-	cmpl $(nr_syscalls), %eax
+	cmpl $(nr_syscalls), %eax #对用户态进程传递来的系统调用号进行有效性检查
 	jae syscall_badsys
 syscall_call:
-	call *sys_call_table(,%eax,4)
+	call *sys_call_table(,%eax,4)  #调用与eax中包含的系统调用号对应的特定服务例程
 syscall_after_call:
 	movl %eax,PT_EAX(%esp)		# store the return value
 syscall_exit:
@@ -541,7 +541,7 @@ syscall_exit:
 	jne syscall_exit_work
 
 restore_all:
-	TRACE_IRQS_IRET
+	TRACE_IRQS_IRET  #恢复用户态进程的执行
 restore_all_notrace:
 #ifdef CONFIG_X86_ESPFIX32
 	movl PT_EFLAGS(%esp), %eax	# mix EFLAGS, SS and CS

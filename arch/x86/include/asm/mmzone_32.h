@@ -9,8 +9,8 @@
 #include <asm/smp.h>
 
 #ifdef CONFIG_NUMA
-extern struct pglist_data *node_data[];
-#define NODE_DATA(nid)	(node_data[nid])
+extern struct pglist_data *node_data[];  // (UMA结构的机器)NODE_DATA指向全局的contig_page_data,对于NUMA结构的系统，NODE_DATA指向node_data
+#define NODE_DATA(nid)	(node_data[nid]) 
 
 #include <asm/numaq.h>
 /* summit or generic arch */

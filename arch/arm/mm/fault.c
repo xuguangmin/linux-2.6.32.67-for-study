@@ -255,7 +255,7 @@ check_stack:
 out:
 	return fault;
 }
-
+/* 发生异常(缺页异常)时，检查异常表 */
 static int __kprobes
 do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 {

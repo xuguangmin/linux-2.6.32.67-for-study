@@ -49,8 +49,10 @@ extern unsigned long __per_cpu_offset[NR_CPUS];
  * established ways to produce a usable pointer from the percpu variable
  * offset.
  */
+ /* 为CPU选择一个每CPU数组元素，CPU由参数cpu指定，数组名称为name */
 #define per_cpu(var, cpu) \
 	(*SHIFT_PERCPU_PTR(&per_cpu_var(var), per_cpu_offset(cpu)))
+/* 选择每CPU数组name的本地CPU元素 */
 #define __get_cpu_var(var) \
 	(*SHIFT_PERCPU_PTR(&per_cpu_var(var), my_cpu_offset))
 #define __raw_get_cpu_var(var) \
@@ -62,8 +64,9 @@ extern void setup_per_cpu_areas(void);
 #endif
 
 #else /* ! SMP */
-
+/* 为CPU选择一个每CPU数组元素，CPU由参数cpu指定，数组名称为name */
 #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu_var(var)))
+/* 选择每CPU数组name的本地CPU元素 */
 #define __get_cpu_var(var)			per_cpu_var(var)
 #define __raw_get_cpu_var(var)			per_cpu_var(var)
 

@@ -52,7 +52,7 @@
 #include <asm/page_types.h>
 #include <asm/init.h>
 
-unsigned long highstart_pfn, highend_pfn;
+unsigned long highstart_pfn, highend_pfn;//内核直接映射的第一个/最后一个页框的页框号
 
 static noinline int do_test_wp_bit(void);
 
@@ -75,6 +75,8 @@ static __init void *alloc_low_page(void)
  * Creates a middle page table and puts a pointer to it in the
  * given global directory entry. This only returns the gd entry
  * in non-PAE compilation mode, since the middle layer is folded.
+ * 分配并初始化一个页中间目录项，事实上
+ * 直接返回的是pgd指向的页目录表项
  */
 static pmd_t * __init one_md_table_init(pgd_t *pgd)
 {
@@ -95,6 +97,7 @@ static pmd_t * __init one_md_table_init(pgd_t *pgd)
 		return pmd_table;
 	}
 #endif
+	// pmd_table和pgd指向同一个页目录项
 	pud = pud_offset(pgd, 0);
 	pmd_table = pmd_offset(pud, 0);
 
@@ -104,6 +107,7 @@ static pmd_t * __init one_md_table_init(pgd_t *pgd)
 /*
  * Create a page table and place a pointer to it in a middle page
  * directory entry:
+ * 创建并初始化一个页表项
  */
 static pte_t * __init one_page_table_init(pmd_t *pmd)
 {
@@ -167,6 +171,7 @@ static pte_t *__init page_table_kmap_check(pte_t *pte, pmd_t *pmd,
 		int i;
 
 		BUG_ON(after_bootmem);
+		// 分配并初始化一个页表项
 		newpte = alloc_low_page();
 		for (i = 0; i < PTRS_PER_PTE; i++)
 			set_pte(newpte + i, pte[i]);
@@ -278,6 +283,7 @@ repeat:
 	pfn = start_pfn;
 	pgd_idx = pgd_index((pfn<<PAGE_SHIFT) + PAGE_OFFSET);
 	pgd = pgd_base + pgd_idx;
+	// 初始化swapper_pg_dir页全局目录
 	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++) {
 		pmd = one_md_table_init(pgd);
 
@@ -538,7 +544,7 @@ void __init early_ioremap_page_table_range_init(void)
 	page_table_range_init(vaddr, end, pgd_base);
 	early_ioremap_reset();
 }
-
+//建立页表项
 static void __init pagetable_init(void)
 {
 	pgd_t *pgd_base = swapper_pg_dir;
@@ -563,7 +569,7 @@ static inline void save_pg_dir(void)
 {
 }
 #endif /* !CONFIG_ACPI_SLEEP */
-
+//清除由startup_32函数创建的物理内存前8MB恒等映射
 void zap_low_mappings(bool early)
 {
 	int i;
@@ -769,6 +775,7 @@ static unsigned long __init setup_node_bootmem(int nodeid,
 	return bootmap + bootmap_size;
 }
 
+//初始化bootmem
 void __init setup_bootmem_allocator(void)
 {
 	int nodeid;
@@ -817,9 +824,9 @@ void __init setup_bootmem_allocator(void)
  */
 void __init paging_init(void)
 {
-	pagetable_init();
+	pagetable_init();//建立页表项
 
-	__flush_tlb_all();
+	__flush_tlb_all();  //使TLB的所有项无效
 
 	kmap_init();
 

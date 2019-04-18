@@ -69,6 +69,7 @@ extern unsigned long __FIXADDR_TOP;
  *
  * TLB entries of such buffers will not be flushed across
  * task switches.
+ * 固定映射线性地址索引
  */
 enum fixed_addresses {
 #ifdef CONFIG_X86_32
@@ -164,11 +165,13 @@ static inline void __set_fixmap(enum fixed_addresses idx,
 }
 #endif
 
+/*把一个物理地址与一个固定映射的线性地址关联起来*/
 #define set_fixmap(idx, phys)				\
 	__set_fixmap(idx, phys, PAGE_KERNEL)
 
 /*
  * Some hardware wants to get fixmapped without caching.
+ * 和set_fixmap功能一致，不过这个要禁用硬件高速缓存
  */
 #define set_fixmap_nocache(idx, phys)			\
 	__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
@@ -185,6 +188,7 @@ extern void __this_fixmap_does_not_exist(void);
  * 'index to address' translation. If anyone tries to use the idx
  * directly without translation, we catch the bug with a NULL-deference
  * kernel oops. Illegal ranges of incoming indices are caught too.
+ * 计算从索引idx开始的常量线性地址，表示一个线性地址
  */
 static __always_inline unsigned long fix_to_virt(const unsigned int idx)
 {

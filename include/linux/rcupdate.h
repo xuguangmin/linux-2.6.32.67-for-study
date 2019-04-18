@@ -41,23 +41,23 @@
 #include <linux/lockdep.h>
 #include <linux/completion.h>
 
-/*RCUæœºåˆ¶*/
+/*RCU»úÖÆ*/
 /*
- * RCUå…¸å‹ç”¨æ³•èŒƒä¾‹:
+ * RCUµäĞÍÓÃ·¨·¶Àı:
 
-   //å‡è®¾struct shared_dataæ—¶ä¸€ä¸ªåœ¨è¯»å–è€…å’Œå†™å…¥è€…ä¹‹é—´å…±äº«çš„å—ä¿æŠ¤æ•°æ®
+   //¼ÙÉèstruct shared_dataÊ±Ò»¸öÔÚ¶ÁÈ¡ÕßºÍĞ´ÈëÕßÖ®¼ä¹²ÏíµÄÊÜ±£»¤Êı¾İ
    struct shared_data{
    	int a;
 	int b;
 	struct rcu_head rcu;
    };
-   //è¯»å–è€…ä¾§çš„ä»£ç ,è¯»å–è€…è°ƒç”¨rcu_read_lockå’Œrcu_read_unlockæ„å»ºå®ƒçš„è¯»å–ä¸´ç•ŒåŒº,
-   	æ‰€æœ‰çš„æŒ‡å‘è¢«ä¿æŠ¤èµ„æºæŒ‡é’ˆçš„å¼•ç”¨éƒ½åº”è¯¥åœ¨ä¸´ç•ŒåŒºä¸­å‡ºç°,è€Œä¸”ä¸´ç•ŒåŒºä¸­çš„ä»£ç ä¸èƒ½ç¡çœ 
+   //¶ÁÈ¡Õß²àµÄ´úÂë,¶ÁÈ¡Õßµ÷ÓÃrcu_read_lockºÍrcu_read_unlock¹¹½¨ËüµÄ¶ÁÈ¡ÁÙ½çÇø,
+   	ËùÓĞµÄÖ¸Ïò±»±£»¤×ÊÔ´Ö¸ÕëµÄÒıÓÃ¶¼Ó¦¸ÃÔÚÁÙ½çÇøÖĞ³öÏÖ,¶øÇÒÁÙ½çÇøÖĞµÄ´úÂë²»ÄÜË¯Ãß
    static void demo_reader(struct shared_data *ptr)
    {
    	struct shared_data *p = NULL;
 	rcu_read_lock();
-	//è°ƒç”¨rcu_dereferenceè·å¾—ptrçš„æŒ‡é’ˆ
+	//µ÷ÓÃrcu_dereference»ñµÃptrµÄÖ¸Õë
 	p = rcu_dereference(ptr);
 	if(p)
 		do_something_withp(p);
@@ -65,8 +65,8 @@
    }
 
 
-   //å†™å…¥è€…ä¾§çš„ä»£ç 
-   //å†™å…¥è€…æä¾›çš„å›è°ƒå‡½æ•°,ç”¨äºé‡Šæ”¾è€æŒ‡é’ˆ
+   //Ğ´ÈëÕß²àµÄ´úÂë
+   //Ğ´ÈëÕßÌá¹©µÄ»Øµ÷º¯Êı,ÓÃÓÚÊÍ·ÅÀÏÖ¸Õë
    static void demo_del_oldptr(struct rcu_head *rh)
    {
    	struct shared_data *p = container_of(rh, struct shared_data, rcu)
@@ -78,9 +78,9 @@
 	...
 	new_ptr->a = 10;
 	new_ptr->b = 10;
-	//ç”¨æ–°æŒ‡é’ˆæ›´æ–°è€æŒ‡é’ˆ
+	//ÓÃĞÂÖ¸Õë¸üĞÂÀÏÖ¸Õë
 	rcu_assign_pointer(ptr, new_ptr);
-	//è°ƒç”¨call_rcuè®©å†…æ ¸åœ¨ç¡®ä¿æ‰€æœ‰å¯¹è€æŒ‡é’ˆptrçš„å¼•ç”¨éƒ½ç»“æŸåå›è°ƒdemo_del_oldptré‡Šæ”¾è€æŒ‡é’ˆ
+	//µ÷ÓÃcall_rcuÈÃÄÚºËÔÚÈ·±£ËùÓĞ¶ÔÀÏÖ¸ÕëptrµÄÒıÓÃ¶¼½áÊøºó»Øµ÷demo_del_oldptrÊÍ·ÅÀÏÖ¸Õë
 	call_rcu(ptr->rcu, demo_del_oldptr);
    }
  */
@@ -99,7 +99,7 @@ struct rcu_head {
 
 /* Exported common interfaces */
 #ifdef CONFIG_TREE_PREEMPT_RCU
-/*ç±»ä¼¼call_rcuçš„åŠŸèƒ½,ä½†å‡½æ•°å¯èƒ½ä¼šé˜»å¡,ä¸èƒ½åœ¨ä¸­æ–­ä¸Šä¸‹æ–‡ä½¿ç”¨, åº”ä½¿ç”¨call_rcuæ³¨å†Œè¿›å†…æ ¸*/
+/*ÀàËÆcall_rcuµÄ¹¦ÄÜ,µ«º¯Êı¿ÉÄÜ»á×èÈû,²»ÄÜÔÚÖĞ¶ÏÉÏÏÂÎÄÊ¹ÓÃ, Ó¦Ê¹ÓÃcall_rcu×¢²á½øÄÚºË*/
 extern void synchronize_rcu(void);
 #else /* #ifdef CONFIG_TREE_PREEMPT_RCU */
 #define synchronize_rcu synchronize_sched
@@ -169,10 +169,10 @@ extern struct lockdep_map rcu_lock_map;
  *
  * It is illegal to block while in an RCU read-side critical section.
  */
- /*RCU ä¸´è¡—åŒºä¸­ä¸ä¼šå‘ç”Ÿè¿›ç¨‹åˆ‡æ¢*/
+ /*RCU ÁÙ½ÖÇøÖĞ²»»á·¢Éú½ø³ÌÇĞ»»*/
 static inline void rcu_read_lock(void)
 {
-	/*ç¦æ­¢æŠ¢å */
+	/*½ûÖ¹ÇÀÕ¼*/
 	__rcu_read_lock();
 	__acquire(RCU);
 	rcu_read_acquire();
@@ -193,7 +193,7 @@ static inline void rcu_read_lock(void)
  *
  * See rcu_read_lock() for more information.
  */
- /*è¯»è€…åœ¨è¯»å–ç”±RCUä¿æŠ¤çš„å…±äº«æ•°æ®æ—¶ä½¿ç”¨è¯¥å‡½æ•°æ ‡è®°å®ƒè¿›å…¥è¯»ç«¯ä¸´ç•ŒåŒºã€‚*/
+ /*¶ÁÕßÔÚ¶ÁÈ¡ÓÉRCU±£»¤µÄ¹²ÏíÊı¾İÊ±Ê¹ÓÃ¸Ãº¯Êı±ê¼ÇËü½øÈë¶Á¶ËÁÙ½çÇø¡£*/
 static inline void rcu_read_unlock(void)
 {
 	rcu_read_release();
@@ -211,8 +211,8 @@ static inline void rcu_read_unlock(void)
  * disabling softirqs. Read-side critical sections in interrupt context
  * can use just rcu_read_lock().
  */
- /* è¯¥å‡½æ•°ä¸rcu_read_locké…å¯¹ä½¿ç”¨ï¼Œç”¨ä»¥æ ‡è®°è¯»è€…é€€å‡ºè¯»ç«¯ä¸´ç•ŒåŒºã€‚
-  * å¤¹åœ¨è¿™ä¸¤ä¸ªå‡½æ•°ä¹‹é—´çš„ä»£ç åŒºç§°ä¸º"è¯»ç«¯ä¸´ç•ŒåŒº*/
+ /* ¸Ãº¯ÊıÓërcu_read_lockÅä¶ÔÊ¹ÓÃ£¬ÓÃÒÔ±ê¼Ç¶ÁÕßÍË³ö¶Á¶ËÁÙ½çÇø¡£
+  * ¼ĞÔÚÕâÁ½¸öº¯ÊıÖ®¼äµÄ´úÂëÇø³ÆÎª"¶Á¶ËÁÙ½çÇø*/
 static inline void rcu_read_lock_bh(void)
 {
 	__rcu_read_lock_bh();
@@ -284,7 +284,7 @@ static inline notrace void rcu_read_unlock_sched_notrace(void)
  * (currently only the Alpha), and, more importantly, documents
  * exactly which pointers are protected by RCU.
  */
-/*è·å¾—pçš„æŒ‡é’ˆ*/
+/*»ñµÃpµÄÖ¸Õë*/
 #define rcu_dereference(p)     ({ \
 				typeof(p) _________p1 = ACCESS_ONCE(p); \
 				smp_read_barrier_depends(); \
@@ -304,7 +304,7 @@ static inline notrace void rcu_read_unlock_sched_notrace(void)
  * code.
  */
 
-/*æ›´æ–°è€æŒ‡é’ˆ*/
+/*¸üĞÂÀÏÖ¸Õë*/
 #define rcu_assign_pointer(p, v) \
 	({ \
 		if (!__builtin_constant_p(v) || \
@@ -333,11 +333,11 @@ extern void wakeme_after_rcu(struct rcu_head  *head);
  * sections are delimited by rcu_read_lock() and rcu_read_unlock(),
  * and may be nested.
  */
- /* RCUçš„å†™å…¥è€…è´Ÿè´£åœ¨æ›¿æ¢æ‰è€æŒ‡é’ˆä¹‹åè°ƒç”¨call_rcuå‘å†…æ ¸æ³¨å†Œä¸€å›è°ƒå‡½æ•°,
-  * å›è°ƒå‡½æ•°è´Ÿè´£å®ç°é‡Šæ”¾è€æŒ‡é’ˆæŒ‡å‘çš„å†…å­˜ç©ºé—´,call_rcuä¸­çš„å‚æ•°funcå°±æ˜¯æŒ‡å‘è¯¥å›è°ƒå‡½æ•°çš„æŒ‡é’ˆ.
-  * headæ˜¯å†…æ ¸åœ¨è°ƒç”¨funcæ—¶ä¼ é€’åˆ°funcä¸­çš„å‚æ•°,å®é™…ä½¿ç”¨ä¸­ä¼šæŠŠrcu_headå†…åµŒåˆ°å…±äº«æ•°æ®
-  * æ‰€åœ¨çš„ç»“æ„ä½“ä¸­,è¿™æ ·åœ¨å›è°ƒå‡½æ•°ä¸­å¯ä»¥é€šè¿‡ä¼ è¿›æ¥çš„struct rcu_headæŒ‡é’ˆ,ä½¿ç”¨container_of
-  * è·å¾—æŒ‡å‘æ—§çš„å…±äº«æ•°æ®åŒºçš„æŒ‡é’ˆ,ç„¶åè°ƒç”¨kfreeé‡Šæ”¾æ—§çš„æ•°æ®åŒº*/
+ /* RCUµÄĞ´ÈëÕß¸ºÔğÔÚÌæ»»µôÀÏÖ¸ÕëÖ®ºóµ÷ÓÃcall_rcuÏòÄÚºË×¢²áÒ»»Øµ÷º¯Êı,
+  * »Øµ÷º¯Êı¸ºÔğÊµÏÖÊÍ·ÅÀÏÖ¸ÕëÖ¸ÏòµÄÄÚ´æ¿Õ¼ä,call_rcuÖĞµÄ²ÎÊıfunc¾ÍÊÇÖ¸Ïò¸Ã»Øµ÷º¯ÊıµÄÖ¸Õë.
+  * headÊÇÄÚºËÔÚµ÷ÓÃfuncÊ±´«µİµ½funcÖĞµÄ²ÎÊı,Êµ¼ÊÊ¹ÓÃÖĞ»á°Ñrcu_headÄÚÇ¶µ½¹²ÏíÊı¾İ
+  * ËùÔÚµÄ½á¹¹ÌåÖĞ,ÕâÑùÔÚ»Øµ÷º¯ÊıÖĞ¿ÉÒÔÍ¨¹ı´«½øÀ´µÄstruct rcu_headÖ¸Õë,Ê¹ÓÃcontainer_of
+  * »ñµÃÖ¸Ïò¾ÉµÄ¹²ÏíÊı¾İÇøµÄÖ¸Õë,È»ºóµ÷ÓÃkfreeÊÍ·Å¾ÉµÄÊı¾İÇø*/
 extern void call_rcu(struct rcu_head *head,
 			      void (*func)(struct rcu_head *head));
 

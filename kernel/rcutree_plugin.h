@@ -392,6 +392,7 @@ static void rcu_preempt_process_callbacks(void)
 /*
  * Queue a preemptable-RCU callback for invocation after a grace period.
  */
+ /* 释放数据结构的旧副本 */
 void call_rcu(struct rcu_head *head, void (*func)(struct rcu_head *rcu))
 {
 	__call_rcu(head, func, &rcu_preempt_state);

@@ -37,18 +37,27 @@ typedef unsigned long mm_counter_t;
  * a page, though if it is a pagecache page, rmap structures can tell us
  * who is mapping it.
  */
- /* å†…å­˜é¡µæ˜¯ç‰©ç†å†…å­˜ç®¡ç†ä¸­çš„æœ€å°å•ä½,Linuxä¼šä¸ºç³»ç»Ÿä¸ºä¾‹å†…å­˜æ¯ä¸ªé¡µéƒ½åˆ›å»ºä¸€ä¸ª
-  * struct pageå¯¹è±¡ï¼Œç³»ç»Ÿç”¨ä¸€å…¨å±€å˜é‡struct page *mem_mapæ¥å­˜æ”¾æ‰€æœ‰
-  * ç‰©ç†é¡µpageå¯¹è±¡çš„æŒ‡é’ˆ*/
+ /* Ò³ÃèÊö·û
+   * ÄÚ´æÒ³ÊÇÎïÀíÄÚ´æ¹ÜÀíÖĞµÄ×îĞ¡µ¥Î»,Linux»áÎªÏµÍ³ÎªÀıÄÚ´æÃ¿¸öÒ³¶¼´´½¨Ò»¸ö
+   * struct page¶ÔÏó£¬ÏµÍ³ÓÃÒ»È«¾Ö±äÁ¿struct page *mem_mapÀ´´æ·ÅËùÓĞ
+   * ÎïÀíÒ³page¶ÔÏóµÄÖ¸Õë
+   */
 struct page {
-	unsigned long flags;		/* Atomic flags, some possibly
+	/* flags°üº¬4²¿·Ösection node zone flag.  ÆäÖĞ±êÖ¾Î»flagÏò¸ßÎ»Ôö³¤£¬ÆäÓàÎ»ÏòµÍÎ»Ôö³¤£¬ÖĞ¼ä´æÔÚ¿ÕÏĞÎ»
+	  * section: Ö÷ÒªÓÃÓÚÏ¡ÊèÄÚ´æÄ£ĞÍSPARSEMEM,¿ÉºöÂÔ
+	  * node: NUMA½ÚµãºÅ£¬±íÊ¶¸ÃpageÊôÓÚÄÄÒ»¸ö½Úµã
+	  * zone: ¹ÜÀíÇø±êÖ¾£¬±êÖ¾¸ÃpageÊôÓÚÄÄÒ»¸özone
+	  * flag: pageµÄ×´Ì¬±êÖ¾
+	  */
+	unsigned long flags;/* Atomic flags, some possibly
 					 * updated asynchronously */
-	atomic_t _count;		/* Usage count, see below. */
+					 /*Ò»×é±êÖ¾£¬Ò²¶ÔÒ³¿òËùÔÚµÄ¹ÜÀíÇø½øĞĞ±êºÅ,enum pageflags */
+	atomic_t _count;		/* Usage count, see below. */ /*Ò³¿òµÄÒıÓÃ¼ÆÊıÆ÷*/
 	union {
 		atomic_t _mapcount;	/* Count of ptes mapped in mms,
 					 * to show when page is mapped
 					 * & limit reverse map searches.
-					 */
+					 */ /*Ò³¿òÖĞµÄÒ³±íÏîÊıÄ¿£¬Ã»ÓĞÔòÎª-1*/
 		struct {		/* SLUB */
 			u16 inuse;
 			u16 objects;
@@ -69,7 +78,7 @@ struct page {
 						 * memory, low bit is set, and
 						 * it points to anon_vma object:
 						 * see PAGE_MAPPING_ANON below.
-						 */
+						 *//*µ±Ò³±»²åÈëÒ³¸ßËÙ»º´æÖĞÊ±Ê¹ÓÃ»òÕßµ±Ò³ÊôÓÚÄäÃûÇøÊ±Ê¹ÓÃ*/
 	    };
 #if USE_SPLIT_PTLOCKS
 	    spinlock_t ptl;
@@ -83,7 +92,7 @@ struct page {
 	};
 	struct list_head lru;		/* Pageout list, eg. active_list
 					 * protected by zone->lru_lock !
-					 */
+					 *//*°üº¬Ò³µÄ×î½ü×îÉÙÊ¹ÓÃË«ÏòÁ´±íµÄÖ¸Õë*/
 	/*
 	 * On machines where all RAM is mapped into kernel address space,
 	 * we can simply calculate the virtual address. On machines with
@@ -134,23 +143,26 @@ struct vm_region {
  * space that has a special rule for the page-fault handlers (ie a shared
  * library, the executable area etc).
  */
-/*è¡¨ç¤ºä¸€æ®µçš„ä¸€æ®µå†…å­˜åŒºåŸŸ,å®ƒæ˜¯è®¿é—®MMAPåœ°å€ç©ºé—´çš„æœ€å°å•å…ƒ,*/
+/* ËüÃèÊöµÄÊÇÒ»¶ÎÁ¬ĞøµÄ¡¢¾ßÓĞÏàÍ¬·ÃÎÊÊôĞÔµÄĞé´æ¿Õ¼ä,
+  * ËüÊÇ·ÃÎÊMMAPµØÖ·¿Õ¼äµÄ×îĞ¡µ¥Ôª,¸ÃĞé´æ¿Õ¼äµÄ´óĞ¡Îª
+  * ÎïÀíÄÚ´æÒ³ÃæµÄÕûÊı±¶¡£
+  */
 struct vm_area_struct {
-	/*å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µæ‰€å½’å±çš„è¿›ç¨‹è™šæ‹Ÿåœ°å€ç©ºé—´*/
+	/*µ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎËù¹éÊôµÄ½ø³ÌĞéÄâµØÖ·¿Õ¼ä*/
 	struct mm_struct * vm_mm;	/* The address space we belong to. */
-	/*å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µçš„èµ·å§‹åœ°å€*/
+	/*µ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎµÄÆğÊ¼µØÖ·*/
 	unsigned long vm_start;		/* Our start address within vm_mm. */
-	/*å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µçš„ç»“æŸåœ°å€*/
+	/*µ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎµÄ½áÊøµØÖ·*/
 	unsigned long vm_end;		/* The first byte after our end address
 					   within vm_mm. */
 
 	/* linked list of VM areas per task, sorted by address */
-	/*ç”¨æ¥å°†ä¸€ç³»åˆ—çš„struct vm_area_structå¯¹è±¡æ„å»ºæˆé“¾è¡¨.ä»£è¡¨è¿›ç¨‹è™šæ‹Ÿåœ°å€ç©ºé—´çš„struct mm_structå¯¹è±¡çš„struct vm_area_struct *mmapæˆå‘˜ç”¨æ¥æŒ‡å‘è¯¥é“¾è¡¨*/
+	/*ÓÃÀ´½«Ò»ÏµÁĞµÄstruct vm_area_struct¶ÔÏó¹¹½¨³ÉÁ´±í.´ú±í½ø³ÌĞéÄâµØÖ·¿Õ¼äµÄstruct mm_struct¶ÔÏóµÄstruct vm_area_struct *mmap³ÉÔ±ÓÃÀ´Ö¸Ïò¸ÃÁ´±í*/
 	struct vm_area_struct *vm_next, *vm_prev;
 
-	/*åœ¨å°†å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µæ˜ å°„åˆ°è®¾å¤‡å†…å­˜æ—¶çš„é¡µä¿æŠ¤å±æ€§,ä¸»è¦ä½“ç°åœ¨é¡µç›®å½•é¡¹çš„æ˜ å°„å±æ€§å½“ä¸­*/
+	/*ÔÚ½«µ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎÓ³Éäµ½Éè±¸ÄÚ´æÊ±µÄÒ³±£»¤ÊôĞÔ,Ö÷ÒªÌåÏÖÔÚÒ³Ä¿Â¼ÏîµÄÓ³ÉäÊôĞÔµ±ÖĞ*/
 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
-	/*å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µçš„è®¿é—®ç†Ÿæ‚‰,æ¯”å¦‚VM_READ_,VM_WRITE,VM_EXECåŠVM_SHARED*/
+	/*µ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎµÄ·ÃÎÊÊìÏ¤,±ÈÈçVM_READ_,VM_WRITE,VM_EXEC¼°VM_SHARED*/
 	unsigned long vm_flags;		/* Flags, see mm.h. */
 
 	struct rb_node vm_rb;
@@ -181,7 +193,7 @@ struct vm_area_struct {
 	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
 
 	/* Function pointers to deal with this struct. */
-	/*ç”¨æ¥å®šä¹‰å½“å‰struct vm_area_structå¯¹è±¡æ‰€è¡¨ç¤ºçš„è™šæ‹Ÿåœ°å€æ®µä¸Šçš„ä¸€ç»„æ“ä½œé›†*/
+	/*ÓÃÀ´¶¨Òåµ±Ç°struct vm_area_struct¶ÔÏóËù±íÊ¾µÄĞéÄâµØÖ·¶ÎÉÏµÄÒ»×é²Ù×÷¼¯*/
 	const struct vm_operations_struct *vm_ops;
 
 	/* Information about our backing store: */
@@ -210,6 +222,7 @@ struct core_state {
 	struct completion startup;
 };
 
+//ÄÚ´æÃèÊö·û
 struct mm_struct {
 	struct vm_area_struct * mmap;		/* list of VMAs */
 	struct rb_root mm_rb;
@@ -222,7 +235,7 @@ struct mm_struct {
 	unsigned long task_size;		/* size of task vm space */
 	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
 	unsigned long free_area_cache;		/* first hole of size cached_hole_size or larger */
-	pgd_t * pgd;
+	pgd_t * pgd;		// ?§Ó?¦Ì?3?????
 	atomic_t mm_users;			/* How many users with user space? */
 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
 	int map_count;				/* number of VMAs */
@@ -253,7 +266,7 @@ struct mm_struct {
 
 	struct linux_binfmt *binfmt;
 
-	cpumask_t cpu_vm_mask;
+	cpumask_t cpu_vm_mask;  // CPUÏÂ±ê,¿É´æ·ÅÏµÍ³ÖĞËùÓĞCPUÏÂ±ê
 
 	/* Architecture-specific MM context */
 	mm_context_t context;

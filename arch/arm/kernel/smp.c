@@ -627,6 +627,9 @@ static inline void ipi_flush_tlb_kernel_range(void *arg)
 	local_flush_tlb_kernel_range(ta->ta_start, ta->ta_end);
 }
 
+/* 刷新所有TLB表项(包括那些全局页对应的TLB表项，
+  * 即那些Global标志被置位的页)
+  * 使用时机: 改变内核页表项时*/
 void flush_tlb_all(void)
 {
 	if (tlb_ops_need_broadcast())
@@ -635,6 +638,8 @@ void flush_tlb_all(void)
 		local_flush_tlb_all();
 }
 
+/* 刷新指定进程拥有的非全局页相关的所有TLB表项
+  * 使用时机:创建一个新的子进程时*/
 void flush_tlb_mm(struct mm_struct *mm)
 {
 	if (tlb_ops_need_broadcast())
@@ -643,6 +648,7 @@ void flush_tlb_mm(struct mm_struct *mm)
 		local_flush_tlb_mm(mm);
 }
 
+/**/
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long uaddr)
 {
 	if (tlb_ops_need_broadcast()) {
@@ -664,6 +670,8 @@ void flush_tlb_kernel_page(unsigned long kaddr)
 		local_flush_tlb_kernel_page(kaddr);
 }
 
+/* 刷新指定进程的线性地址间隔对应的TLB表项
+  * 使用时机:释放某个进程的线性地址间隔时*/
 void flush_tlb_range(struct vm_area_struct *vma,
                      unsigned long start, unsigned long end)
 {
@@ -677,6 +685,9 @@ void flush_tlb_range(struct vm_area_struct *vma,
 		local_flush_tlb_range(vma, start, end);
 }
 
+/*刷新给定线性地址范围内的所有TLB表项
+  (包括那些全局页对应的TLB表项)
+  * 使用时机:更换一个范围内的内核页表项时*/
 void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 {
 	if (tlb_ops_need_broadcast()) {

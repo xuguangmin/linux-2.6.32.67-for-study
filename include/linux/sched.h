@@ -32,9 +32,9 @@
 /*
  * Scheduling policies
  */
-#define SCHED_NORMAL		0
-#define SCHED_FIFO		1
-#define SCHED_RR		2
+#define SCHED_NORMAL		0	//普通的分时进程
+#define SCHED_FIFO		1	//先进先出的实时进程
+#define SCHED_RR		2		//时间片轮转的实时进程
 #define SCHED_BATCH		3
 /* SCHED_ISO: reserved but not implemented yet */
 #define SCHED_IDLE		5
@@ -1233,8 +1233,8 @@ struct task_struct {
 #endif
 #endif
 
-	int prio, static_prio, normal_prio;
-	unsigned int rt_priority;
+	int prio, static_prio, normal_prio;/* 动态优先级，静态优先级*/
+	unsigned int rt_priority;//进程的实时优先级
 	const struct sched_class *sched_class;
 	struct sched_entity se;
 	struct sched_rt_entity rt;
@@ -1257,8 +1257,8 @@ struct task_struct {
 	unsigned int btrace_seq;
 #endif
 
-	unsigned int policy;
-	cpumask_t cpus_allowed;
+	unsigned int policy;/*进程的调度类型SCHED_NORMAL  SCHED_FIFO  SCHED_RR*/
+	cpumask_t cpus_allowed;/* CPU亲和力掩码*/
 
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	int rcu_read_lock_nesting;
@@ -1274,6 +1274,10 @@ struct task_struct {
 	struct list_head tasks;
 	struct plist_node pushable_tasks;
 
+	//active_mm指向进程所使用的内存描述符
+	//mm指向进程所拥有的内存描述符
+	//对于一般的进程这两个字段有相同的地址
+	//对于内核线程，由于内核线程没有自己的地址空间mm字段总是置为NULL
 	struct mm_struct *mm, *active_mm;
 
 /* task state */
@@ -2397,7 +2401,7 @@ static inline int need_resched(void)
  * cond_resched_softirq() will enable bhs before scheduling.
  */
 extern int _cond_resched(void);
-
+// 完成进程切换，条件是thread_info的TIF_NEED_RESCHED标志被设置
 #define cond_resched() ({			\
 	__might_sleep(__FILE__, __LINE__, 0);	\
 	_cond_resched();			\

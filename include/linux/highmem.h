@@ -46,7 +46,7 @@ void kmap_flush_unused(void);
 
 static inline unsigned int nr_free_highpages(void) { return 0; }
 
-#define totalhigh_pages 0
+#define totalhigh_pages 0  //内核非直接映射的页框的总数(高端内存)
 
 #ifndef ARCH_HAS_KMAP
 static inline void *kmap(struct page *page)

@@ -34,9 +34,13 @@
  * we don't even have to jump over them.  Further, they do not intrude
  * on our cache or tlb entries.
  */
-
+//异常表表项结构
 struct exception_table_entry
 {
+	/* insn:访问进程地址空间的指令的线性
+	  * fixup:当存放在insn单元中的指令所触发的缺页异常发生
+	  * 时，fixup就是要调用的汇编语言代码的地址
+	  */
 	unsigned long insn, fixup;
 };
 

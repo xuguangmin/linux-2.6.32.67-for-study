@@ -38,13 +38,13 @@ extern pgtable_t pte_alloc_one(struct mm_struct *, unsigned long);
 
 /* Should really implement gc for free page table pages. This could be
    done with a reference count in struct page. */
-
+/*等价于pte_free，但仅由内核页表使用*/
 static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 {
 	BUG_ON((unsigned long)pte & (PAGE_SIZE-1));
 	free_page((unsigned long)pte);
 }
-
+/*释放与页描述符指针pte相关的页表*/
 static inline void pte_free(struct mm_struct *mm, struct page *pte)
 {
 	pgtable_page_dtor(pte);

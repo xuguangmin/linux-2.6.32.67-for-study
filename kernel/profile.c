@@ -430,7 +430,7 @@ void profile_hits(int type, void *__pc, unsigned int nr_hits)
 }
 #endif /* !CONFIG_SMP */
 EXPORT_SYMBOL_GPL(profile_hits);
-
+// 为代码监管器采集数据
 void profile_tick(int type)
 {
 	struct pt_regs *regs = get_irq_regs();

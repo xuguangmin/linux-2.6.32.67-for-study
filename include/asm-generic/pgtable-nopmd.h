@@ -14,10 +14,11 @@ struct mm_struct;
  * us to conceptually access the pud entry that this pmd is folded into
  * without casting.
  */
-typedef struct { pud_t pud; } pmd_t;
-
+typedef struct { pud_t pud; } pmd_t;//描述也中间目录项
+/* 指定线性地址的Offset字段和Table字段的总位数 */
 #define PMD_SHIFT	PUD_SHIFT
 #define PTRS_PER_PMD	1
+/* 计算由页中间目录的一个单独表项所映射的区域大小*/
 #define PMD_SIZE  	(1UL << PMD_SHIFT)
 #define PMD_MASK  	(~(PMD_SIZE-1))
 
@@ -48,6 +49,10 @@ static inline pmd_t * pmd_offset(pud_t * pud, unsigned long address)
 #define pmd_val(x)				(pud_val((x).pud))
 #define __pmd(x)				((pmd_t) { __pud(x) } )
 
+/*
+  * 通过页上级目录项pud产生相应的页中间目录的线性地址
+  * 在两级分页系统中，该宏等价于pmd_page()
+  */
 #define pud_page(pud)				(pmd_page((pmd_t){ pud }))
 #define pud_page_vaddr(pud)			(pmd_page_vaddr((pmd_t){ pud }))
 

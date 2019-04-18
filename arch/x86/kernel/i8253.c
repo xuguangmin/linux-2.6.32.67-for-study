@@ -100,6 +100,7 @@ static struct clock_event_device pit_ce = {
 /*
  * Initialize the conversion factor and the min/max deltas of the clock event
  * structure and register the clock event source with the framework.
+ * 初始化PIT,看不懂
  */
 void __init setup_pit_timer(void)
 {

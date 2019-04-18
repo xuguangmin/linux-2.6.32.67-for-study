@@ -6,4 +6,4 @@
  * published by the Free Software Foundation.
  */
 
-#define CLOCK_TICK_RATE		3250000
+#define CLOCK_TICK_RATE		3250000  //ÄÚ²¿Õñµ´Æ÷ÆµÂÊ

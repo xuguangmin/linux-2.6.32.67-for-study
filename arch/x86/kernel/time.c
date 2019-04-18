@@ -85,7 +85,7 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 
 	return IRQ_HANDLED;
 }
-
+//被setup_irq使用建立中断门
 static struct irqaction irq0  = {
 	.handler = timer_interrupt,
 	.flags = IRQF_DISABLED | IRQF_NOBALANCING | IRQF_IRQPOLL | IRQF_TIMER,
@@ -94,6 +94,8 @@ static struct irqaction irq0  = {
 
 void __init setup_default_timer_irq(void)
 {
+	/* 创建与IRQ0相对应的中断门,IRQ0引脚线连接着
+	系统时钟中断源(PIT或HPET) */
 	setup_irq(0, &irq0);
 }
 

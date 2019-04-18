@@ -158,7 +158,7 @@ struct i2c_driver {
 	int (*command)(struct i2c_client *client, unsigned int cmd, void *arg);
 
 	struct device_driver driver;
-	const struct i2c_device_id *id_table;
+	const struct i2c_device_id *id_table; // 该驱动支持的IIC设备ID表
 
 	/* Device detection callback for automatic device creation */
 	int (*detect)(struct i2c_client *, int kind, struct i2c_board_info *);
@@ -185,13 +185,13 @@ struct i2c_driver {
  * i2c bus. The behaviour exposed to Linux is defined by the driver
  * managing the device.
  */
-struct i2c_client {
+struct i2c_client { // 对应真实的物理IIC设备,i2c_client信息通常在BSP板文件中通过 struct i2c_board_info指定
 	unsigned short flags;		/* div., see below		*/
 	unsigned short addr;		/* chip address - NOTE: 7bit	*/
 					/* addresses are stored in the	*/
 					/* _LOWER_ 7 bits		*/
 	char name[I2C_NAME_SIZE];
-	struct i2c_adapter *adapter;	/* the adapter we sit on	*/
+	struct i2c_adapter *adapter;	/* i2c_client依附于i2c_adapter，i2c_adapter可连接多个i2c_client	*/
 	struct i2c_driver *driver;	/* and our access routines	*/
 	struct device dev;		/* the device structure		*/
 	int irq;			/* irq issued by device		*/
@@ -317,7 +317,7 @@ struct i2c_algorithm {
 	/* master_xfer should return the number of messages successfully
 	   processed, or a negative value on error */
 	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			   int num);
+			   int num); // 用于产生IIC访问周期需要的信号
 	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
 			   unsigned short flags, char read_write,
 			   u8 command, int size, union i2c_smbus_data *data);
@@ -329,6 +329,8 @@ struct i2c_algorithm {
 /*
  * i2c_adapter is the structure used to identify a physical i2c bus along
  * with the access algorithms necessary to access it.
+ * 对应一个物理上的IIC适配器，还需要struct i2c_algorithm提供的
+ * 通信函数来控制iic适配器产生特定的访问周期
  */
 struct i2c_adapter {
 	struct module *owner;
@@ -499,7 +501,7 @@ static inline int i2c_adapter_id(struct i2c_adapter *adap)
  * adapters which are known to support the specific mangling options they
  * need (one or more of IGNORE_NAK, NO_RD_ACK, NOSTART, and REV_DIR_ADDR).
  */
-struct i2c_msg {
+struct i2c_msg {// iic消息单位
 	__u16 addr;	/* slave address			*/
 	__u16 flags;
 #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */

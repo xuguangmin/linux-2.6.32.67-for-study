@@ -10,45 +10,45 @@
 
 
 /**
- * EXAMPLE:è®¾å¤‡é©±åŠ¨ç¨‹åºé€šè¿‡ä½¿ç”¨å†…æ ¸å®šæ—¶å™¨æ¥è½®è¯¢è®¾å¤‡çŠ¶æ€
-   struct device_regs *devreg = NULL;//å®šä¹‰ä¸€ä¸ªç”¨äºè¡¨ç¤ºè®¾å¤‡å¯„å­˜å™¨çš„ç»“æ„ä½“æŒ‡é’ˆ
-   struct timer_list demo_timer;//å®šä¹‰ä¸€ä¸ªå†…æ ¸å®šæ—¶å™¨å¯¹è±¡
+ * EXAMPLE:Éè±¸Çı¶¯³ÌĞòÍ¨¹ıÊ¹ÓÃÄÚºË¶¨Ê±Æ÷À´ÂÖÑ¯Éè±¸×´Ì¬
+   struct device_regs *devreg = NULL;//¶¨ÒåÒ»¸öÓÃÓÚ±íÊ¾Éè±¸¼Ä´æÆ÷µÄ½á¹¹ÌåÖ¸Õë
+   struct timer_list demo_timer;//¶¨ÒåÒ»¸öÄÚºË¶¨Ê±Æ÷¶ÔÏó
 
    //
-   //å®šä¹‰å®šæ—¶å™¨å‡½æ•°,å½“å®šæ—¶å™¨å¯¹è±¡demo_timerä¸­expiresæˆå‘˜æŒ‡å®šçš„æ—¶é—´åˆ°æœŸå,è¯¥å‡½æ•°å°†è¢«è°ƒç”¨
+   //¶¨Òå¶¨Ê±Æ÷º¯Êı,µ±¶¨Ê±Æ÷¶ÔÏódemo_timerÖĞexpires³ÉÔ±Ö¸¶¨µÄÊ±¼äµ½ÆÚºó,¸Ãº¯Êı½«±»µ÷ÓÃ
    static void demo_timer_func(unsigned long data)
    {
-   	//å®šæ—¶å™¨å‡½æ•°ä¸­é‡æ–°å¯åŠ¨å®šæ—¶å™¨ä»¥å®ç°è½®è¯¢çš„ç›®çš„
+   	//¶¨Ê±Æ÷º¯ÊıÖĞÖØĞÂÆô¶¯¶¨Ê±Æ÷ÒÔÊµÏÖÂÖÑ¯µÄÄ¿µÄ
 	demo_timer.expires = jiffies + HZ;
 	add_timer(&demo_timer);
 
-	//å®šæ—¶å™¨å‡½æ•°å°†dataå‚æ•°é€šè¿‡ç±»å‹è½¬æ¢è·å¾—è®¾å¤‡å¯„å­˜å™¨çš„ç»“æ„ä½“æŒ‡é’ˆ
+	//¶¨Ê±Æ÷º¯Êı½«data²ÎÊıÍ¨¹ıÀàĞÍ×ª»»»ñµÃÉè±¸¼Ä´æÆ÷µÄ½á¹¹ÌåÖ¸Õë
 	struct device_reg *preg = (struct device_regs*)data;
-	//å®šæ—¶å™¨å‡½æ•°æ­¤åå°†ä¼šè¯»å–è®¾å¤‡çŠ¶æ€
+	//¶¨Ê±Æ÷º¯Êı´Ëºó½«»á¶ÁÈ¡Éè±¸×´Ì¬
 	...
    }
 
-   //ç”¨äºæ‰“å¼€è®¾å¤‡çš„å‡½æ•°å®ç°
+   //ÓÃÓÚ´ò¿ªÉè±¸µÄº¯ÊıÊµÏÖ
    static int demo_dev_open(...);
    {
    	...
-	//åˆ†é…è®¾å¤‡å¯„å­˜å™¨ç»“æ„ä½“çš„æŒ‡é’ˆå˜é‡,æœ€å¥½æ”¾åœ¨æ¨¡å—åˆå§‹åŒ–å‡½æ•°ä¸­
+	//·ÖÅäÉè±¸¼Ä´æÆ÷½á¹¹ÌåµÄÖ¸Õë±äÁ¿,×îºÃ·ÅÔÚÄ£¿é³õÊ¼»¯º¯ÊıÖĞ
 	devreg = kmalloc(sizeof(struct device_regs), GFP_KERNEL);
 	...
-	init_timer(&demo_timer);//è°ƒç”¨å†…æ ¸å‡½æ•°init_timeræ¥åˆå§‹åŒ–å®šæ—¶å™¨å¯¹è±¡ demo_timer
-	demo_timer.expires = jiffies + HZ;//è®¾å®šå®šæ—¶å™¨åˆ°æœŸæ—¶é—´ç‚¹,ä»å…ˆåœ¨å¼€å§‹çš„1åˆ†é’Ÿ
-	demo_timer.data = (unsigned long)devreg;//å°†è®¾å¤‡å¯„å­˜å™¨æŒ‡é’ˆåœ°å€ä½œä¸ºå‚æ•°
+	init_timer(&demo_timer);//µ÷ÓÃÄÚºËº¯Êıinit_timerÀ´³õÊ¼»¯¶¨Ê±Æ÷¶ÔÏó demo_timer
+	demo_timer.expires = jiffies + HZ;//Éè¶¨¶¨Ê±Æ÷µ½ÆÚÊ±¼äµã,´ÓÏÈÔÚ¿ªÊ¼µÄ1·ÖÖÓ
+	demo_timer.data = (unsigned long)devreg;//½«Éè±¸¼Ä´æÆ÷Ö¸ÕëµØÖ·×÷Îª²ÎÊı
 	demo_timer.function = &demo_timer_func;
 	add_timer(&demo_timer);
 	...
    }
 
 
-   //ç”¨äºå…³é—­è®¾å¤‡çš„å‡½æ•°å®ç°
+   //ÓÃÓÚ¹Ø±ÕÉè±¸µÄº¯ÊıÊµÏÖ
    static int demo_dev_release(...)
    {
    	...
-	del_timer_sync(&demo_timer);//åˆ é™¤å®šæ—¶å™¨å¯¹è±¡
+	del_timer_sync(&demo_timer);//É¾³ı¶¨Ê±Æ÷¶ÔÏó
 	...
    }
  */
@@ -57,16 +57,16 @@
 
 
 struct tvec_base;
-/*ç”¨æ¥è¡¨ç¤ºå®šæ—¶å™¨çš„æ•°æ®ç»“æ„*/
+/*¶¯Ì¬¶¨Ê±Æ÷£¬ÁíÒ»ÖÖÎª¼ä¸ô¶¨Ê±Æ÷*/
 struct timer_list {
 	struct list_head entry;
-	unsigned long expires;	/*æŒ‡å®šå®šæ—¶å™¨çš„åˆ°æœŸæ—¶é—´*/
+	unsigned long expires;	/*Ö¸¶¨¶¨Ê±Æ÷µÄµ½ÆÚÊ±¼ä,ÆäÖµÎªÏµÍ³Æô¶¯ÒÔÀ´¾­¹ıµÄ½ÚÅÄÊı£¬1½ÚÅÄ1ms*/
 
-	void (*function)(unsigned long);/*å®šæ—¶å™¨å‡½æ•°,å½“expiresä¸­æŒ‡å®šçš„æ—¶é—´åˆ°æœŸæ—¶,
-					 *è¯¥å‡½æ•°è¢«è§¦å‘*/
-	unsigned long data;/*å®šæ—¶å™¨å¯¹è±¡ä¸­æºå¸¦çš„æ•°æ®,é€šå¸¸çš„ç”¨é€”æ˜¯æŠŠè¯¥æˆå‘˜ä½œä¸ºå®é™…å‚æ•°ä¼ é€’
-			    *ç»™å®šæ—¶å™¨å‡½æ•°,å› ä¸ºå®šæ—¶å™¨å‡½æ•°å°†åœ¨ä¸­æ–­ä¸Šä¸‹æ–‡ä¸­æ‰§è¡Œ,è€Œéå½“å‰
-			    *è¿›ç¨‹çš„åœ°å€ç©ºé—´*/
+	void (*function)(unsigned long);/*¶¨Ê±Æ÷º¯Êı,µ±expiresÖĞÖ¸¶¨µÄÊ±¼äµ½ÆÚÊ±,
+					 *¸Ãº¯Êı±»´¥·¢*/
+	unsigned long data;/*¶¨Ê±Æ÷¶ÔÏóÖĞĞ¯´øµÄÊı¾İ,Í¨³£µÄÓÃÍ¾ÊÇ°Ñ¸Ã³ÉÔ±×÷ÎªÊµ¼Ê²ÎÊı´«µİ
+			    *¸ø¶¨Ê±Æ÷º¯Êı,ÒòÎª¶¨Ê±Æ÷º¯Êı½«ÔÚÖĞ¶ÏÉÏÏÂÎÄÖĞÖ´ĞĞ,¶ø·Çµ±Ç°
+			    *½ø³ÌµÄµØÖ·¿Õ¼ä*/
 
 	struct tvec_base *base;
 #ifdef CONFIG_TIMER_STATS
@@ -116,7 +116,7 @@ void init_timer_deferrable_key(struct timer_list *timer,
 			       struct lock_class_key *key);
 
 #ifdef CONFIG_LOCKDEP
-/*åˆå§‹åŒ–å®šæ—¶å™¨å¯¹è±¡*/
+/*³õÊ¼»¯¶¨Ê±Æ÷¶ÔÏó*/
 #define init_timer(timer)						\
 	do {								\
 		static struct lock_class_key __key;			\

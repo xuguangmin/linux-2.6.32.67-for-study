@@ -14,6 +14,7 @@
 	((unlikely(pgd_none(*(pud))) && __pmd_alloc(mm, pud, address))? \
  		NULL: pmd_offset(pud, address))
 
+/*在两级或三级分页系统下，什么也不做，仅返回页全局目录项pgd的地址*/
 #define pud_alloc(mm, pgd, address)	(pgd)
 #define pud_offset(pgd, start)		(pgd)
 #define pud_none(pud)			0
@@ -28,7 +29,7 @@
 
 #undef pud_free_tlb
 #define pud_free_tlb(tlb, x, addr)	do { } while (0)
-#define pud_free(mm, x)			do { } while (0)
+#define pud_free(mm, x)			do { } while (0)  //什么也不做
 #define __pud_free_tlb(tlb, x, addr)	do { } while (0)
 
 #undef  pud_addr_end

@@ -33,12 +33,15 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
 #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 
+/* 用于把从PAGE_OFFSET开始的线性地址转换为相应的物理地址
+  * 宏__va做相反的转换*/
 #define __pa(x)		__phys_addr((unsigned long)(x))
 #define __pa_nodebug(x)	__phys_addr_nodebug((unsigned long)(x))
 /* __pa_symbol should be used for C visible symbols.
    This seems to be the official gcc blessed way to do such arithmetic. */
 #define __pa_symbol(x)	__pa(__phys_reloc_hide((unsigned long)(x)))
 
+/*用于把物理地址转换成相应的从PAGE_OFFSET开始的线性地址*/
 #define __va(x)			((void *)((unsigned long)(x)+PAGE_OFFSET))
 
 #define __boot_va(x)		__va(x)
@@ -47,6 +50,9 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 /*
  * virt_to_page(kaddr) returns a valid pointer if and only if
  * virt_addr_valid(kaddr) returns true.
+ *
+ * virt_to_page 产生线性地址kaddr对应的页描述符地址
+ * pfn_to_kaddr 产生与页框号pfn对应的页描述符地址
  */
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define pfn_to_kaddr(pfn)      __va((pfn) << PAGE_SHIFT)

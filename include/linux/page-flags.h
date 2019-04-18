@@ -73,29 +73,29 @@
  * SPARSEMEM_EXTREME with !SPARSEMEM_VMEMMAP).
  */
 enum pageflags {
-	PG_locked,		/* Page is locked. Don't touch. */
-	PG_error,
-	PG_referenced,
-	PG_uptodate,
-	PG_dirty,
-	PG_lru,
-	PG_active,
-	PG_slab,
+	PG_locked,		/* 页被锁定 */
+	PG_error,	/*在传输页时发生IO错误*/
+	PG_referenced,	/*刚刚访问过的页*/
+	PG_uptodate,	/*在完成读操作后置位，除非发生磁盘IO操作*/
+	PG_dirty,	/*页已经被修改*/
+	PG_lru,	/*页在活动或非活动页链表中*/
+	PG_active,	/*页在活动页链表中*/
+	PG_slab,	/*包含在slab中的页框*/
 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
-	PG_arch_1,
-	PG_reserved,
-	PG_private,		/* If pagecache, has fs-private data */
+	PG_arch_1,	/**/
+	PG_reserved,	/*页框留给内核代码或没有使用*/
+	PG_private,		/* 页描述符的private字段存放了有意义的数据 */
 	PG_private_2,		/* If pagecache, has fs aux data */
-	PG_writeback,		/* Page is under writeback */
+	PG_writeback,		/* 正在使用writepage方法将页写到磁盘上 */
 #ifdef CONFIG_PAGEFLAGS_EXTENDED
 	PG_head,		/* A head page */
 	PG_tail,		/* A tail page */
 #else
-	PG_compound,		/* A compound page */
+	PG_compound,		/* 通过扩展分页机制处理页框*/
 #endif
-	PG_swapcache,		/* Swap page: swp_entry_t in private */
-	PG_mappedtodisk,	/* Has blocks allocated on-disk */
-	PG_reclaim,		/* To be reclaimed asap */
+	PG_swapcache,		/* Swap page: swp_entry_t in private ,页属于对换高速缓存*/
+	PG_mappedtodisk,	/* 页框中的所有数据对应于磁盘上分配的块 */
+	PG_reclaim,		/* 为回收内存对页已经做了写入磁盘的标记 */
 	PG_buddy,		/* Page is free, on buddy lists */
 	PG_swapbacked,		/* Page is backed by RAM/swap */
 	PG_unevictable,		/* Page is "unevictable"  */
@@ -111,7 +111,7 @@ enum pageflags {
 	__NR_PAGEFLAGS,
 
 	/* Filesystems */
-	PG_checked = PG_owner_priv_1,
+	PG_checked = PG_owner_priv_1,	/*由一些文件系统使用的标志*/
 
 	/* Two page bits are conscripted by FS-Cache to maintain local caching
 	 * state.  These bits are set on pages belonging to the netfs's inodes

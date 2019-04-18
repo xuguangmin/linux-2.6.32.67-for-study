@@ -120,7 +120,7 @@ static char * const zone_names[MAX_NR_ZONES] = {
 #endif
 	 "Movable",
 };
-
+// ÄÚºËÎªÔ­×ÓÄÚ´æ·ÖÅäÇëÇó±£ÁôµÄÒ³¿ò³Ø£¬µ¥Î»ÊÇKB
 int min_free_kbytes = 1024;
 
 static unsigned long __meminitdata nr_kernel_pages;
@@ -1983,7 +1983,7 @@ EXPORT_SYMBOL(__alloc_pages_nodemask);
 /*
  * Common helper functions.
  */
- /*ä¸èƒ½åœ¨é«˜ç«¯å†…å­˜åˆ†é…å¯¹è±¡ï¼Œå¦ä¸€ä¸ªé¡µé¢åˆ†é…å™¨alloc_pages*/
+/*¸Ãº¯ÊıÀàËÆÓÚalloc_pages(),µ«Ëü·µ»ØµÚÒ»¸öËù·ÖÅäÒ³µÄÏßĞÔµØÖ·*/
 unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 {
 	struct page *page;
@@ -2001,8 +2001,7 @@ unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 	return (unsigned long) page_address(page);
 }
 EXPORT_SYMBOL(__get_free_pages);
-
-/*åˆ†é…ä¸€ä¸ªç‰©ç†é¡µåŒæ—¶å°†ç‰©ç†é¡µé¢å¯¹åº”çš„å†…å®¹å¡«å……ä¸º0,å‡½æ•°è¿”å›é¡µé¢æ‰€åœ¨çš„å†…æ ¸çº¿æ€§åœ°å€*/
+/*º¯ÊıÓÃÀ´»ñÈ¡ÌîÂú0µÄÒ³¿ò*/
 unsigned long get_zeroed_page(gfp_t gfp_mask)
 {
 	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
@@ -2019,7 +2018,7 @@ void __pagevec_free(struct pagevec *pvec)
 	}
 }
 
-/*é‡Šæ”¾alloc_pagesåˆ†é…çš„é¡µé¢*/
+/*é‡Šæ”¾alloc_pagesåˆ†é…çš„é¡µé?/
 void __free_pages(struct page *page, unsigned int order)
 {
 	if (put_page_testzero(page)) {
@@ -2033,7 +2032,7 @@ void __free_pages(struct page *page, unsigned int order)
 
 EXPORT_SYMBOL(__free_pages);
 
-/*é‡Šæ”¾__get_free_pagesåˆ†é…çš„é¡µé¢*/
+/*é‡Šæ”¾__get_free_pagesåˆ†é…çš„é¡µé?/
 void free_pages(unsigned long addr, unsigned int order)
 {
 	if (addr != 0) {
@@ -4474,6 +4473,7 @@ void __init set_dma_reserve(unsigned long new_dma_reserve)
 	dma_reserve = new_dma_reserve;
 }
 
+/* ÔÚUMA(Ò»ÖÂ·ÃÎÊÄÚ´æÄ£ĞÍ)½á¹¹µÄ»úÆ÷ÖĞ£¬Ö»ÓĞÒ»¸önode½Úµã¼´contig_page_data */
 #ifndef CONFIG_NEED_MULTIPLE_NODES
 struct pglist_data __refdata contig_page_data = { .bdata = &bootmem_node_data[0] };
 EXPORT_SYMBOL(contig_page_data);

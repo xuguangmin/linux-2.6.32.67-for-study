@@ -483,15 +483,15 @@ static struct root_domain def_root_domain;
  */
 struct rq {
 	/* runqueue lock: */
-	spinlock_t lock;
+	spinlock_t lock;/*±£»¤½ø³ÌÁ´±íµÄ×ÔĞıËø*/
 
 	/*
 	 * nr_running and cpu_load should be in the same cacheline because
 	 * remote CPUs use both these fields when doing load calculation.
 	 */
-	unsigned long nr_running;
+	unsigned long nr_running; /* ÔËĞĞ¶ÓÁĞÁ´±íÖĞ¿ÉÔËĞĞ½ø³ÌÊıÁ¿ */
 	#define CPU_LOAD_IDX_MAX 5
-	unsigned long cpu_load[CPU_LOAD_IDX_MAX];
+	unsigned long cpu_load[CPU_LOAD_IDX_MAX]; /*»ùÓÚÔËĞĞ¶ÓÁĞÖĞ½ø³ÌµÄÆ½¾ùÊıÁ¿µÄCPU¸ºÔØÒò×Ó*/
 #ifdef CONFIG_NO_HZ
 	unsigned long last_tick_seen;
 	unsigned char in_nohz_recently;
@@ -499,7 +499,7 @@ struct rq {
 	/* capture load from *all* tasks on this cpu: */
 	struct load_weight load;
 	unsigned long nr_load_updates;
-	u64 nr_switches;
+	u64 nr_switches;/* CPUÖ´ĞĞ½ø³ÌÇĞ»»µÄ´ÎÊı */
 
 	struct cfs_rq cfs;
 	struct rt_rq rt;
@@ -518,36 +518,37 @@ struct rq {
 	 * one CPU and if it got migrated afterwards it may decrease
 	 * it on another CPU. Always updated under the runqueue lock:
 	 */
+	 /* ÏÈÇ°ÔÚÔËĞĞ¶ÓÁĞÁ´±íÖĞ£¬¶øÏÖÔÚË¯ÃßÔÚTASK_UNINTERRUPTIABLE×´Ì¬µÄ½ø³ÌÊıÁ¿ */
 	unsigned long nr_uninterruptible;
 
-	struct task_struct *curr, *idle;
+	struct task_struct *curr, *idle;/*µ±Ç°ÕıÔÚÔËĞĞ½ø³ÌµÄ½ø³ÌÃèÊö·ûºÍµ±Ç°CPUÉÏswapper½ø³ÌµÄ½ø³ÌÃèÊö·ûÖ¸Õë*/
 	unsigned long next_balance;
-	struct mm_struct *prev_mm;
+	struct mm_struct *prev_mm;/* ÔÚ½ø³ÌÇĞ»»ÆÚ¼äÓÃÀ´´æ·Å±»Ìæ»»½ø³ÌµÄÄÚ´æÃèÊö·ûµÄµØÖ· */
 
 	u64 clock;
 	u64 clock_task;
 
-	atomic_t nr_iowait;
+	atomic_t nr_iowait;/*ÏÈÇ°ÔÚÔËĞĞ¶ÓÁĞÁ´±íÖĞ¶øÏÖÔÚµÈ´ı´ÅÅÌIO²Ù×÷½áÊøµÄ½ø³ÌµÄÊıÁ¿*/
 
 #ifdef CONFIG_SMP
 	struct root_domain *rd;
-	struct sched_domain *sd;
+	struct sched_domain *sd;/*Ö¸Ïòµ±Ç°CPUµÄ½ø²½µ÷¶ÈÓò*/
 
 	unsigned long cpu_power;
 
 	unsigned char idle_at_tick;
 	/* For active balancing */
 	int post_schedule;
-	int active_balance;
-	int push_cpu;
+	int active_balance;/*Èç¹ûÒª°ÑÒ»Ğ©½ø³Ì´Ó±¾µØÔËĞĞ¶ÓÁĞÇ¨ÒÆµ½ÁíÍâµÄÔËĞĞ¶ÓÁĞ£¬¾ÍÉèÖÃÕâ¸ö±êÖ¾*/
+	int push_cpu;//Î´Ê¹ÓÃ
 	/* cpu of this runqueue: */
 	int cpu;
 	int online;
 
 	unsigned long avg_load_per_task;
 
-	struct task_struct *migration_thread;
-	struct list_head migration_queue;
+	struct task_struct *migration_thread;//Ç¨ÒÆÄÚºËÏß³ÌµÄ½ø³ÌÃèÊö·ûÖ¸Õë
+	struct list_head migration_queue;//´ÓÔËĞĞ¶ÓÁĞÖĞ±»É¾³ıµÄ½ø³ÌµÄÁ´±í
 
 	u64 rt_avg;
 	u64 age_stamp;
@@ -593,7 +594,7 @@ struct rq {
 	unsigned int bkl_count;
 #endif
 };
-
+//¶¨ÒåCPUÔËĞĞ¶ÓÁĞ
 static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 static void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags);
@@ -617,7 +618,9 @@ static inline int cpu_of(struct rq *rq)
 #define for_each_domain(cpu, __sd) \
 	for (__sd = rcu_dereference(cpu_rq(cpu)->sd); __sd; __sd = __sd->parent)
 
+//²úÉúË÷ÒıÎªnµÄCPUµÄÔËĞĞ¶ÓÁĞµÄµØÖ·
 #define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
+//²úÉú±¾µØCPUÔËĞĞ¶ÓÁĞµÄµØÖ·
 #define this_rq()		(&__get_cpu_var(runqueues))
 #define task_rq(p)		cpu_rq(task_cpu(p))
 #define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
@@ -1157,7 +1160,7 @@ static inline void init_hrtick(void)
 #ifndef tsk_is_polling
 #define tsk_is_polling(t) test_tsk_thread_flag(t, TIF_POLLING_NRFLAG)
 #endif
-
+//ÇÀÕ¼±¾µØCPUµÄµ±Ç°½ø³Ì
 static void resched_task(struct task_struct *p)
 {
 	int cpu;
@@ -1260,6 +1263,7 @@ static void sched_rt_avg_update(struct rq *rq, u64 rt_delta)
 }
 
 #else /* !CONFIG_SMP */
+//ÇÀÕ¼±¾µØCPUµÄµ±Ç°
 static void resched_task(struct task_struct *p)
 {
 	assert_spin_locked(&task_rq(p)->lock);
@@ -1942,7 +1946,7 @@ static void update_avg(u64 *avg, u64 sample)
 	s64 diff = sample - *avg;
 	*avg += diff >> 3;
 }
-
+/* °Ñ½ø³Ì²åÈëÔËĞĞ¶ÓÁĞ*/
 static void
 enqueue_task(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 {
@@ -1953,7 +1957,7 @@ enqueue_task(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 	p->sched_class->enqueue_task(rq, p, wakeup, head);
 	p->se.on_rq = 1;
 }
-
+/* ´ÓÔËĞĞ¶ÓÁĞÉ¾³ı½ø³Ì*/
 static void dequeue_task(struct rq *rq, struct task_struct *p, int sleep)
 {
 	if (sleep) {
@@ -1966,6 +1970,7 @@ static void dequeue_task(struct rq *rq, struct task_struct *p, int sleep)
 				sysctl_sched_wakeup_granularity);
 		}
 	}
+
 
 	sched_info_dequeued(p);
 	p->sched_class->dequeue_task(rq, p, sleep);
@@ -2467,7 +2472,7 @@ int select_task_rq(struct rq *rq, struct task_struct *p, int sd_flags, int wake_
  * re-schedule is in progress), and as such you're allowed to do
  * the simpler "current->state = TASK_RUNNING" to mark yourself
  * runnable without the overhead of this.
- *
+ * »½ĞÑË¯Ãß½ø³Ì
  * returns failure only if the task is already active.
  */
 static int try_to_wake_up(struct task_struct *p, unsigned int state,
@@ -2483,10 +2488,10 @@ static int try_to_wake_up(struct task_struct *p, unsigned int state,
 	this_cpu = get_cpu();
 
 	smp_wmb();
-	rq = orig_rq = task_rq_lock(p, &flags);
+	rq = orig_rq = task_rq_lock(p, &flags);//½ûÓÃ±¾µØÖĞ¶Ï
 	update_rq_clock(rq);
-	/*å°†wake_upç³»åˆ—å‡½æ•°ä¸­çš„è¿›ç¨‹çŠ¶æ€ä¸è¦å”¤é†’çš„è¿›ç¨‹çš„çŠ¶æ€è¿›è¡Œæ£€æŸ¥,å¦‚æœ==0é‚£ä¹ˆå”¤é†’æ“ä½œè¿”å›0,æ˜¯ä¸€æ¬¡ä¸æˆåŠŸçš„æ“ä½œ,å› æ­¤wake_up_interruptibleåªèƒ½å”¤é†’é€šè¿‡wait_event_interruptibleç¡çœ çš„è¿›ç¨‹*/
-	if (!(p->state & state))
+	/*½«wake_upÏµÁĞº¯ÊıÖĞµÄ½ø³Ì×´Ì¬ÓëÒª»½ĞÑµÄ½ø³ÌµÄ×´Ì¬½øĞĞ¼ì²é,Èç¹û==0ÄÇÃ´»½ĞÑ²Ù×÷·µ»Ø0,ÊÇÒ»´Î²»³É¹¦µÄ²Ù×÷,Òò´Ëwake_up_interruptibleÖ»ÄÜ»½ĞÑÍ¨¹ıwait_event_interruptibleË¯ÃßµÄ½ø³Ì*/
+	if (!(p->state & state))//¼ì²é½ø³ÌµÄ×´Ì¬ÊÇ·ñÊôÓÚ±»µ±×ö²ÎÊı´«µİ¸øº¯ÊıµÄ×´Ì¬ÑÚÂë
 		goto out;
 
 	if (p->se.on_rq)
@@ -3013,15 +3018,15 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 * one hypercall.
 	 */
 	arch_start_context_switch(prev);
-
-	if (unlikely(!mm)) {
+	
+	if (unlikely(!mm)) {//Èç¹ûnextÊÇÒ»¸öÄÚºËÏß³Ì£¬Ê¹ÓÃprevµÄµØÖ·¿Õ¼ä
 		next->active_mm = oldmm;
 		atomic_inc(&oldmm->mm_count);
 		enter_lazy_tlb(oldmm, next);
 	} else
-		switch_mm(oldmm, mm, next);
+		switch_mm(oldmm, mm, next);//Èç¹ûÊÇÆÕÍ¨½ø³Ì£¬ÓÃnextµÄµØÖ·¿Õ¼äÌæ»»prevµÄµØÖ·¿Õ¼ä
 
-	if (unlikely(!prev->mm)) {
+	if (unlikely(!prev->mm)) {//Èç¹ûprevÊÇÄÚºËÏß³Ì»òÕıÔÚÍË³öµÄ½ø³Ì¾Í°ÑÖ¸ÏòprevÄÚ´æÃèÊö·ûµÄÖ¸Õë±£´æµ½ÔËĞĞ¶ÓÁĞµÄprev_mm×Ö¶ÎÖĞ
 		prev->active_mm = NULL;
 		rq->prev_mm = oldmm;
 	}
@@ -3440,6 +3445,12 @@ out:
  * Returns 1 if successful and 0 otherwise.
  *
  * Called with both runqueues locked.
+ * ³¢ÊÔ´Ó×î·±Ã¦µÄÔËĞĞ¶ÓÁĞÖĞ°ÑÒ»Ğ©½ø³ÌÇ¨ÒÆµ½±¾µØÔËĞĞ¶ÓÁĞthis_rqÖĞ
+ * this_rq\this_cpu:±¾µØÔËĞĞ¶ÓÁĞÃèÊö·ûºÍ±¾µØCPUÏÂ±ê
+ * busiest:Ô´ÔËĞĞ¶ÓÁĞÃèÊö·û
+ * max_load_move:±»Ç¨ÒÆ½ø³ÌµÄ×î´óÊı
+ * sd:ÔÚÆäÖĞÖ´ĞĞÆ½ºâ²Ù×÷µÄµ÷¶ÈÓòµÄÃèÊö·ûµØÖ·
+ * idle:SCHED_IDLE  NOT_IDLE   NEWLY_IDLE
  */
 static int move_tasks(struct rq *this_rq, int this_cpu, struct rq *busiest,
 		      unsigned long max_load_move,
@@ -4195,6 +4206,10 @@ static inline void calculate_imbalance(struct sd_lb_stats *sds, int this_cpu,
  *		- If no imbalance and user has opted for power-savings balance,
  *		   return the least loaded group whose CPUs can be
  *		   put to idle by rebalancing its tasks onto our group.
+ * º¯Êı·ÖÎöµ÷¶ÈÓòÖĞ¸÷×éµÄ¹¤×÷Á¿£¬º¯Êı·µ»Ø×î·±Ã¦µÄ
+ * ×éµÄsched_groupÃèÊö·ûµÄµØÖ·£¬¼ÙÉèÕâ¸ö×é²»°üÀ¨±¾µØCPU
+ * Èç¹û×î·±Ã¦µÄ×é°üÀ¨±¾µØCPU,»òËùÓĞµÄ×é±¾À´¾ÍÊÇÆ½ºâµÄ
+ * º¯Êı·µ»ØNULL
  */
 static struct sched_group *
 find_busiest_group(struct sched_domain *sd, int this_cpu,
@@ -4341,6 +4356,11 @@ static DEFINE_PER_CPU(cpumask_var_t, load_balance_tmpmask);
 /*
  * Check this_cpu to ensure it is balanced within domain. Attempt to move
  * tasks if there is an imbalance.
+ * Î¬³Ö¶à´¦ÀíÆ÷ÏµÍ³ÖĞÔËĞĞ¶ÓÁĞµÄÆ½ºâ
+ * this_cpu:±¾µØCPUÏÂ±ê
+ * this_rq:±¾µØÔËĞĞ¶ÓÁĞµÄÃèÊö·ûµÄµØÖ·
+ * sd: Ö¸Ïò±»¼ì²éµÄµ÷¶ÈÓòµÄÃèÊö·û
+ * idle:È¡ÖµÎªSCHED_IDLE»òNOT_IDLE
  */
 static int load_balance(int this_cpu, struct rq *this_rq,
 			struct sched_domain *sd, enum cpu_idle_type idle,
@@ -4379,7 +4399,7 @@ redo:
 		schedstat_inc(sd, lb_nobusyg[idle]);
 		goto out_balanced;
 	}
-
+	//²éÕÒÔÚÉÏÃæÕÒµ½µÄ×éÖĞ×î·±Ã¦µÄCPU,·µ»ØÏàÓ¦ÔËĞĞ¶ÓÁĞµÄÃèÊö·û
 	busiest = find_busiest_queue(group, idle, imbalance, cpus);
 	if (!busiest) {
 		schedstat_inc(sd, lb_nobusyq[idle]);
@@ -4444,7 +4464,9 @@ redo:
 				all_pinned = 1;
 				goto out_one_pinned;
 			}
-
+			/* Èç¹ûº¯Êımove_taskÃ»ÓĞ³É¹¦µÄ°ÑÄ³Ğ©½ø³ÌÇ¨ÒÆµ½±¾µØÔËĞĞ
+			  * ¶ÓÁĞ£¬ÄÇÃ´µ÷¶ÈÓò»¹ÊÇ²»Æ½ºâ£¬°Ñbusiest->active_balanceÖÃÎª1,
+			  * ²¢»½ĞÑmigrationÄÚºËÏß³Ì*/
 			if (!busiest->active_balance) {
 				busiest->active_balance = 1;
 				busiest->push_cpu = this_cpu;
@@ -4462,7 +4484,7 @@ redo:
 		}
 	} else
 		sd->nr_balance_failed = 0;
-
+	//µ÷Õûµ÷¶ÈÓòµÄ²ÎÊı£¬ÒÔÑÓ³Ù±¾µØCPUÏÂÒ»´Î¶Ôload_balanceµÄµ÷¶È
 	if (likely(!active_balance)) {
 		/* We were unbalanced, so reset the balancing interval */
 		sd->balance_interval = sd->min_interval;
@@ -4656,6 +4678,9 @@ out_balanced:
 /*
  * idle_balance is called by schedule() if this_cpu is about to become
  * idle. Attempts to pull tasks from other CPUs.
+ * Èç¹ûµ±Ç°ÔËĞĞ¶ÓÁĞÖĞÃ»ÓĞ¿ÉÔËĞĞ½ø³Ì£¬¸Ã
+ * º¯Êı´ÓÁíÍâÒ»¸öÔËĞĞ¶ÓÁĞÇ¨ÒÆÒ»Ğ©¿ÉÔËĞĞ½ø³Ìµ½±¾µØ
+ * ÔËĞĞ¶ÓÁĞÖĞ
  */
 static void idle_balance(int this_cpu, struct rq *this_rq)
 {
@@ -5250,7 +5275,7 @@ void account_user_time(struct task_struct *p, cputime_t cputime,
 	cputime64_t tmp;
 
 	/* Add user time to process. */
-	p->utime = cputime_add(p->utime, cputime);
+	p->utime = cputime_add(p->utime, cputime);//ÓÃ»§Ì¬ÏÂ¾­¹ıµÄ½ÚÅÄÊı
 	p->utimescaled = cputime_add(p->utimescaled, cputime_scaled);
 	account_group_user_time(p, cputime);
 
@@ -5363,12 +5388,13 @@ void account_idle_time(cputime_t cputime)
  * Account a single tick of cpu time.
  * @p: the process that the cpu time gets accounted to
  * @user_tick: indicates if the tick is a user or a system tick
+ * ¼ì²éµ±Ç°½ø³ÌÔËĞĞÁË¶à³¤Ê±¼ä
  */
 void account_process_tick(struct task_struct *p, int user_tick)
 {
 	cputime_t one_jiffy_scaled = cputime_to_scaled(cputime_one_jiffy);
 	struct rq *rq = this_rq();
-
+	/* ¸ù¾İµ±Ç°½ø³ÌÔËĞĞÔÚÓÃ»§Ì¬»¹ÊÇÄÚºËÌ¬Ñ¡Ôñµ÷ÓÃ */
 	if (user_tick)
 		account_user_time(p, cputime_one_jiffy, one_jiffy_scaled);
 	else if ((p != rq->idle) || (irq_count() != HARDIRQ_OFFSET))
@@ -5509,6 +5535,7 @@ inline cputime_t task_gtime(struct task_struct *p)
  *
  * It also gets called by the fork code, when changing the parent's
  * timeslices.
+ * Î¬³Öµ±Ç°×îĞÂµÄtime_slice¼ÆÊıÆ÷
  */
 void scheduler_tick(void)
 {
@@ -5694,6 +5721,7 @@ pick_next_task(struct rq *rq)
 
 /*
  * schedule() is the main scheduler function.
+ * Ñ¡ÔñÒª±»Ö´ĞĞµÄĞÂ½ø³Ì
  */
 asmlinkage void __sched schedule(void)
 {
@@ -5726,17 +5754,17 @@ need_resched_nonpreemptible:
 		if (unlikely(signal_pending_state(prev->state, prev)))
 			prev->state = TASK_RUNNING;
 		else
-			deactivate_task(rq, prev, 1);
+			deactivate_task(rq, prev, 1);//´ÓÔËĞĞ¶ÓÁĞÉ¾³ı¸Ã½ø³Ì
 		switch_count = &prev->nvcsw;
 	}
 
 	pre_schedule(rq, prev);
 
 	if (unlikely(!rq->nr_running))
-		idle_balance(cpu, rq);
+		idle_balance(cpu, rq);//Èç¹ûÔËĞĞ¶ÓÁĞÃ»ÓĞ¿ÉÔËĞĞ½ø³Ì£¬´ÓÁíÍâÔËĞĞ¶ÓÁĞÇ¨ÒÆÒ»Ğ©½ø³Ìµ½±¾µØÔËĞĞ¶ÓÁĞÖĞ 
 
 	put_prev_task(rq, prev);
-	next = pick_next_task(rq);
+	next = pick_next_task(rq);//¾Ö²¿±äÁ¿nextÏÖÔÚ´æ·Å½«È¡´úprevµÄ½ø³ÌÃèÊö·ûÖ¸Õë
 
 	if (likely(prev != next)) {
 		sched_info_switch(prev, next);
@@ -5892,7 +5920,7 @@ asmlinkage void __sched preempt_schedule_irq(void)
 int default_wake_function(wait_queue_t *curr, unsigned mode, int wake_flags,
 			  void *key)
 {
-	/*å”¤é†’æ“ä½œ*/
+	/*»½ĞÑ²Ù×÷*/
 	return try_to_wake_up(curr->private, mode, wake_flags);
 }
 EXPORT_SYMBOL(default_wake_function);
@@ -5906,23 +5934,23 @@ EXPORT_SYMBOL(default_wake_function);
  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
  * zero in this (rare) case, and we handle it by continuing to scan the queue.
  */
- /*å¯¹äºéå†è¿‡ç¨‹ä¸­çš„æ¯ä¸ªèŠ‚ç‚¹éƒ½ä¼šè°ƒç”¨è¯¥èŠ‚ç‚¹ä¸Šçš„å‡½æ•°func,å”¤é†’ç­‰å¾…çš„è¿›ç¨‹,å®Œæˆæ¥å£ä¸­ä½¿ç”¨åˆ°*/
+ /*¶ÔÓÚ±éÀú¹ı³ÌÖĞµÄÃ¿¸ö½Úµã¶¼»áµ÷ÓÃ¸Ã½ÚµãÉÏµÄº¯Êıfunc,»½ĞÑµÈ´ıµÄ½ø³Ì,Íê³É½Ó¿ÚÖĞÊ¹ÓÃµ½*/
 static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
 			int nr_exclusive, int wake_flags, void *key)
 {
 	wait_queue_t *curr, *next;
 
-	/*éå†å½“å‰completionæ‰€ç®¡ç†çš„ç­‰å¾…é˜Ÿåˆ—çš„æ¯ä¸€ä¸ªèŠ‚ç‚¹ï¼Œæ­¤æ—¶nr_exclusive=1ï¼Œflagä¸­å«æœ‰
-	WQ_FLAG_EXCLUSIVEæ ‡å¿—ï¼Œæ„å‘³ç€æœ¬æ¬¡åªä¼šå”¤é†’ä¸€ä¸ªç­‰å¾…è€…,funcæŒ‡å‘default_wake_function
-	ç”¨æ¥åšå®é™…çš„å”¤é†’å·¥ä½œ*/
+	/*±éÀúµ±Ç°completionËù¹ÜÀíµÄµÈ´ı¶ÓÁĞµÄÃ¿Ò»¸ö½Úµã£¬´ËÊ±nr_exclusive=1£¬flagÖĞº¬ÓĞ
+	WQ_FLAG_EXCLUSIVE±êÖ¾£¬ÒâÎ¶×Å±¾´ÎÖ»»á»½ĞÑÒ»¸öµÈ´ıÕß,funcÖ¸Ïòdefault_wake_function
+	ÓÃÀ´×öÊµ¼ÊµÄ»½ĞÑ¹¤×÷*/
 	list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
 		unsigned flags = curr->flags;
 
 		/**
-		 * å¦‚æœå‡½æ•°ç»“æŸéå†å¿…é¡»æ»¡è¶³3ä¸ªæ¡ä»¶
-		 * 1, è´Ÿè´£å”¤é†’è¿›ç¨‹çš„å‡½æ•°funcæˆåŠŸè¿”å›
-		 * 2, ç­‰å¾…èŠ‚ç‚¹çš„flagsæˆå‘˜è®¾ç½®äº†WQ_FLAG_EXCLUSIVEæ ‡å¿—,è¿™æ˜¯ä¸ªæ’ä»–æ€§çš„æ ‡å¿—,å¦‚æœè®¾ç½®æœ‰è¯¥æ ‡å¿—,é‚£ä¹ˆå”¤é†’å½“å‰èŠ‚ç‚¹ä¸Šçš„è¿›ç¨‹åå°†ä¸ä¼šåœ¨ç»§ç»­å”¤é†’æ“ä½œ
-		 * 3, nr_exclusiveç­‰äº1
+		 * Èç¹ûº¯Êı½áÊø±éÀú±ØĞëÂú×ã3¸öÌõ¼ş
+		 * 1, ¸ºÔğ»½ĞÑ½ø³ÌµÄº¯Êıfunc³É¹¦·µ»Ø
+		 * 2, µÈ´ı½ÚµãµÄflags³ÉÔ±ÉèÖÃÁËWQ_FLAG_EXCLUSIVE±êÖ¾,ÕâÊÇ¸öÅÅËûĞÔµÄ±êÖ¾,Èç¹ûÉèÖÃÓĞ¸Ã±êÖ¾,ÄÇÃ´»½ĞÑµ±Ç°½ÚµãÉÏµÄ½ø³Ìºó½«²»»áÔÚ¼ÌĞø»½ĞÑ²Ù×÷
+		 * 3, nr_exclusiveµÈÓÚ1
 		 */
 		if (curr->func(curr, mode, wake_flags, key) &&
 				(flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
@@ -5940,7 +5968,7 @@ static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
-/*ç”¨æ¥å”¤é†’ä¸€ä¸ªç­‰å¾…é˜Ÿåˆ—ä¸Šçš„ç¡çœ è¿›ç¨‹*/
+/*ÓÃÀ´»½ĞÑÒ»¸öµÈ´ı¶ÓÁĞÉÏµÄË¯Ãß½ø³Ì*/
 void __wake_up(wait_queue_head_t *q, unsigned int mode,
 			int nr_exclusive, void *key)
 {
@@ -6021,15 +6049,15 @@ EXPORT_SYMBOL_GPL(__wake_up_sync);	/* For internal use only */
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
- /*å®Œæˆæ¥å£ï¼Œå®Œæˆè€…çš„è¡Œä¸º;å¦ä¸€ä¸ªæ˜¯complete_all,å‰è€…åªå”¤é†’ä¸€ä¸ªç­‰å¾…è€…ï¼Œåè€…å°†å”¤é†’æ‰€æœ‰ç­‰å¾…è€…*/
+ /*²¹³äÔ­Óï½Ó¿Ú£¬¶ÔÓ¦up();ÁíÒ»¸öÊÇcomplete_all,Ç°ÕßÖ»»½ĞÑÒ»¸öµÈ´ıÕß£¬ºóÕß½«»½ĞÑËùÓĞµÈ´ıÕß*/
 void complete(struct completion *x)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
-	/*å‡½æ•°å°†å®Œæˆè€…çš„æ•°é‡åŠ ï¼‘*/
+	/*º¯Êı½«Íê³ÉÕßµÄÊıÁ¿¼Ó£±*/
 	x->done++;
-	/*å”¤é†’ç­‰å¾…è€…,ç¬¬ä¸‰ä¸ªç¬¬å››ä¸ªå‚æ•°è¡¨ç¤ºæ’ä»–æ€§å”¤é†’çš„ä¸ªæ•°å’Œå”¤é†’æ ‡å¿—*/
+	/*»½ĞÑµÈ´ıÕß,µÚÈı¸öµÚËÄ¸ö²ÎÊı±íÊ¾ÅÅËûĞÔ»½ĞÑµÄ¸öÊıºÍ»½ĞÑ±êÖ¾*/
 	__wake_up_common(&x->wait, TASK_NORMAL, 1, 0, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
@@ -6044,46 +6072,46 @@ EXPORT_SYMBOL(complete);
  * It may be assumed that this function implies a write memory barrier before
  * changing the task state if and only if any tasks are woken up.
  */
- /*å®Œæˆæ¥å£ï¼Œå°†å”¤é†’æ‰€æœ‰ç­‰å¾…è€…*/
+ /*²¹³äÔ­Óï½Ó¿Ú£¬½«»½ĞÑËùÓĞµÈ´ıÕß*/
 void complete_all(struct completion *x)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	x->done += UINT_MAX/2;
-	/*å”¤é†’ç­‰å¾…çš„è¿›ç¨‹*/
+	/*»½ĞÑµÈ´ıµÄ½ø³Ì*/
 	__wake_up_common(&x->wait, TASK_NORMAL, 0, 0, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
 EXPORT_SYMBOL(complete_all);
 
-/* å°†å½“å‰è¿›ç¨‹åŠ å…¥ç¡çœ é˜Ÿåˆ—,è¿™ç§ç¡çœ ä¸å¯ä¸­æ–­
- * å¦‚æœè€ƒè™‘åˆ°è¿›ç¨‹è¿›å…¥ç¡çœ é˜Ÿåˆ—çš„çŠ¶æ€åŠç¡çœ è¶…æ—¶æ—¶é—´çš„è®¾å®šï¼Œå†…æ ¸æä¾›äº†
-   å¯ä¸­æ–­çš„ç­‰å¾…çŠ¶æ€
+/* ½«µ±Ç°½ø³Ì¼ÓÈëË¯Ãß¶ÓÁĞ,ÕâÖÖË¯Ãß²»¿ÉÖĞ¶Ï
+ * Èç¹û¿¼ÂÇµ½½ø³Ì½øÈëË¯Ãß¶ÓÁĞµÄ×´Ì¬¼°Ë¯Ãß³¬Ê±Ê±¼äµÄÉè¶¨£¬ÄÚºËÌá¹©ÁË
+   ¿ÉÖĞ¶ÏµÄµÈ´ı×´Ì¬
  * int wait_for_completion_interruptible()
-   å¯æ€æ­»çš„ç­‰å¾…çŠ¶æ€
+   ¿ÉÉ±ËÀµÄµÈ´ı×´Ì¬
  * int wait_for_completion_killable()
-   ä¸å¯ä¸­æ–­çš„ç­‰å¾…çŠ¶æ€ï¼Œä½†åœ¨è¶…æ—¶åè¿›ç¨‹å°†ç»ˆæ­¢ç­‰å¾…çŠ¶æ€
+   ²»¿ÉÖĞ¶ÏµÄµÈ´ı×´Ì¬£¬µ«ÔÚ³¬Ê±ºó½ø³Ì½«ÖÕÖ¹µÈ´ı×´Ì¬
  * wait_for_completion_timeout()
-   å¯ä¸­æ–­çš„ç­‰å¾…çŠ¶æ€ï¼Œä½†åœ¨timeoutæŒ‡å®šçš„æ—¶é—´åˆ°æœŸä¹‹åï¼Œè¿›ç¨‹å°†ç»ˆæ­¢ç­‰å¾…çŠ¶æ€
+   ¿ÉÖĞ¶ÏµÄµÈ´ı×´Ì¬£¬µ«ÔÚtimeoutÖ¸¶¨µÄÊ±¼äµ½ÆÚÖ®ºó£¬½ø³Ì½«ÖÕÖ¹µÈ´ı×´Ì¬
    wait_for_completion_interruptible_timeout()
-   å¯æ€æ­»çš„ç­‰å¾…çŠ¶æ€ï¼Œä½†åœ¨è¶…æ—¶åè¿›ç¨‹å°†ç»ˆæ­¢ç­‰å¾…çŠ¶æ€
+   ¿ÉÉ±ËÀµÄµÈ´ı×´Ì¬£¬µ«ÔÚ³¬Ê±ºó½ø³Ì½«ÖÕÖ¹µÈ´ı×´Ì¬
  * wait_for_completion_killable_timeout()
  */
 static inline long __sched
 do_wait_for_common(struct completion *x, long timeout, int state)
 {
-	/* doneè¡¨ç¤ºå½“å‰åœ¨completionä¸Šçš„å®Œæˆè€…æ•°é‡ï¼Œå¦‚æœæ²¡æœ‰å®Œæˆè€…ï¼Œ
-	 * ç­‰å¾…é˜Ÿåˆ—è¿›å…¥ç¡çœ é˜Ÿåˆ—ç­‰å¾…*/
+	/* done±íÊ¾µ±Ç°ÔÚcompletionÉÏµÄÍê³ÉÕßÊıÁ¿£¬Èç¹ûÃ»ÓĞÍê³ÉÕß£¬
+	 * µÈ´ı¶ÓÁĞ½øÈëË¯Ãß¶ÓÁĞµÈ´ı*/
 	if (!x->done) {
-		/*å®šä¹‰å¹¶åˆå§‹åŒ–ä¸€ä¸ªç­‰å¾…é˜Ÿåˆ—èŠ‚ç‚¹*/
+		/*¶¨Òå²¢³õÊ¼»¯Ò»¸öµÈ´ı¶ÓÁĞ½Úµã*/
 		DECLARE_WAITQUEUE(wait, current);
-		/*waitä¸­çš„funcå‡½æ•°æŒ‡é’ˆé»˜è®¤æŒ‡å‘default_wake_function
-		 * å½“waitä¸Šçš„è¿›ç¨‹è¢«å”¤é†’æ—¶å°†è°ƒç”¨è¯¥å‡½æ•°*/
+		/*waitÖĞµÄfuncº¯ÊıÖ¸ÕëÄ¬ÈÏÖ¸Ïòdefault_wake_function
+		 * µ±waitÉÏµÄ½ø³Ì±»»½ĞÑÊ±½«µ÷ÓÃ¸Ãº¯Êı*/
 
-		/*ç­‰å¾…èŠ‚ç‚¹waitä¸­çš„è¿™ä¸ªflagsæ ‡è®°å°†åœ¨å®Œæˆè€…çš„å”¤é†’æ“ä½œä¸­ä½¿ç”¨*/
+		/*µÈ´ı½ÚµãwaitÖĞµÄÕâ¸öflags±ê¼Ç½«ÔÚÍê³ÉÕßµÄ»½ĞÑ²Ù×÷ÖĞÊ¹ÓÃ*/
 		wait.flags |= WQ_FLAG_EXCLUSIVE;
-		/*å°†å½“å‰è¿›ç¨‹åŠ å…¥ç¡çœ é˜Ÿåˆ—,è¿™ç§ç¡çœ ä¸å¯ä¸­æ–­*/
+		/*½«µ±Ç°½ø³Ì¼ÓÈëË¯Ãß¶ÓÁĞ,ÕâÖÖË¯Ãß²»¿ÉÖĞ¶Ï*/
 		__add_wait_queue_tail(&x->wait, &wait);
 		do {
 			if (signal_pending_state(state, current)) {
@@ -6092,12 +6120,12 @@ do_wait_for_common(struct completion *x, long timeout, int state)
 			}
 			__set_current_state(state);
 			spin_unlock_irq(&x->wait.lock);
-			/*è‹¥å¹²æ—¶é—´åï¼Œè¿›ç¨‹å› æŸç§åŸå› è¢«å”¤é†’ï¼Œ
-			è¡¨ç°ä¸ºä»schedule_timeoutå‡½æ•°è¿”å›,ä»–å°†æ£€æŸ¥doneæˆå‘˜å’Œtimeoutå˜é‡
-			ä»¥å†³å®šåç»­çš„è¡Œä¸º,timtout>0ä¾¿æ˜¯è¿›ç¨‹è¿˜æ²¡æœ‰è¶…æ—¶ï¼Œ
-			done=0è¡¨ç¤ºcompletionä¸Šè¿˜æ²¡æœ‰å®Œæˆè€…,
-			æ­¤æ—¶å½“å‰è¿›ç¨‹å¦‚æœæ²¡æœ‰ä¿¡å·éœ€è¦å¤„ç†ï¼Œå°†ç»§ç»­ç¡çœ ,
-			å¦‚æœç¡çœ è¶…æ—¶å°†è¿”å›timeoutçš„å€¼*/
+			/*Èô¸ÉÊ±¼äºó£¬½ø³ÌÒòÄ³ÖÖÔ­Òò±»»½ĞÑ£¬
+			±íÏÖÎª´Óschedule_timeoutº¯Êı·µ»Ø,Ëû½«¼ì²édone³ÉÔ±ºÍtimeout±äÁ¿
+			ÒÔ¾ö¶¨ºóĞøµÄĞĞÎª,timtout>0±ãÊÇ½ø³Ì»¹Ã»ÓĞ³¬Ê±£¬
+			done=0±íÊ¾completionÉÏ»¹Ã»ÓĞÍê³ÉÕß,
+			´ËÊ±µ±Ç°½ø³ÌÈç¹ûÃ»ÓĞĞÅºÅĞèÒª´¦Àí£¬½«¼ÌĞøË¯Ãß,
+			Èç¹ûË¯Ãß³¬Ê±½«·µ»ØtimeoutµÄÖµ*/
 			timeout = schedule_timeout(timeout);
 			spin_lock_irq(&x->wait.lock);
 		} while (!x->done && timeout);
@@ -6105,7 +6133,7 @@ do_wait_for_common(struct completion *x, long timeout, int state)
 		if (!x->done)
 			return timeout;
 	}
-	/*æ²¡æœ‰è¶…æ—¶ä¸”æœ‰å®Œæˆè€…åœ¨comepletionä¸Šå‡ºç°å°†å®Œæˆè€…æ•°é‡å‡ï¼‘,ç»“æŸç­‰å¾…çŠ¶æ€è¿”å›*/
+	/*Ã»ÓĞ³¬Ê±ÇÒÓĞÍê³ÉÕßÔÚcomepletionÉÏ³öÏÖ½«Íê³ÉÕßÊıÁ¿¼õ£±,½áÊøµÈ´ı×´Ì¬·µ»Ø*/
 	x->done--;
 	return timeout ?: 1;
 }
@@ -6116,7 +6144,7 @@ wait_for_common(struct completion *x, long timeout, int state)
 	might_sleep();
 
 	spin_lock_irq(&x->wait.lock);
-	/*ä½¿å½“å‰è¿›ç¨‹ä»¥TASK_UNINTERRUPTIBLEç¡çœ åœ¨completion xä¸Šçš„waité˜Ÿåˆ—ä¸­*/
+	/*Ê¹µ±Ç°½ø³ÌÒÔTASK_UNINTERRUPTIBLEË¯ÃßÔÚcompletion xÉÏµÄwait¶ÓÁĞÖĞ*/
 	timeout = do_wait_for_common(x, timeout, state);
 	spin_unlock_irq(&x->wait.lock);
 	return timeout;
@@ -6132,11 +6160,11 @@ wait_for_common(struct completion *x, long timeout, int state)
  * See also similar routines (i.e. wait_for_completion_timeout()) with timeout
  * and interrupt capability. Also see complete().
  */
-/* å®Œæˆæ¥å£completionå¯¹æ‰§è¡Œè·¯å¾„é—´çš„åŒæ­¥å¯ä»¥é€šè¿‡ç­‰å¾…è€…ä¸å®Œæˆè€…æ¨¡å‹æ¥è¡¨è¿°ï¼Œ
- * å¯¹äºç­‰å¾…è€…çš„è¡Œä¸º,å†…æ ¸å®šä¹‰äº†wait_for_completionå‡½æ•°*/
+/* ²¹³äÔ­Óï¶ÔÖ´ĞĞÂ·¾¶¼äµÄÍ¬²½¿ÉÒÔÍ¨¹ıµÈ´ıÕßÓëÍê³ÉÕßÄ£ĞÍÀ´±íÊö£¬
+ * ¶ÔÓÚµÈ´ıÕßµÄĞĞÎª,ÄÚºË¶¨ÒåÁËwait_for_completionº¯Êı£¬¶ÔÓ¦down()*/
 void __sched wait_for_completion(struct completion *x)
 {
-	/*ä½¿å½“å‰è¿›ç¨‹ä»¥TASK_UNINTERRUPTIBLEç¡çœ åœ¨completion xä¸Šçš„waité˜Ÿåˆ—ä¸­*/
+	/*Ê¹µ±Ç°½ø³ÌÒÔTASK_UNINTERRUPTIBLEË¯ÃßÔÚcompletion xÉÏµÄwait¶ÓÁĞÖĞ*/
 	wait_for_common(x, MAX_SCHEDULE_TIMEOUT, TASK_UNINTERRUPTIBLE);
 }
 EXPORT_SYMBOL(wait_for_completion);
@@ -6588,7 +6616,7 @@ recheck:
 	/*
 	 * Allow unprivileged RT tasks to decrease priority:
 	 */
-	if (user && !capable(CAP_SYS_NICE)) {
+	if (user && !capable(CAP_SYS_NICE)) {//¼ì²éµ÷ÓÃ½ø³ÌÈ¨ÄÜ
 		if (rt_policy(policy)) {
 			unsigned long rlim_rtprio;
 

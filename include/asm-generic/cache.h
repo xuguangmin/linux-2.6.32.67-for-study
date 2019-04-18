@@ -7,6 +7,6 @@
  */
 
 #define L1_CACHE_SHIFT		5
-#define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
+#define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)    // 产生以字节为单位的高速缓存行的大小
 
 #endif /* __ASM_GENERIC_CACHE_H */

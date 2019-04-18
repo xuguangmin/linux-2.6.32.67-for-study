@@ -444,11 +444,14 @@ static notrace __kprobes void default_do_nmi(struct pt_regs *regs)
 #endif
 }
 
+/* 在NMI中断处理程序中调用,page243 */
 dotraplinkage notrace __kprobes void
 do_nmi(struct pt_regs *regs, long error_code)
 {
 	nmi_enter();
-
+	/*  检查irq_stat数组第n项的apic_timer_irqs字段,如果该CPU字段
+	  *  工作正常，那么，第n项的值必定不同于在前一个
+	  *  NMI中断中读出的值*/
 	inc_irq_stat(__nmi_count);
 
 	if (!ignore_nmis)
@@ -1000,7 +1003,9 @@ void __init trap_init(void)
 		set_in_cr4(X86_CR4_OSXMMEXCPT);
 		printk("done.\n");
 	}
-
+	//建立向量128的中断描述符表表项，对应系统调用中断异常
+	//当用户态程序发出int $0x80指令时，CPU切换到内核态并
+	//从system_call处开始执行指令
 	set_system_trap_gate(SYSCALL_VECTOR, &system_call);
 	set_bit(SYSCALL_VECTOR, used_vectors);
 #endif

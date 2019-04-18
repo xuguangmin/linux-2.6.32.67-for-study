@@ -4,12 +4,12 @@
 
 
 /**
- * ä½¿ç”¨äº†å·¥ä½œé˜Ÿåˆ—æ‰§è¡Œå»¶è¿Ÿæ“ä½œçš„ä»£ç èŒƒä¾‹:
+ * Ê¹ÓÃÁË¹¤×÷¶ÓÁĞÖ´ĞĞÑÓ³Ù²Ù×÷µÄ´úÂë·¶Àı:
  
- //å®šä¹‰å…¨å±€æ€§çš„struct workqueue_struct(å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„)æŒ‡é’ˆdemo_dev_wq
+ //¶¨ÒåÈ«¾ÖĞÔµÄstruct workqueue_struct(¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹)Ö¸Õëdemo_dev_wq
  static struct workqueue_struct * demo_dev_wq;
  
- //è®¾å¤‡ç‰¹å®šçš„æ•°æ®ç»“æ„,å®é™…ä½¿ç”¨ä¸­å¤§éƒ¨åˆ†struct work_structç»“æ„éƒ½å†…åµŒåœ¨è¿™ä¸ªæ•°æ®ç»“æ„ä¸­
+ //Éè±¸ÌØ¶¨µÄÊı¾İ½á¹¹,Êµ¼ÊÊ¹ÓÃÖĞ´ó²¿·Östruct work_struct½á¹¹¶¼ÄÚÇ¶ÔÚÕâ¸öÊı¾İ½á¹¹ÖĞ
  struct demo_device {
  	...
 	struct work_struct work;
@@ -17,13 +17,13 @@
  }
  static struct demo_device *demo_dev;
 
- //å®šä¹‰å»¶è¿Ÿæ“ä½œå‡½æ•°
+ //¶¨ÒåÑÓ³Ù²Ù×÷º¯Êı
  void demo_work_func(struct work_struct *work)
  {
  	...
  }
 
- //é©±åŠ¨ç¨‹åºæ¨¡å—åˆå§‹åŒ–ä»£ç è°ƒç”¨creat_singlethread_workqueueåˆ›å»ºå·¥ä½œé˜Ÿåˆ—
+ //Çı¶¯³ÌĞòÄ£¿é³õÊ¼»¯´úÂëµ÷ÓÃcreat_singlethread_workqueue´´½¨¹¤×÷¶ÓÁĞ
  static int __init demo_dev_init(void)
  {
  	...
@@ -33,7 +33,7 @@
 	...
  }
 
- //æ¨¡å—é€€å‡ºå‡½æ•°
+ //Ä£¿éÍË³öº¯Êı
  static void demo_dev_exit(void)
  {
  	...
@@ -42,7 +42,7 @@
 	...
  }
 
- //ä¸­æ–­å¤„ç†å‡½æ•°
+ //ÖĞ¶Ï´¦Àíº¯Êı
  irqreturn_t demo_isr(iint irq, void *dev_id)
  {
  	...
@@ -61,7 +61,7 @@
 #include <linux/lockdep.h>
 #include <asm/atomic.h>
 
-/* å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„*/
+/* ¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹*/
 struct workqueue_struct;
 
 struct work_struct;
@@ -73,16 +73,16 @@ typedef void (*work_func_t)(struct work_struct *work);
  */
 #define work_data_bits(work) ((unsigned long *)(&(work)->data))
 
-/*å·¥ä½œé˜Ÿåˆ—*/
+/*¹¤×÷¶ÓÁĞ*/
 struct work_struct {
-	atomic_long_t data;	/* é©±åŠ¨ç¨‹åºå¯ä»¥åˆ©ç”¨dataæ¥å°†è®¾å¤‡é©±åŠ¨ç¨‹åºä½¿ç”¨
-				 * çš„æŸäº›æŒ‡é’ˆä¼ é€’ç»™å»¶è¿Ÿå‡½æ•°*/
+	atomic_long_t data;	/* Çı¶¯³ÌĞò¿ÉÒÔÀûÓÃdataÀ´½«Éè±¸Çı¶¯³ÌĞòÊ¹ÓÃ
+				 * µÄÄ³Ğ©Ö¸Õë´«µİ¸øÑÓ³Ùº¯Êı*/
 #define WORK_STRUCT_PENDING 0		/* T if work item pending execution */
 #define WORK_STRUCT_FLAG_MASK (3UL)
 #define WORK_STRUCT_WQ_DATA_MASK (~WORK_STRUCT_FLAG_MASK)
-	struct list_head entry;	/* åŒå‘é“¾è¡¨å¯¹è±¡,ç”¨æ¥å°†æäº¤çš„ç­‰å¾…å¤„ç†çš„å·¥ä½œèŠ‚ç‚¹
-				 * å½¢æˆé“¾è¡¨*/
-	work_func_t func;	/*å·¥ä½œèŠ‚ç‚¹çš„å»¶è¿Ÿå‡½æ•°,ç”¨æ¥å®Œæˆå®é™…çš„å»¶è¿Ÿæ“ä½œ*/
+	struct list_head entry;	/* Ë«ÏòÁ´±í¶ÔÏó,ÓÃÀ´½«Ìá½»µÄµÈ´ı´¦ÀíµÄ¹¤×÷½Úµã
+				 * ĞÎ³ÉÁ´±í*/
+	work_func_t func;	/*¹¤×÷½ÚµãµÄÑÓ³Ùº¯Êı,ÓÃÀ´Íê³ÉÊµ¼ÊµÄÑÓ³Ù²Ù×÷*/
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map lockdep_map;
 #endif
@@ -91,11 +91,11 @@ struct work_struct {
 #define WORK_DATA_INIT()	ATOMIC_LONG_INIT(0)
 
 /**
- * ä½¿ç”¨queue_delayed_workæ—¶ç”¨åˆ°æ­¤ç»“æ„ä½“,å®ç°å»¶è¿Ÿæäº¤åŠŸèƒ½
+ * Ê¹ÓÃqueue_delayed_workÊ±ÓÃµ½´Ë½á¹¹Ìå,ÊµÏÖÑÓ³ÙÌá½»¹¦ÄÜ
  */
 struct delayed_work {
 	struct work_struct work;
-	struct timer_list timer;	/*å®ç°æ—¶é—´ä¸Šçš„å»¶è¿Ÿæ“ä½œ*/
+	struct timer_list timer;	/*ÊµÏÖÊ±¼äÉÏµÄÑÓ³Ù²Ù×÷*/
 };
 
 static inline struct delayed_work *to_delayed_work(struct work_struct *work)
@@ -131,7 +131,7 @@ struct execute_work {
 	.timer = TIMER_INITIALIZER(NULL, 0, 0),			\
 	}
 
-/*å¯ä»¥è®©é©±åŠ¨ç¨‹åºé™æ€å®šä¹‰ä¸€ä¸ªstruct work_structå¯¹è±¡åŒæ—¶åˆå§‹åŒ–*/
+/*¿ÉÒÔÈÃÇı¶¯³ÌĞò¾²Ì¬¶¨ÒåÒ»¸östruct work_struct¶ÔÏóÍ¬Ê±³õÊ¼»¯*/
 #define DECLARE_WORK(n, f)					\
 	struct work_struct n = __WORK_INITIALIZER(n, f)
 
@@ -142,7 +142,7 @@ struct execute_work {
  * initialize a work item's function pointer
  */
 /*
- * åˆå§‹åŒ–ä¸€ä¸ªå·¥ä½œé˜Ÿåˆ—èŠ‚ç‚¹,åªæ˜¯é‡æ–°è®¾ç½®struct work_structä¸­çš„funcæŒ‡é’ˆ
+ * ³õÊ¼»¯Ò»¸ö¹¤×÷¶ÓÁĞ½Úµã,Ö»ÊÇÖØĞÂÉèÖÃstruct work_structÖĞµÄfuncÖ¸Õë
  */
 #define PREPARE_WORK(_work, _func)				\
 	do {							\
@@ -160,7 +160,7 @@ struct execute_work {
  * to generate better code.
  */
 #ifdef CONFIG_LOCKDEP
-/* åˆå§‹åŒ–ä¸€ä¸ªå·¥ä½œé˜Ÿåˆ—èŠ‚ç‚¹,INIT_WORKåˆå§‹åŒ–struct work_structä¸­çš„æ¯ä¸ªæˆå‘˜*/
+/* ³õÊ¼»¯Ò»¸ö¹¤×÷¶ÓÁĞ½Úµã,INIT_WORK³õÊ¼»¯struct work_structÖĞµÄÃ¿¸ö³ÉÔ±*/
 #define INIT_WORK(_work, _func)						\
 	do {								\
 		static struct lock_class_key __key;			\
@@ -226,7 +226,7 @@ struct execute_work {
 	clear_bit(WORK_STRUCT_PENDING, work_data_bits(work))
 
 
-/*æ ¸å¿ƒå‡½æ•°*/
+/*ºËĞÄº¯Êı*/
 extern struct workqueue_struct *
 __create_workqueue_key(const char *name, int singlethread,
 		       int freezeable, int rt, struct lock_class_key *key,
@@ -253,22 +253,23 @@ __create_workqueue_key(const char *name, int singlethread,
 			       NULL, NULL)
 #endif
 
-/**/
+/* ´´½¨n¸ö¹¤×÷ÕßÏß³Ì£¬nÊÇÓĞĞ§CPU¸öÊı£¬²¢¸ù¾İ´«µİµÄ×Ö·û´®Îª¹¤×÷ÕßÏß³ÌÃüÃû*/
 #define create_workqueue(name) __create_workqueue((name), 0, 0, 0)
 #define create_rt_workqueue(name) __create_workqueue((name), 0, 0, 1)
 #define create_freezeable_workqueue(name) __create_workqueue((name), 1, 1, 0)
-/* ç”Ÿæˆå•çº¿ç¨‹çš„å·¥ä½œé˜Ÿåˆ— singlethread=1,ä¸create_workqueueå‡½æ•°çš„åŒºåˆ«æ˜¯
- * create_singlethread_workqueueåªåœ¨ç³»ç»Ÿä¸­çš„ç¬¬ä¸€ä¸ªCPU(singlethread_cpu)ä¸Šåˆ›å»º
- * å·¥ä½œé˜Ÿåˆ—å’Œå·¥äººçº¿ç¨‹,è€Œcreate_workququeå‡½æ•°ä¼šåœ¨ç³»ç»Ÿä¸­çš„æ¯ä¸ªCPUä¸Šéƒ½åˆ›å»ºå·¥ä½œ
- * é˜Ÿåˆ—å’Œå·¥äººçº¿ç¨‹*/
+/* Ö»Éú³ÉÒ»¸ö¹¤×÷ÕßÏß³Ì£¬ singlethread=1,Óëcreate_workqueueº¯ÊıµÄÇø±ğÊÇ
+ * create_singlethread_workqueueÖ»ÔÚÏµÍ³ÖĞµÄµÚÒ»¸öCPU(singlethread_cpu)ÉÏ´´½¨
+ * ¹¤×÷¶ÓÁĞºÍ¹¤ÈËÏß³Ì,¶øcreate_workququeº¯Êı»áÔÚÏµÍ³ÖĞµÄÃ¿¸öCPUÉÏ¶¼´´½¨¹¤×÷
+ * ¶ÓÁĞºÍ¹¤ÈËÏß³Ì*/
 #define create_singlethread_workqueue(name) __create_workqueue((name), 1, 0, 0)
-
+/* ³·Ïú¹¤×÷¶ÓÁĞ*/
 extern void destroy_workqueue(struct workqueue_struct *wq);
 
-/* åœ¨ç”¨queue_workå‘å·¥ä½œé˜Ÿåˆ—æäº¤å·¥ä½œèŠ‚ç‚¹æ—¶ï¼Œå¦‚æœå·¥ä½œé˜Ÿåˆ—æ˜¯singlethreadç±»å‹çš„ï¼Œ
- * å› ä¸ºæ­¤æ—¶åªæœ‰ä¸€ä¸ªworklistï¼Œæ‰€ä»¥å·¥ä½œèŠ‚ç‚¹åªèƒ½æäº¤åˆ°è¿™å”¯ä¸€çš„ä¸€ä¸ªworklistä¸Šï¼Œ
- * åä¹‹ï¼Œå¦‚æœå·¥ä½œé˜Ÿåˆ—ä¸æ˜¯singlethreadç±»å‹çš„ï¼Œé‚£ä¹ˆå·¥ä½œèŠ‚ç‚¹å°†ä¼šæäº¤åˆ°å½“å‰è¿è¡Œ
- * queue_workçš„CPUæ‰€åœ¨çš„worklistä¸­*/
+/* °Ñº¯Êı²åÈë¹¤×÷¶ÓÁĞ
+ * ÔÚÓÃqueue_workÏò¹¤×÷¶ÓÁĞÌá½»¹¤×÷½ÚµãÊ±£¬Èç¹û¹¤×÷¶ÓÁĞÊÇsinglethreadÀàĞÍµÄ£¬
+ * ÒòÎª´ËÊ±Ö»ÓĞÒ»¸öworklist£¬ËùÒÔ¹¤×÷½ÚµãÖ»ÄÜÌá½»µ½ÕâÎ¨Ò»µÄÒ»¸öworklistÉÏ£¬
+ * ·´Ö®£¬Èç¹û¹¤×÷¶ÓÁĞ²»ÊÇsinglethreadÀàĞÍµÄ£¬ÄÇÃ´¹¤×÷½Úµã½«»áÌá½»µ½µ±Ç°ÔËĞĞ
+ * queue_workµÄCPUËùÔÚµÄworklistÖĞ*/
 extern int queue_work(struct workqueue_struct *wq, struct work_struct *work);
 /**/
 extern int queue_work_on(int cpu, struct workqueue_struct *wq,

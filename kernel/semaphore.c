@@ -50,7 +50,7 @@ static noinline void __up(struct semaphore *sem);
  * Use of this function is deprecated, please use down_interruptible() or
  * down_killable() instead.
  */
-/*ä¸down_interruptibleç›¸æ¯”ï¼Œdownæ˜¯ä¸å¯ä¸­æ–­çš„*/
+/*Óëdown_interruptibleÏà±È£¬downÊÇ²»¿ÉÖĞ¶ÏµÄ*/
 void down(struct semaphore *sem)
 {
 	unsigned long flags;
@@ -73,23 +73,23 @@ EXPORT_SYMBOL(down);
  * If the sleep is interrupted by a signal, this function will return -EINTR.
  * If the semaphore is successfully acquired, this function returns 0.
  */
- /* å¯¹è¯¥å‡½æ•°çš„è°ƒç”¨åšæŒæ£€æŸ¥å…¶è¿”å›å€¼,ä»¥ç¡®å®šå‡½æ•°æ˜¯å·²ç»è·å¾—äº†ä¿¡å·é‡
-  * è¿˜æ˜¯å› ä¸ºæ“ä½œä¸­æ–­éœ€è¦ç‰¹æ®Šå¤„ç†;é€šå¸¸é©±åŠ¨å¯¹è¿”å›çš„éï¼åšçš„å·¥ä½œæ˜¯è¿”å›-ERESTARTSYS*/
-  /*è¿”å›ï¼è¡¨ç¤ºè°ƒç”¨è€…è·å¾—äº†ä¿¡å·é‡*/
+ /* ¶Ô¸Ãº¯ÊıµÄµ÷ÓÃ¼á³Ö¼ì²éÆä·µ»ØÖµ,ÒÔÈ·¶¨º¯ÊıÊÇÒÑ¾­»ñµÃÁËĞÅºÅÁ¿
+  * »¹ÊÇÒòÎª²Ù×÷ÖĞ¶ÏĞèÒªÌØÊâ´¦Àí;Í¨³£Çı¶¯¶Ô·µ»ØµÄ·Ç£°×öµÄ¹¤×÷ÊÇ·µ»Ø-ERESTARTSYS*/
+  /*·µ»Ø£°±íÊ¾µ÷ÓÃÕß»ñµÃÁËĞÅºÅÁ¿*/
 int down_interruptible(struct semaphore *sem)
 {
 	unsigned long flags;
 	int result = 0;
 
-	/*ä¿è¯æ“ä½œçš„åŸå­æ€§,é˜»æ­¢å¤šä¸ªè¿›ç¨‹å¯¹sem->countåŒæ—¶æ“ä½œ*/
+	/*±£Ö¤²Ù×÷µÄÔ­×ÓĞÔ,×èÖ¹¶à¸ö½ø³Ì¶Ôsem->countÍ¬Ê±²Ù×÷*/
 	spin_lock_irqsave(&sem->lock, flags);
-	/* åˆ¤æ–­sem->count,å¦‚æœå¤§äºï¼è¡¨æ˜å½“å‰è¿›ç¨‹å¯ä»¥è·å¾—ä¿¡å·é‡ï¼Œ
-		å°±å°†countå€¼å‡1,ç„¶åé€€å‡º;*/
+	/* ÅĞ¶Ïsem->count,Èç¹û´óÓÚ£°±íÃ÷µ±Ç°½ø³Ì¿ÉÒÔ»ñµÃĞÅºÅÁ¿£¬
+		¾Í½«countÖµ¼õ1,È»ºóÍË³ö;*/
 	if (likely(sem->count > 0))
 		sem->count--;
 	else
-	 	/*å¦‚æœä¸å¤§äºï¼ï¼Œè¡¨æ˜å½“å‰è¿›ç¨‹æ— æ³•è·å¾—ä¿¡å·é‡ï¼Œ
-		æ­¤æ—¶è°ƒç”¨__down_interruptible*/
+	 	/*Èç¹û²»´óÓÚ£°£¬±íÃ÷µ±Ç°½ø³ÌÎŞ·¨»ñµÃĞÅºÅÁ¿£¬
+		´ËÊ±µ÷ÓÃ__down_interruptible*/
 		result = __down_interruptible(sem);
 	spin_unlock_irqrestore(&sem->lock, flags);
 
@@ -107,7 +107,7 @@ EXPORT_SYMBOL(down_interruptible);
  * -EINTR.  If the semaphore is successfully acquired, this function returns
  * 0.
  */
-/*ç¡çœ çš„è¿›ç¨‹å¯ä»¥å› æ”¶åˆ°ä¸€äº›è‡´å‘½æ€§ä¿¡å·è¢«å”¤é†’è€Œå¯¼è‡´è·å–ä¿¡å·é‡çš„æ“ä½œå¤±è´¥ï¼Œæå°‘ä½¿ç”¨*/
+/*Ë¯ÃßµÄ½ø³Ì¿ÉÒÔÒòÊÕµ½Ò»Ğ©ÖÂÃüĞÔĞÅºÅ±»»½ĞÑ¶øµ¼ÖÂ»ñÈ¡ĞÅºÅÁ¿µÄ²Ù×÷Ê§°Ü£¬¼«ÉÙÊ¹ÓÃ*/
 int down_killable(struct semaphore *sem)
 {
 	unsigned long flags;
@@ -138,8 +138,8 @@ EXPORT_SYMBOL(down_killable);
  * and the semaphore can be released by any task or interrupt.
  */
 
-/*è¿›ç¨‹è¯•å›¾è·å¾—ä¿¡å·é‡ï¼Œè‹¥æ— æ³•è·å¾—ç›´æ¥è¿”å›ï¼‘è€Œä¸è¿›å…¥ç¡çœ çŠ¶æ€ï¼›
-è¿”å›ï¼æ„å‘³ç€å‡½æ•°çš„è°ƒç”¨è€…å·²ç»è·å¾—äº†ä¿¡å·é‡*/
+/*½ø³ÌÊÔÍ¼»ñµÃĞÅºÅÁ¿£¬ÈôÎŞ·¨»ñµÃÖ±½Ó·µ»Ø£±¶ø²»½øÈëË¯Ãß×´Ì¬£»
+·µ»Ø£°ÒâÎ¶×Åº¯ÊıµÄµ÷ÓÃÕßÒÑ¾­»ñµÃÁËĞÅºÅÁ¿*/
 int down_trylock(struct semaphore *sem)
 {
 	unsigned long flags;
@@ -165,9 +165,9 @@ EXPORT_SYMBOL(down_trylock);
  * If the semaphore is not released within the specified number of jiffies,
  * this function returns -ETIME.  It returns 0 if the semaphore was acquired.
  */
-/* å‡½æ•°åœ¨æ— æ³•è·å¾—ä¿¡å·é‡çš„æƒ…å†µä¸‹å°†è¿›å…¥ç¡çœ çŠ¶æ€ï¼Œä½†æ˜¯å¤„äºè¿™ç§ç¡çœ çŠ¶æ€æœ‰å®é™…é™åˆ¶
- * å¦‚æœjiffiesæŒ‡æ˜çš„å®é™…åˆ°æœŸæ—¶å‡½æ•°ä¾ç„¶æ— æ³•è·å¾—ä¿¡å·é‡ï¼Œåˆ™å°†è¿”å›é”™è¯¯ç -ETIMEï¼Œ
- * åœ¨åˆ°æœŸå‰è¿›ç¨‹çš„ç¡çœ çŠ¶æ€ä¸ºTASK_UNINTERRUPTIBLEï¼ŒæˆåŠŸè·å¾—ä¿¡å·é‡è¿”å›0.*/
+/* º¯ÊıÔÚÎŞ·¨»ñµÃĞÅºÅÁ¿µÄÇé¿öÏÂ½«½øÈëË¯Ãß×´Ì¬£¬µ«ÊÇ´¦ÓÚÕâÖÖË¯Ãß×´Ì¬ÓĞÊµ¼ÊÏŞÖÆ
+ * Èç¹ûjiffiesÖ¸Ã÷µÄÊµ¼Êµ½ÆÚÊ±º¯ÊıÒÀÈ»ÎŞ·¨»ñµÃĞÅºÅÁ¿£¬Ôò½«·µ»Ø´íÎóÂë-ETIME£¬
+ * ÔÚµ½ÆÚÇ°½ø³ÌµÄË¯Ãß×´Ì¬ÎªTASK_UNINTERRUPTIBLE£¬³É¹¦»ñµÃĞÅºÅÁ¿·µ»Ø0.*/
 int down_timeout(struct semaphore *sem, long jiffies)
 {
 	unsigned long flags;
@@ -191,27 +191,27 @@ EXPORT_SYMBOL(down_timeout);
  * Release the semaphore.  Unlike mutexes, up() may be called from any
  * context and even by tasks which have never called down().
  */
- /*ä¿¡å·é‡upæ“ä½œ*/
+ /*ĞÅºÅÁ¿up²Ù×÷*/
 void up(struct semaphore *sem)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&sem->lock, flags);
-	/*åˆ¤æ–­semçš„wait_listé˜Ÿåˆ—ä¸ºç©º,åˆ™æ²¡æœ‰è¿›ç¨‹ç­‰å¾…ä¿¡å·é‡*/
+	/*ÅĞ¶ÏsemµÄwait_list¶ÓÁĞÎª¿Õ,ÔòÃ»ÓĞ½ø³ÌµÈ´ıĞÅºÅÁ¿*/
 	if (likely(list_empty(&sem->wait_list)))
 		sem->count++;
 	else
-		/*è¡¨æ˜æœ‰è¿›ç¨‹ç­‰å¾…ä¿¡å·é‡ï¼Œå°†å…¶å”¤é†’*/
+		/*±íÃ÷ÓĞ½ø³ÌµÈ´ıĞÅºÅÁ¿£¬½«Æä»½ĞÑ*/
 		__up(sem);
 	spin_unlock_irqrestore(&sem->lock, flags);
 }
 EXPORT_SYMBOL(up);
 
 /* Functions for the contended case */
-/*å°†è¿™ä¸ªç»“æ„åŠ å…¥åˆ°semä¿¡å·é‡çš„ç­‰å¾…åˆ—è¡¨sem->wait_listä¸­*/
+/*½«Õâ¸ö½á¹¹¼ÓÈëµ½semĞÅºÅÁ¿µÄµÈ´ıÁĞ±ísem->wait_listÖĞ*/
 struct semaphore_waiter {
 	struct list_head list;
-	/*å°†å½“å‰ç­‰å¾…çš„è¿›ç¨‹å¡«å…¥taskä¸­*/
+	/*½«µ±Ç°µÈ´ıµÄ½ø³ÌÌîÈëtaskÖĞ*/
 	struct task_struct *task;
 	int up;
 };
@@ -227,13 +227,13 @@ static inline int __sched __down_common(struct semaphore *sem, long state,
 	struct task_struct *task = current;
 	struct semaphore_waiter waiter;
 
- 	/*å‡½æ•°åŠŸèƒ½æ˜¯é€šè¿‡å¯¹ä¸€ä¸ªstruct semaphore_waiterçš„ä½¿ç”¨ï¼Œ
-	 æŠŠå½“å‰è¿›ç¨‹æ”¾åˆ°ä¿¡å·é‡semçš„æˆå‘˜å˜é‡semçš„æˆå‘˜å˜é‡wait_listæ‰€ç®¡ç†çš„é˜Ÿåˆ—ä¸­*/
+ 	/*º¯Êı¹¦ÄÜÊÇÍ¨¹ı¶ÔÒ»¸östruct semaphore_waiterµÄÊ¹ÓÃ£¬
+	 °Ñµ±Ç°½ø³Ì·Åµ½ĞÅºÅÁ¿semµÄ³ÉÔ±±äÁ¿semµÄ³ÉÔ±±äÁ¿wait_listËù¹ÜÀíµÄ¶ÓÁĞÖĞ*/
 	list_add_tail(&waiter.list, &sem->wait_list);
 	waiter.task = task;
 	waiter.up = 0;
 
-	/*åœ¨ä¸€ä¸ªforå¾ªç¯ä¸­æŠŠå½“å‰è¿›ç¨‹çš„çŠ¶æ€è®¾ç½®ä¸ºTASK_INTERRUPTIBLE*/
+	/*ÔÚÒ»¸öforÑ­»·ÖĞ°Ñµ±Ç°½ø³ÌµÄ×´Ì¬ÉèÖÃÎªTASK_INTERRUPTIBLE*/
 	for (;;) {
 		if (signal_pending_state(state, task))
 			goto interrupted;
@@ -241,21 +241,21 @@ static inline int __sched __down_common(struct semaphore *sem, long state,
 			goto timed_out;
 		__set_task_state(task, state);
 		spin_unlock_irq(&sem->lock);
-		/*ä½¿å½“å‰è¿›ç¨‹è¿›å…¥ç¡çœ çŠ¶æ€,å‡½æ•°å°†åœç•™åœ¨schedule_timeoutè°ƒç”¨ä¸Š*/
+		/*Ê¹µ±Ç°½ø³Ì½øÈëË¯Ãß×´Ì¬,º¯Êı½«Í£ÁôÔÚschedule_timeoutµ÷ÓÃÉÏ*/
 		timeout = schedule_timeout(timeout);
 		spin_lock_irq(&sem->lock);
-		/*å¦‚æœwaiter.upä¸ä¸ºï¼ï¼Œè¯´æ˜è¿›ç¨‹åœ¨ä¿¡å·é‡semçš„wait_listé˜Ÿåˆ—ä¸­
-		è¢«è¯¥ä¿¡å·é‡çš„UPæ“ä½œæ‰€å”¤é†’ï¼Œè¿›ç¨‹å¯ä»¥è·å¾—ä¿¡å·é‡, è¿”å›ï¼*/
+		/*Èç¹ûwaiter.up²»Îª£°£¬ËµÃ÷½ø³ÌÔÚĞÅºÅÁ¿semµÄwait_list¶ÓÁĞÖĞ
+		±»¸ÃĞÅºÅÁ¿µÄUP²Ù×÷Ëù»½ĞÑ£¬½ø³Ì¿ÉÒÔ»ñµÃĞÅºÅÁ¿, ·µ»Ø£°*/
 		if (waiter.up)
 			return 0;
 	}
 
-/*è¿›ç¨‹è¢«è¶…å¸‚å¼•èµ·çš„å”¤é†’*/
+/*½ø³Ì±»³¬ÊĞÒıÆğµÄ»½ĞÑ*/
  timed_out:
 	list_del(&waiter.list);
 	return -ETIME;
 
-/*è¿›ç¨‹è¢«ä¸­æ–­å¼•èµ·çš„å”¤é†’*/
+/*½ø³Ì±»ÖĞ¶ÏÒıÆğµÄ»½ĞÑ*/
  interrupted:
 	list_del(&waiter.list);
 	return -EINTR;
@@ -266,7 +266,7 @@ static noinline void __sched __down(struct semaphore *sem)
 	__down_common(sem, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT);
 }
 
-/*æ— æ³•è·å¾—ä¿¡å·é‡æ—¶çš„æ“ä½œ*/
+/*ÎŞ·¨»ñµÃĞÅºÅÁ¿Ê±µÄ²Ù×÷*/
 static noinline int __sched __down_interruptible(struct semaphore *sem)
 {
 	/**/
@@ -283,15 +283,15 @@ static noinline int __sched __down_timeout(struct semaphore *sem, long jiffies)
 	return __down_common(sem, TASK_UNINTERRUPTIBLE, jiffies);
 }
 
-/*ä¿¡å·é‡çš„wait_listç­‰å¾…é˜Ÿåˆ—ä¸ä¸ºç©ºï¼Œå”¤é†’è¿›ç¨‹*/
+/*ĞÅºÅÁ¿µÄwait_listµÈ´ı¶ÓÁĞ²»Îª¿Õ£¬»½ĞÑ½ø³Ì*/
 static noinline void __sched __up(struct semaphore *sem)
 {
-	/*å–å¾—sem->wait_listé“¾è¡¨ä¸Šç¬¬ä¸€ä¸ªwaiterèŠ‚ç‚¹*/
+	/*È¡µÃsem->wait_listÁ´±íÉÏµÚÒ»¸öwaiter½Úµã*/
 	struct semaphore_waiter *waiter = list_first_entry(&sem->wait_list,
 						struct semaphore_waiter, list);
-	/*å°†å–å¾—çš„èŠ‚ç‚¹ä»é“¾è¡¨ä¸Šåˆ é™¤*/
+	/*½«È¡µÃµÄ½Úµã´ÓÁ´±íÉÏÉ¾³ı*/
 	list_del(&waiter->list);
 	waiter->up = 1;
-	/*å”¤é†’è¿›ç¨‹*/
+	/*»½ĞÑ½ø³Ì*/
 	wake_up_process(waiter->task);
 }

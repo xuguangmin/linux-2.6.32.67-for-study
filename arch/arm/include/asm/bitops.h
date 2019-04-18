@@ -201,11 +201,17 @@ extern int _find_next_bit_be(const unsigned long *p, int size, int offset);
 /*
  * These are the little endian, atomic definitions.
  */
+ //设置*addr的第nr位
 #define set_bit(nr,p)			ATOMIC_BITOP_LE(set_bit,nr,p)
+ //清*addr的第nr位
 #define clear_bit(nr,p)			ATOMIC_BITOP_LE(clear_bit,nr,p)
+//转换*addr的第nr位
 #define change_bit(nr,p)		ATOMIC_BITOP_LE(change_bit,nr,p)
+//设置*addr的第nr位，并返回它的原值
 #define test_and_set_bit(nr,p)		ATOMIC_BITOP_LE(test_and_set_bit,nr,p)
+//清*addr的第nr位，并返回它的原值
 #define test_and_clear_bit(nr,p)	ATOMIC_BITOP_LE(test_and_clear_bit,nr,p)
+//转换*addr的第nr位，并返回它的原值
 #define test_and_change_bit(nr,p)	ATOMIC_BITOP_LE(test_and_change_bit,nr,p)
 #define find_first_zero_bit(p,sz)	_find_first_zero_bit_le(p,sz)
 #define find_next_zero_bit(p,sz,off)	_find_next_zero_bit_le(p,sz,off)

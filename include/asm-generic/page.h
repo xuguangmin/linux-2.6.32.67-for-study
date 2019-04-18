@@ -11,8 +11,7 @@
 
 
 /* PAGE_SHIFT determines the page size */
-
-#define PAGE_SHIFT	12
+#define PAGE_SHIFT	12	//指定线性地址offset字段位数，由PAGE_SIZE和PAGE_MASK使用
 #ifdef __ASSEMBLY__
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 #else
@@ -38,23 +37,23 @@
  */
 typedef struct {
 	unsigned long pte;
-} pte_t;
+} pte_t;//页表项
 typedef struct {
 	unsigned long pmd[16];
-} pmd_t;
+} pmd_t;//描述页中间目录项
 typedef struct {
 	unsigned long pgd;
-} pgd_t;
+} pgd_t;//页全局目录项格式
 typedef struct {
 	unsigned long pgprot;
-} pgprot_t;
+} pgprot_t;//表示与一个单独表项相关的保护标志
 typedef struct page *pgtable_t;
-
+//把一个相应的类型转换成无符号整数,与__pte等执行相反的转换
 #define pte_val(x)	((x).pte)
 #define pmd_val(x)	((&x)->pmd[0])
 #define pgd_val(x)	((x).pgd)
 #define pgprot_val(x)	((x).pgprot)
-
+//把一个无符号整数转换成所需的类型
 #define __pte(x)	((pte_t) { (x) } )
 #define __pmd(x)	((pmd_t) { (x) } )
 #define __pgd(x)	((pgd_t) { (x) } )

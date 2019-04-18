@@ -31,7 +31,7 @@
  * NOT exported to modules - patching kernel text is a really delicate matter.
  */
 DEFINE_MUTEX(text_mutex);
-
+//两个异常表,其起始与终止地址由c编译器产生的两个符号表示
 extern struct exception_table_entry __start___ex_table[];
 extern struct exception_table_entry __stop___ex_table[];
 
@@ -41,7 +41,11 @@ void __init sort_main_extable(void)
 	sort_extable(__start___ex_table, __stop___ex_table);
 }
 
-/* Given an address, look for it in the exception tables. */
+/* Given an address, look for it in the exception tables. 
+  * 用来在所有异常表中查找一个指定地址，若这个地址
+  *  在某一个异常表中，则返回指向exception_table_entry结构的指针
+  * 否则返回NULL
+  */
 const struct exception_table_entry *search_exception_tables(unsigned long addr)
 {
 	const struct exception_table_entry *e;

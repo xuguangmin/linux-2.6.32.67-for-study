@@ -9,8 +9,8 @@
 
 
 /* 
- * ä»¥'__'æ‰“å¤´çš„GFPæŽ©ç åªé™äºŽåœ¨å†…å­˜ç®¡ç†ç»„ä»¶å†…éƒ¨çš„ä»£ç ä½¿ç”¨ï¼Œ
- * gfp_maskæŽ©ç ä»¥"GFP_"çš„å½¢å¼å‡ºçŽ°
+ * ÒÔ'__'´òÍ·µÄGFPÑÚÂëÖ»ÏÞÓÚÔÚÄÚ´æ¹ÜÀí×é¼þÄÚ²¿µÄ´úÂëÊ¹ÓÃ£¬
+ * gfp_maskÑÚÂëÒÔ"GFP_"µÄÐÎÊ½³öÏÖ
  */
 
 struct vm_area_struct;
@@ -24,13 +24,13 @@ struct vm_area_struct;
  * without the underscores and use the consistently. The definitions here may
  * be used in bit comparisons.
  */
- /*åœ¨ZONE_DMAæ ‡è¯†çš„å†…å­˜åŒºåŸŸä¸­æŸ¥æ‰¾ç©ºé—²é¡µ*/
+ /*ÔÚZONE_DMA±êÊ¶µÄÄÚ´æÇøÓòÖÐ²éÕÒ¿ÕÏÐÒ³*/
 #define __GFP_DMA	((__force gfp_t)0x01u)
-/*åœ¨ZONE_HIGHMEMæ ‡è¯†çš„å†…å­˜åŒºåŸŸæŸ¥æ‰¾ç©ºé—²é¡µ*/
+/*ÔÚZONE_HIGHMEM±êÊ¶µÄÄÚ´æÇøÓò²éÕÒ¿ÕÏÐÒ³*/
 #define __GFP_HIGHMEM	((__force gfp_t)0x02u)
-/*åœ¨ZONE_DMA32æ ‡è¯†çš„å†…å­˜åŒºåŸŸæŸ¥æ‰¾ç©ºé—²é¡µ*/
+/*ÔÚZONE_DMA32±êÊ¶µÄÄÚ´æÇøÓò²éÕÒ¿ÕÏÐÒ³*/
 #define __GFP_DMA32	((__force gfp_t)0x04u)
-/*å†…æ ¸å°†åˆ†é…çš„ç‰©ç†é¡µæ ‡è®°ä¸ºå¯ç§»åŠ¨çš„*/
+/*ÄÚºË½«·ÖÅäµÄÎïÀíÒ³±ê¼ÇÎª¿ÉÒÆ¶¯µÄ*/
 #define __GFP_MOVABLE	((__force gfp_t)0x08u)  /* Page is movable */
 #define GFP_ZONEMASK	(__GFP_DMA|__GFP_HIGHMEM|__GFP_DMA32|__GFP_MOVABLE)
 /*
@@ -48,47 +48,47 @@ struct vm_area_struct;
  * mechanism or reclaimed
  */
 
- /* å½“å‰æ­£åœ¨å‘å†…æ ¸ç”³è¯·é¡µåˆ†é…çš„è¿›ç¨‹è¢«é˜»å¡žï¼Œ
-  * æ„å‘³ç€è°ƒåº¦å™¨å¯ä»¥åœ¨æ­¤è¯·æ±‚æœŸé—´è°ƒåº¦å¦å¤–ä¸€ä¸ªè¿›ç¨‹æ‰§è¡Œ*/
+ /* µ±Ç°ÕýÔÚÏòÄÚºËÉêÇëÒ³·ÖÅäµÄ½ø³Ì±»×èÈû£¬
+  * ÒâÎ¶×Åµ÷¶ÈÆ÷¿ÉÒÔÔÚ´ËÇëÇóÆÚ¼äµ÷¶ÈÁíÍâÒ»¸ö½ø³ÌÖ´ÐÐ*/
 #define __GFP_WAIT	((__force gfp_t)0x10u)	/* Can wait and reschedule? */
 
-/* å†…æ ¸å…è®¸ä½¿ç”¨ç´§æ€¥åˆ†é…é“¾è¡¨ä¸­çš„ä¿ç•™å†…å­˜é¡µã€‚è¯¥è¯·æ±‚å¿…é¡»ä»¥åŽŸå­æ–¹å¼å®Œæˆï¼Œ
- * æ„å‘³ç€è¯·æ±‚è¿‡ç¨‹ä¸å…è®¸è¢«ä¸­æ–­*/
+/* ÄÚºËÔÊÐíÊ¹ÓÃ½ô¼±·ÖÅäÁ´±íÖÐµÄ±£ÁôÄÚ´æÒ³¡£¸ÃÇëÇó±ØÐëÒÔÔ­×Ó·½Ê½Íê³É£¬
+ * ÒâÎ¶×ÅÇëÇó¹ý³Ì²»ÔÊÐí±»ÖÐ¶Ï*/
 #define __GFP_HIGH	((__force gfp_t)0x20u)	/* Should access emergency pools? */
 
-/*å†…æ ¸åœ¨æŸ¥æ‰¾ç©ºé—²é¡µè¿‡ç¨‹ä¸­å¯ä»¥è¿›è¡ŒI/Oæ“ä½œï¼Œå¦‚æ­¤å†…æ ¸å¯ä»¥å°†æ¢å‡ºçš„é¡µå†™åˆ°ç£ç›˜*/
+/*ÄÚºËÔÚ²éÕÒ¿ÕÏÐÒ³¹ý³ÌÖÐ¿ÉÒÔ½øÐÐI/O²Ù×÷£¬Èç´ËÄÚºË¿ÉÒÔ½«»»³öµÄÒ³Ð´µ½´ÅÅÌ*/
 #define __GFP_IO	((__force gfp_t)0x40u)	/* Can start physical IO? */
 
-/*æŸ¥æ‰¾ç©ºé—²é¡µçš„è¿‡ç¨‹ä¸­å…è®¸æ‰§è¡Œæ–‡ä»¶ç³»ç»Ÿç›¸å…³æ“ä½œ*/
+/*²éÕÒ¿ÕÏÐÒ³µÄ¹ý³ÌÖÐÔÊÐíÖ´ÐÐÎÄ¼þÏµÍ³Ïà¹Ø²Ù×÷*/
 #define __GFP_FS	((__force gfp_t)0x80u)	/* Can call down to low-level FS? */
 
-/*ä»Žéžç¼“å­˜çš„â€˜å†·é¡µâ€™ä¸­åˆ†é…*/
+/*´Ó·Ç»º´æµÄ¡®ÀäÒ³¡¯ÖÐ·ÖÅä*/
 #define __GFP_COLD	((__force gfp_t)0x100u)	/* Cache-cold page required */
 
-/*ç¦æ­¢åˆ†é…å¤±è´¥æ—¶çš„è­¦å‘Š*/
+/*½ûÖ¹·ÖÅäÊ§°ÜÊ±µÄ¾¯¸æ*/
 #define __GFP_NOWARN	((__force gfp_t)0x200u)	/* Suppress page allocation failure warning */
 
-/*å¦‚æžœåˆ†é…è¡Œä¸ºå¤±è´¥ï¼Œå¯ä»¥è‡ªåŠ¨å°è¯•å†æ¬¡åˆ†é…ï¼Œå°è¯•è‹¥å¹²æ¬¡åŽä¼šç»ˆæ­¢*/
+/*Èç¹û·ÖÅäÐÐÎªÊ§°Ü£¬¿ÉÒÔ×Ô¶¯³¢ÊÔÔÙ´Î·ÖÅä£¬³¢ÊÔÈô¸É´Îºó»áÖÕÖ¹*/
 #define __GFP_REPEAT	((__force gfp_t)0x400u)	/* See above */
 
-/* åˆ†é…å¤±è´¥åŽä¸€ç›´å°è¯•ï¼Œç›´åˆ°åˆ†é…æˆåŠŸä¸ºæ­¢ï¼Œåˆ†é…å‡½æ•°çš„è°ƒç”¨è€…æ— æ³•å¤„ç†åˆ†é…å¤±è´¥çš„æƒ…å†µï¼Œ
- * 2.6.39æ³¨é‡Šä»¥åŽæ–°ç‰ˆæœ¬ä¸å†ä½¿ç”¨è¯¥æŽ©ç */
+/* ·ÖÅäÊ§°ÜºóÒ»Ö±³¢ÊÔ£¬Ö±µ½·ÖÅä³É¹¦ÎªÖ¹£¬·ÖÅäº¯ÊýµÄµ÷ÓÃÕßÎÞ·¨´¦Àí·ÖÅäÊ§°ÜµÄÇé¿ö£¬
+ * 2.6.39×¢ÊÍÒÔºóÐÂ°æ±¾²»ÔÙÊ¹ÓÃ¸ÃÑÚÂë*/
 #define __GFP_NOFAIL	((__force gfp_t)0x800u)	/* See above */
 
-/*å¦‚æžœåˆ†é…å¤±è´¥ï¼Œä¸ä¼šè¿›è¡Œé‡è¯•æ“ä½œ*/
+/*Èç¹û·ÖÅäÊ§°Ü£¬²»»á½øÐÐÖØÊÔ²Ù×÷*/
 #define __GFP_NORETRY	((__force gfp_t)0x1000u)/* See above */
 
-/*å¢žåŠ ç¬¦åˆé¡µå…ƒæ•°æ®*/
+/*Ôö¼Ó·ûºÏÒ³ÔªÊý¾Ý*/
 #define __GFP_COMP	((__force gfp_t)0x4000u)/* Add compound page metadata */
 
-/*ç”¨0å¡«å……æˆåŠŸåˆ†é…å‡ºæ¥çš„ç‰©ç†é¡µ*/
+/*ÓÃ0Ìî³ä³É¹¦·ÖÅä³öÀ´µÄÎïÀíÒ³*/
 #define __GFP_ZERO	((__force gfp_t)0x8000u)/* Return zeroed page on success */
 
-/*ä¸è¦ä½¿ç”¨ä»…ç´§æ€¥åˆ†é…ä½¿ç”¨çš„ä¿ç•™åˆ†é…é“¾è¡¨*/
+/*²»ÒªÊ¹ÓÃ½ö½ô¼±·ÖÅäÊ¹ÓÃµÄ±£Áô·ÖÅäÁ´±í*/
 #define __GFP_NOMEMALLOC ((__force gfp_t)0x10000u) /* Don't use emergency reserves */
 
-/* åªèƒ½åœ¨å½“å‰è¿›ç¨‹å…è®¸è¿è¡Œçš„å„ä¸ªCPUæ‰€å…³è”çš„èŠ‚ç‚¹åˆ†é…å†…å­˜ï¼Œ
- * è¯¥æ ‡è¯†åªæœ‰åœ¨NUMAç³»ç»Ÿä¸Šæ‰æœ‰æ„ä¹‰*/
+/* Ö»ÄÜÔÚµ±Ç°½ø³ÌÔÊÐíÔËÐÐµÄ¸÷¸öCPUËù¹ØÁªµÄ½Úµã·ÖÅäÄÚ´æ£¬
+ * ¸Ã±êÊ¶Ö»ÓÐÔÚNUMAÏµÍ³ÉÏ²ÅÓÐÒâÒå*/
 #define __GFP_HARDWALL   ((__force gfp_t)0x20000u) /* Enforce hardwall cpuset memory allocs */
 #define __GFP_THISNODE	((__force gfp_t)0x40000u)/* No fallback, no policies */
 #define __GFP_RECLAIMABLE ((__force gfp_t)0x80000u) /* Page is reclaimable */
@@ -108,41 +108,41 @@ struct vm_area_struct;
 #define __GFP_BITS_SHIFT 22	/* Room for 22 __GFP_FOO bits */
 #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
 
-/*å¸¸è§çš„gfp_maskæŽ©ç */
+/*³£¼ûµÄgfp_maskÑÚÂë*/
 /* This equals 0, but use constants in case they ever change */
 #define GFP_NOWAIT	(GFP_ATOMIC & ~__GFP_HIGH)
 
 
 /*
- * åˆ†é…ä¼˜å…ˆçº§
- * __GFP_HIGHMEM:å…ˆåœ¨ZONE_HIGHMEMåŸŸä¸­æŸ¥æ‰¾ç©ºé—²é¡µï¼Œå¦‚æžœæ— æ³•æ»¡è¶³å½“å‰åˆ†é…ï¼Œ
- *    é¡µåˆ†é…å™¨åˆ°ZONE_NORMALåŸŸä¸­ç»§ç»­æŸ¥æ‰¾ï¼Œå¦‚æžœä¾ç„¶æ— æ³•æ»¡è¶³å½“å‰åˆ†é…ï¼Œ
-      åˆ†é…å™¨åˆ°ZONE_DMAåŸŸï¼Œæˆ–è€…æˆåŠŸæˆ–è€…å¤±è´¥ã€‚
- * __GFP_NORMAL:æ²¡æœ‰æŒ‡å®š__GFP_HIGHMEMæˆ–è€…__GFP_DMAé»˜è®¤ç›¸å½“äºŽ__GFP_NORMAL,å…¶æ¬¡åœ¨Z      ONE_DMAåŸŸ
- * __GFP_DMA:åªèƒ½åœ¨ZONE_DMAä¸­åˆ†é…ç‰©ç†é¡µé¢ï¼Œå¦‚æžœæ— æ³•æ»¡è¶³ï¼Œåˆ™åˆ†é…å¤±è´¥ã€‚
+ * ·ÖÅäÓÅÏÈ¼¶
+ * __GFP_HIGHMEM:ÏÈÔÚZONE_HIGHMEMÓòÖÐ²éÕÒ¿ÕÏÐÒ³£¬Èç¹ûÎÞ·¨Âú×ãµ±Ç°·ÖÅä£¬
+ *    Ò³·ÖÅäÆ÷µ½ZONE_NORMALÓòÖÐ¼ÌÐø²éÕÒ£¬Èç¹ûÒÀÈ»ÎÞ·¨Âú×ãµ±Ç°·ÖÅä£¬
+      ·ÖÅäÆ÷µ½ZONE_DMAÓò£¬»òÕß³É¹¦»òÕßÊ§°Ü¡£
+ * __GFP_NORMAL:Ã»ÓÐÖ¸¶¨__GFP_HIGHMEM»òÕß__GFP_DMAÄ¬ÈÏÏàµ±ÓÚ__GFP_NORMAL,Æä´ÎÔÚZ      ONE_DMAÓò
+ * __GFP_DMA:Ö»ÄÜÔÚZONE_DMAÖÐ·ÖÅäÎïÀíÒ³Ãæ£¬Èç¹ûÎÞ·¨Âú×ã£¬Ôò·ÖÅäÊ§°Ü¡£
  */
 
 /* GFP_ATOMIC means both !wait (__GFP_WAIT not set) and use emergency pool */
-/* å†…æ ¸æ¨¡å—ä¸­æœ€å¸¸ä½¿ç”¨çš„,ç”¨äºŽåŽŸå­åˆ†é…ï¼Œä¹Ÿæ˜¯ä¸Šé¢å‡ ä¸ªæŽ©ç ä¸­å”¯ä¸€ä¸å¸¦__GFP_WAITçš„
- * æ­¤æŽ©ç å‘Šè¯‰åˆ†é…å™¨ï¼Œåœ¨åˆ†é…å†…å­˜é¡µæ—¶ï¼Œç»å¯¹ä¸èƒ½ç»ˆç«¯å½“å‰è¿›åœºæˆ–è€…æŠŠå½“å‰è¿›åœºç§»å‡º
- * è°ƒåº¦å™¨ã€‚å¿…è¦çš„æƒ…å†µä¸‹å¯ä»¥ä½¿ç”¨ä»…é™ç´§æ€¥æƒ…å†µä½¿ç”¨çš„ä¿ç•™å†…å­˜é¡µã€‚åœ¨é©±åŠ¨ç¨‹åºä¸­ï¼Œ
- * ä¸€èˆ¬åœ¨ä¸­æ–­å¤„ç†ä¾‹ç¨‹æˆ–è€…éžè¿›åœºä¸Šä¸‹æ–‡çš„ä»£ç ä¸­ä½¿ç”¨GFP_ATOMICæŽ©ç è¿›è¡Œå†…å­˜åˆ†é…ï¼Œ
- * å› ä¸ºè¿™ä¸¤ç§æƒ…å†µä¸‹åˆ†é…éƒ½å¿…é¡»ä¿è¯å½“å‰è¿›ç¨‹ä¸èƒ½ç¡çœ */
+/* ÄÚºËÄ£¿éÖÐ×î³£Ê¹ÓÃµÄ,ÓÃÓÚÔ­×Ó·ÖÅä£¬Ò²ÊÇÉÏÃæ¼¸¸öÑÚÂëÖÐÎ¨Ò»²»´ø__GFP_WAITµÄ
+ * ´ËÑÚÂë¸æËß·ÖÅäÆ÷£¬ÔÚ·ÖÅäÄÚ´æÒ³Ê±£¬¾ø¶Ô²»ÄÜÖÕ¶Ëµ±Ç°½ø³¡»òÕß°Ñµ±Ç°½ø³¡ÒÆ³ö
+ * µ÷¶ÈÆ÷¡£±ØÒªµÄÇé¿öÏÂ¿ÉÒÔÊ¹ÓÃ½öÏÞ½ô¼±Çé¿öÊ¹ÓÃµÄ±£ÁôÄÚ´æÒ³¡£ÔÚÇý¶¯³ÌÐòÖÐ£¬
+ * Ò»°ãÔÚÖÐ¶Ï´¦ÀíÀý³Ì»òÕß·Ç½ø³¡ÉÏÏÂÎÄµÄ´úÂëÖÐÊ¹ÓÃGFP_ATOMICÑÚÂë½øÐÐÄÚ´æ·ÖÅä£¬
+ * ÒòÎªÕâÁ½ÖÖÇé¿öÏÂ·ÖÅä¶¼±ØÐë±£Ö¤µ±Ç°½ø³Ì²»ÄÜË¯Ãß*/
 #define GFP_ATOMIC	(__GFP_HIGH)
 
-/*GFP_NOIO GFP_NOFSéƒ½å¸¦æœ‰__GFP_WAIT,å› æ­¤å¯ä»¥è¢«ä¸­æ–­ï¼Œå‰è€…åœ¨åˆ†é…è¿‡ç¨‹ä¸­ç¦æ­¢I/Oæ“ä½œï¼ŒåŽè€…ç¦æ­¢æ–‡ä»¶ç³»ç»Ÿç›¸å…³çš„å‡½æ•°è°ƒç”¨*/
+/*GFP_NOIO GFP_NOFS¶¼´øÓÐ__GFP_WAIT,Òò´Ë¿ÉÒÔ±»ÖÐ¶Ï£¬Ç°ÕßÔÚ·ÖÅä¹ý³ÌÖÐ½ûÖ¹I/O²Ù×÷£¬ºóÕß½ûÖ¹ÎÄ¼þÏµÍ³Ïà¹ØµÄº¯Êýµ÷ÓÃ*/
 #define GFP_NOIO	(__GFP_WAIT)
 #define GFP_NOFS	(__GFP_WAIT | __GFP_IO)
 /* 
- * å†…æ ¸æ¨¡å—ä¸­æœ€å¸¸ä½¿ç”¨çš„æŽ©ç ä¹‹ä¸€ï¼Œå¸¦æœ‰è¯¥æŽ©ç çš„å†…å­˜åˆ†é…å¯èƒ½å¯¼è‡´å•ç­¾è¿›ç¨‹è¿›å…¥ç¡çœ çŠ¶æ€*/
+ * ÄÚºËÄ£¿éÖÐ×î³£Ê¹ÓÃµÄÑÚÂëÖ®Ò»£¬´øÓÐ¸ÃÑÚÂëµÄÄÚ´æ·ÖÅä¿ÉÄÜµ¼ÖÂµ¥Ç©½ø³Ì½øÈëË¯Ãß×´Ì¬*/
 #define GFP_KERNEL	(__GFP_WAIT | __GFP_IO | __GFP_FS)
 #define GFP_TEMPORARY	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
 			 __GFP_RECLAIMABLE)
 
-/*ç”¨äºŽä¸ºç”¨æˆ·ç©ºé—´åˆ†é…å†…å­˜é¡µï¼Œå¯èƒ½å¼•èµ·è¿›ç¨‹çš„ä¼‘çœ */
+/*ÓÃÓÚÎªÓÃ»§¿Õ¼ä·ÖÅäÄÚ´æÒ³£¬¿ÉÄÜÒýÆð½ø³ÌµÄÐÝÃß*/
 #define GFP_USER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
 
-/*å¯¹GFP_USERçš„ä¸€ä¸ªæ‰©å±•ï¼Œå¯ä»¥ä½¿ç”¨éžçº¿æ€§æ˜ å°„çš„é«˜ç«¯å†…å­˜*/
+/*¶ÔGFP_USERµÄÒ»¸öÀ©Õ¹£¬¿ÉÒÔÊ¹ÓÃ·ÇÏßÐÔÓ³ÉäµÄ¸ß¶ËÄÚ´æ*/
 #define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL | \
 			 __GFP_HIGHMEM)
 #define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
@@ -175,11 +175,11 @@ struct vm_area_struct;
 /* Flag - indicates that the buffer will be suitable for DMA.  Ignored on some
    platforms, used as appropriate on others */
 
-/*é™åˆ¶é¡µé¢åˆ†é…å™¨åªèƒ½åœ¨ZONE_DMAåŸŸä¸­åˆ†é…ç©ºé—²ç‰©ç†é¡µé¢ï¼Œç”¨äºŽåˆ†é…ä½¿ç”¨äºŽDMAç¼“å†²åŒºçš„å†…å­˜*/
+/*ÏÞÖÆÒ³Ãæ·ÖÅäÆ÷Ö»ÄÜÔÚZONE_DMAÓòÖÐ·ÖÅä¿ÕÏÐÎïÀíÒ³Ãæ£¬ÓÃÓÚ·ÖÅäÊ¹ÓÃÓÚDMA»º³åÇøµÄÄÚ´æ*/
 #define GFP_DMA		__GFP_DMA
 
 /* 4GB DMA on some platforms */
-/*åœ¨ZONE_DMA32æ ‡è¯†çš„å†…å­˜åŒºåŸŸä¸­æŸ¥æ‰¾ç©ºé—²é¡µ*/
+/*ÔÚZONE_DMA32±êÊ¶µÄÄÚ´æÇøÓòÖÐ²éÕÒ¿ÕÏÐÒ³*/
 #define GFP_DMA32	__GFP_DMA32	
 
 /* Convert GFP flags to their corresponding migrate type */
@@ -196,7 +196,7 @@ static inline int allocflags_to_migratetype(gfp_t gfp_flags)
 }
 
 #ifdef CONFIG_HIGHMEM
-#define OPT_ZONE_HIGHMEM ZONE_HIGHMEM/*åœ¨ZONE_HIGHMEMæ ‡è¯†çš„å†…å­˜åŒºåŸŸä¸­æŸ¥æ‰¾ç©ºé—²é¡µ*/
+#define OPT_ZONE_HIGHMEM ZONE_HIGHMEM/*ÔÚZONE_HIGHMEM±êÊ¶µÄÄÚ´æÇøÓòÖÐ²éÕÒ¿ÕÏÐÒ³*/
 #else
 #define OPT_ZONE_HIGHMEM ZONE_NORMAL/**/
 #endif
@@ -278,9 +278,9 @@ static inline int allocflags_to_migratetype(gfp_t gfp_flags)
 	| 1 << (__GFP_MOVABLE | __GFP_DMA32 | __GFP_DMA | __GFP_HIGHMEM)\
 )
 
-/* æ ¹æ®gfp_maskåˆ¶å®šåœ¨å›ŠäºŒåŸŸä¸­åˆ†é…ç‰©ç†é¡µé¢
- * å¦‚æžœæ²¡æœ‰åœ¨gfp_maskä¸­æ˜Žç¡®åˆ¶å®š__GFP_DMAæˆ–è€…__GFP_HIGHMEM,é‚£ä¹ˆé»˜è®¤åœ¨ZONE_NORMALä¸­åˆ†é…ç‰©ç†é¡µ
- * å¦‚æžœZONE_NORMALä¸­çŽ°æœ‰ç©ºé—²é¡µä¸è¶³ä»¥æ»¡è¶³å½“å‰çš„åˆ†é…ï¼Œé‚£ä¹ˆé¡µåˆ†é…å™¨ä¼šåˆ°ZONE_DMAåŸŸä¸­æŸ¥æ‰¾ç©ºé—²é¡µï¼Œè€Œä¸ä¼šåˆ°ZONE_HIGHMEMä¸­æŸ¥æ‰¾*/
+/* ¸ù¾Ýgfp_maskÖÆ¶¨ÔÚÄÒ¶þÓòÖÐ·ÖÅäÎïÀíÒ³Ãæ
+ * Èç¹ûÃ»ÓÐÔÚgfp_maskÖÐÃ÷È·ÖÆ¶¨__GFP_DMA»òÕß__GFP_HIGHMEM,ÄÇÃ´Ä¬ÈÏÔÚZONE_NORMALÖÐ·ÖÅäÎïÀíÒ³
+ * Èç¹ûZONE_NORMALÖÐÏÖÓÐ¿ÕÏÐÒ³²»×ãÒÔÂú×ãµ±Ç°µÄ·ÖÅä£¬ÄÇÃ´Ò³·ÖÅäÆ÷»áµ½ZONE_DMAÓòÖÐ²éÕÒ¿ÕÏÐÒ³£¬¶ø²»»áµ½ZONE_HIGHMEMÖÐ²éÕÒ*/
 static inline enum zone_type gfp_zone(gfp_t flags)
 {
 	enum zone_type z;
@@ -375,30 +375,36 @@ alloc_pages(gfp_t gfp_mask, unsigned int order)
 extern struct page *alloc_page_vma(gfp_t gfp_mask,
 			struct vm_area_struct *vma, unsigned long addr);
 #else
-/*é¡µé¢åˆ†é…å™¨,åˆ†é…2çš„orderæ¬¡æ–¹ä¸ªè¿žç»­çš„ç‰©ç†é¡µé¢å¹¶è¿”å›žèµ·å§‹é¡µçš„ pageå®žä¾‹*/
+/* Ò³Ãæ·ÖÅäÆ÷,·ÖÅä2^order¸öÁ¬ÐøµÄÒ³¿ò
+  * ·µ»ØµÚÒ»¸öËù·ÖÅäÒ³¿òÃèÊö·ûµÄµØÖ·
+  */
 #define alloc_pages(gfp_mask, order) \
 		alloc_pages_node(numa_node_id(), gfp_mask, order)
 #define alloc_page_vma(gfp_mask, vma, addr) alloc_pages(gfp_mask, 0)
 #endif
 
-/*åªç”¨äºŽåˆ†é…ä¸€ä¸ªç‰©ç†é¡µé¢ï¼Œalloc_page()æ˜¯order=0æ—¶alloc_pagesçš„ç®€åŒ–å½¢å¼ï¼Œ
-åªåˆ†é…å•ä¸ªé¡µé¢,å¦‚æžœç³»ç»Ÿæ²¡æœ‰è¶³å¤Ÿçš„ç©ºé—´æ»¡è¶³alloc_pageçš„åˆ†é…ï¼Œå‡½æ•°å°†è¿”å›žNULL*/
+/* Ö»ÓÃÓÚ·ÖÅäÒ»¸öÒ³¿ò£¬alloc_page()ÊÇorder=0Ê±alloc_pagesµÄ¼ò»¯ÐÎÊ½£¬
+  * Èç¹ûÏµÍ³Ã»ÓÐ×ã¹»µÄ¿Õ¼äÂú×ãalloc_pageµÄ·ÖÅä£¬º¯Êý½«·µ»ØNULL
+  * ·ñÔò·µ»ØËù·ÖÅäÒ³¿òÃèÊö·ûµÄµØÖ·
+  */
 #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
 
-/*è¯¥å‡½æ•°ä¸èƒ½åœ¨é«˜ç«¯å†…å­˜åˆ†é…é¡µé¢*/
+/* ¸Ãº¯ÊýÀàËÆalloc_pages,µ«Ëü·µ»ØµÚÒ»¸öËù·ÖÅäÒ³µÄÏßÐÔµØÖ·
+  * ¸Ãº¯Êý²»ÄÜÔÚ¸ß¶ËÄÚ´æ·ÖÅäÒ³Ãæ*/
 extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
+/* º¯ÊýÓÃÀ´»ñÈ¡ÌîÂú0µÄÒ³¿ò£¬·µ»ØËù»ñÈ¡Ò³¿òµÄÏßÐÔµØÖ· */
 extern unsigned long get_zeroed_page(gfp_t gfp_mask);
 
 void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
 void free_pages_exact(void *virt, size_t size);
 
 
-/* å¦‚æžœåªæƒ³åˆ†é…å•ä¸ªç‰©ç†é¡µé¢å¯ä»¥ç”¨è¿™ä¸ªå‡½æ•°ï¼Œä»–æ˜¯order=0æ—¶
- * __get_free_pagesçš„ç®€åŒ–å½¢å¼*/
+/* Èç¹ûÖ»Ïë·ÖÅäµ¥¸öÎïÀíÒ³Ãæ¿ÉÒÔÓÃÕâ¸öº¯Êý£¬ËûÊÇorder=0Ê±
+  * __get_free_pagesµÄ¼ò»¯ÐÎÊ½*/
 #define __get_free_page(gfp_mask) \
 		__get_free_pages((gfp_mask),0)
 
-/*ç”¨äºŽä»ŽZONE_DMAåŒºåŸŸä¸­åˆ†é…ç‰©ç†é¡µï¼Œè¿”å›žé¡µé¢æ‰€åœ¨çº¿æ€§åœ°å€*/
+/*ÓÃÓÚ´ÓZONE_DMAÇøÓòÖÐ·ÖÅäÎïÀíÒ³£¬·µ»ØÒ³ÃæËùÔÚÏßÐÔµØÖ·*/
 #define __get_dma_pages(gfp_mask, order) \
 		__get_free_pages((gfp_mask) | GFP_DMA,(order))
 
@@ -406,7 +412,9 @@ extern void __free_pages(struct page *page, unsigned int order);
 extern void free_pages(unsigned long addr, unsigned int order);
 extern void free_hot_page(struct page *page);
 
+//Õâ¸öºêÊÍ·ÅpageËùÖ¸ÃèÊö·û¶ÔÓ¦µÄÒ³¿ò
 #define __free_page(page) __free_pages((page), 0)
+//¸ÃºêÊÍ·ÅÏßÐÔµØÖ·Îªaddr¶ÔÓ¦µÄÒ³¿ò
 #define free_page(addr) free_pages((addr),0)
 
 void page_alloc_init(void);

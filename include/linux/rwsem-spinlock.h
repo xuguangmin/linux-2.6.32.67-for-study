@@ -5,7 +5,7 @@
  * - Derived also from comments by Linus
  */
 
- /*璇诲彇鑰呬笌鍐欏叆鑰呬俊鍙烽噺*/
+ /*读写信号量*/
 
 #ifndef _LINUX_RWSEM_SPINLOCK_H
 #define _LINUX_RWSEM_SPINLOCK_H
@@ -30,11 +30,11 @@ struct rwsem_waiter;
  * - if activity is -1 then there is one active writer
  * - if wait_list is not empty, then there are processes waiting for the semaphore
  */
- /*璇诲彇鑰呬笌鍐欏叆鑰呬俊鍙烽噺瀹氫箟*/
+ /*读写信号量定义*/
 struct rw_semaphore {
-	__s32			activity;
-	spinlock_t		wait_lock;
-	struct list_head	wait_list;
+	__s32			activity;//page216
+	spinlock_t		wait_lock;//自旋锁，用于保护等待队列链表和rw_semaphore结构本身
+	struct list_head	wait_list;//指向等待进程的链表
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	struct lockdep_map dep_map;
 #endif
@@ -55,7 +55,7 @@ struct rw_semaphore {
 
 extern void __init_rwsem(struct rw_semaphore *sem, const char *name,
 			 struct lock_class_key *key);
-
+//初始化信号量结构
 #define init_rwsem(sem)						\
 do {								\
 	static struct lock_class_key __key;			\

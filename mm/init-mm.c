@@ -7,10 +7,13 @@
 
 #include <asm/atomic.h>
 #include <asm/pgtable.h>
-
+/*
+  * 系统中所有的内核线程都共享同一个映射，即mm_struct类型的结构
+  * init_mm,内核线程init的mm_struct数据结构就是init_mm
+  */
 struct mm_struct init_mm = {
 	.mm_rb		= RB_ROOT,
-	.pgd		= swapper_pg_dir,
+	.pgd		= swapper_pg_dir, //使用页全局目录项初始化
 	.mm_users	= ATOMIC_INIT(2),
 	.mm_count	= ATOMIC_INIT(1),
 	.mmap_sem	= __RWSEM_INITIALIZER(init_mm.mmap_sem),

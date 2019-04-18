@@ -11,17 +11,17 @@
 
 #ifndef _STRUCT_TIMESPEC
 #define _STRUCT_TIMESPEC
-/*ä¸€èˆ¬ç”±å‡½æ•°int clock_gettime(clockid_t, struct timespec *)è·å–ç‰¹å®šæ—¶é’Ÿçš„æ—¶é—´*/
+/*Ò»°ãÓÉº¯Êıint clock_gettime(clockid_t, struct timespec *)»ñÈ¡ÌØ¶¨Ê±ÖÓµÄÊ±¼ä*/
 struct timespec {
-	__kernel_time_t	tv_sec;			/* ç§’   seconds */
-	long		tv_nsec;		/* çº³ç§’ nanoseconds */
+	__kernel_time_t	tv_sec;			/* Ãë   seconds */
+	long		tv_nsec;		/* ÄÉÃë nanoseconds */
 };
 #endif
 
-/*ä¸€èˆ¬ç”±å‡½æ•°int gettimeofday(struct timeval *tv, struct timezone *tz)è·å–ç³»ç»Ÿçš„æ—¶é—´ */
+/*Ò»°ãÓÉº¯Êıint gettimeofday(struct timeval *tv, struct timezone *tz)»ñÈ¡ÏµÍ³µÄÊ±¼ä */
 struct timeval {
-	__kernel_time_t		tv_sec;		/* ç§’   seconds */
-	__kernel_suseconds_t	tv_usec;	/* å¾®å¦™ microseconds */
+	__kernel_time_t		tv_sec;		/* Ãë   seconds */
+	__kernel_suseconds_t	tv_usec;	/* Î¢Ãî microseconds */
 };
 
 struct timezone {

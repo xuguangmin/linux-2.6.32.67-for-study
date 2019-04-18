@@ -117,8 +117,8 @@
  * The direct mapping extends to max_pfn_mapped, so that we can directly access
  * apertures, ACPI and other tables without having to play with fixmaps.
  */
-unsigned long max_low_pfn_mapped;
-unsigned long max_pfn_mapped;
+unsigned long max_low_pfn_mapped;  //被内核直接映射的最后一个页框的页框号
+unsigned long max_pfn_mapped;  //最后一个可用页框的页框号，这两个变量初始化时为同一个值
 
 RESERVE_BRK(dmi_alloc, 65536);
 

@@ -176,7 +176,7 @@ typedef __u16 __bitwise __sum16;
 typedef __u32 __bitwise __wsum;
 
 #ifdef __KERNEL__
-typedef unsigned __bitwise__ gfp_t;	/*瀹氫箟gfp_mask鍙橀噺*/
+typedef unsigned __bitwise__ gfp_t;	/*定义gfp_mask变量*/
 typedef unsigned __bitwise__ fmode_t;
 
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
@@ -187,7 +187,7 @@ typedef u32 phys_addr_t;
 
 typedef phys_addr_t resource_size_t;
 
-/*鍘熷瓙鍙橀噺, 鐩稿叧鎿嶄綔涓庡钩鍙扮浉鍏砤rch/arm/include/atomic.h*/
+/*原子变量, 相关操作与平台相关arch/arm/include/atomic.h*/
 typedef struct {
 	volatile int counter;
 } atomic_t;

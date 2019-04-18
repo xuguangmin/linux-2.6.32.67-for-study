@@ -60,7 +60,7 @@ void no_printk(const char *fmt, ...)
 void *high_memory;
 struct page *mem_map;
 unsigned long max_mapnr;
-unsigned long num_physpages;
+unsigned long num_physpages;  //最高可用页框的页框号
 unsigned long highest_memmap_pfn;
 struct percpu_counter vm_committed_as;
 int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */

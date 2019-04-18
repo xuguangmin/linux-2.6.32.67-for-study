@@ -240,6 +240,8 @@ void flush_tlb_current_task(void)
 	preempt_enable();
 }
 
+/* 刷新指定进程拥有的非全局页相关的所有TLB表项
+* 使用时机:创建一个新的子进程时*/
 void flush_tlb_mm(struct mm_struct *mm)
 {
 	preempt_disable();
@@ -284,6 +286,9 @@ static void do_flush_tlb_all(void *info)
 		leave_mm(cpu);
 }
 
+/* 刷新所有TLB表项(包括那些全局页对应的TLB表项，
+  * 即那些Global标志被置位的页)
+  * 使用时机:改变内核页表项时*/
 void flush_tlb_all(void)
 {
 	on_each_cpu(do_flush_tlb_all, NULL, 1);

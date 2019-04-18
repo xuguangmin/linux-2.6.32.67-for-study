@@ -9,7 +9,7 @@ typedef unsigned long	pmdval_t;
 typedef unsigned long	pudval_t;
 typedef unsigned long	pgdval_t;
 typedef unsigned long	pgprotval_t;
-
+//描述页表项
 typedef union {
 	pteval_t pte;
 	pteval_t pte_low;
@@ -20,11 +20,11 @@ typedef union {
 #define PAGETABLE_LEVELS	2
 
 /*
- * traditional i386 two-level paging structure:
+ * traditional i386 two-level paging structure:禁用PAE时
  */
 
-#define PGDIR_SHIFT	22
-#define PTRS_PER_PGD	1024
+#define PGDIR_SHIFT	22  //确定页全局目录项能映射的区域大小的对数
+#define PTRS_PER_PGD	1024  //计算页全局目录中其中表项的个数
 
 
 /*

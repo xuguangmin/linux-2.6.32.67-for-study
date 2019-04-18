@@ -98,16 +98,18 @@
  * until either the TLB entry is evicted under pressure, or a context
  * switch which changes the user space mapping occurs.
  */
-#define PTRS_PER_PTE		512
-#define PTRS_PER_PMD		1
-#define PTRS_PER_PGD		2048
+#define PTRS_PER_PTE		512  //计算页表中其中表项的个数
+#define PTRS_PER_PMD		1	//计算页中间目录其中表项的个数
+#define PTRS_PER_PGD		2048  //计算页全局目录中其中表项的个数
 
 /*
  * PMD_SHIFT determines the size of the area a second-level page table can map
  * PGDIR_SHIFT determines what a third-level page table entry can map
  */
-#define PMD_SHIFT		21
-#define PGDIR_SHIFT		21
+ 
+/* 指定线性地址的Offset字段和Table字段的总位数 */
+#define PMD_SHIFT		21    /*PAE被激活时，Offset的12位加Table的9位,PAE禁用时为12+10*/
+#define PGDIR_SHIFT		21  //确定页全局目录项能映射的区域大小的对数
 
 #define LIBRARY_TEXT_START	0x0c000000
 
@@ -257,12 +259,21 @@ extern struct page *empty_zero_page;
 
 #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
 #define pfn_pte(pfn,prot)	(__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot)))
-
+//表项值为0则返回1
 #define pte_none(pte)		(!pte_val(pte))
+//清除相应页表的一个表项
 #define pte_clear(mm,addr,ptep)	set_pte_ext(ptep, __pte(0), 0)
 #define pte_page(pte)		(pfn_to_page(pte_pfn(pte)))
+/*
+* 线性地址addr在页中间目录pmd中有一个对应的项,
+* 该宏就产生这个对应的项，即页表的线性地址。
+* 该宏只在主内核页表上使用
+*/
 #define pte_offset_kernel(dir,addr)	(pmd_page_vaddr(*(dir)) + __pte_index(addr))
 
+/* 接收一个指向页中间目录项的指针dir和线性地址addr
+ * 作为参数，产生线性地址addr对应的页表项的线性地
+ */
 #define pte_offset_map(dir,addr)	(__pte_map(dir, KM_PTE0) + __pte_index(addr))
 #define pte_offset_map_nested(dir,addr)	(__pte_map(dir, KM_PTE1) + __pte_index(addr))
 #define pte_unmap(pte)			__pte_unmap(pte, KM_PTE0)

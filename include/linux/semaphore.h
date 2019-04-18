@@ -11,21 +11,30 @@
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
+/*************     ÄÚºËÐÅºÅÁ¿   ********************/
+/* ÄÚºËÌá¹©ÁËÁ½ÖÖÐÅºÅÁ¿,´Ë´¦ÎªÄÚºËÐÅºÅÁ¿
+  * ÄÚºËÐÅºÅÁ¿:ÓÉÄÚºË¿ØÖÆÂ·¾¶Ê¹ÓÃ
+  *System V IPCÐÅºÅÁ¿:ÓÉÓÃ»§Ì¬½ø³ÌÊ¹ÓÃ
+  */
 
 /* Please don't access any members of this structure directly */
 /*
- * å…¶ä¸­lockæ˜¯ä¸ªè‡ªæ—‹é”å˜é‡,ç”¨äºŽå®žçŽ°å¯¹countçš„åŽŸå­æ“ä½œ
- * countç”¨äºŽè¡¨ç¤ºé€šè¿‡è¯¥ä¿¡å·é‡å…è®¸è¿›å…¥ä¸´ç•ŒåŒºçš„æ‰§è¡Œè·¯å¾„çš„ä¸ªæ•°
- * wait_listç”¨äºŽç®¡ç†æ‰€æœ‰åœ¨è¯¥ä¿¡å·é‡ä¸Šç¡çœ çš„è¿›ç¨‹ï¼Œ
-          æ— æ³•èŽ·å¾—è¯¥ä¿¡å·é‡çš„è¿›ç¨‹å°†è¿›å…¥ç¡çœ çŠ¶æ€
+ * ÆäÖÐlockÊÇ¸ö×ÔÐýËø±äÁ¿,ÓÃÓÚÊµÏÖ¶ÔcountµÄÔ­×Ó²Ù×÷
+ * countÓÃÓÚ±íÊ¾Í¨¹ý¸ÃÐÅºÅÁ¿ÔÊÐí½øÈëÁÙ½çÇøµÄÖ´ÐÐÂ·¾¶µÄ¸öÊý
+ * wait_listÓÃÓÚ¹ÜÀíËùÓÐÔÚ¸ÃÐÅºÅÁ¿ÉÏË¯ÃßµÄ½ø³Ì£¬
+          ÎÞ·¨»ñµÃ¸ÃÐÅºÅÁ¿µÄ½ø³Ì½«½øÈëË¯Ãß×´Ì¬
  */
 struct semaphore {
 	spinlock_t		lock;
+	/* > 0:ÐÅºÅÁ¿ÊÇ¿ÕÏÐµÄ
+	  * =0: ÐÅºÅÁ¿ÊÇÃ¦µÄ£¬µ«Ã»ÓÐ½ø³ÌµÈ´ýÕâ¸ö±»±£»¤µÄ×ÊÔ´
+	  * <0:×ÊÔ´ÊÇ²»¿ÉÓÃµÄ£¬²¢ÖÁÉÙÓÐÒ»¸ö½ø³ÌµÈ´ý×ÊÔ´
+	  */
 	unsigned int		count;
-	struct list_head	wait_list;
+	struct list_head	wait_list;//´æ·ÅµÈ´ý¶ÓÁÐÁ´±íµÄµØÖ·
 };
 
-/*å®Œæˆä¿¡å·é‡çš„åˆå§‹åŒ–*/
+/*Íê³ÉÐÅºÅÁ¿µÄ³õÊ¼»¯*/
 #define __SEMAPHORE_INITIALIZER(name, n)				\
 {									\
 	.lock		= __SPIN_LOCK_UNLOCKED((name).lock),		\
@@ -33,36 +42,38 @@ struct semaphore {
 	.wait_list	= LIST_HEAD_INIT((name).wait_list),		\
 }
 
-/*countå€¼ä¸º1,å®žçŽ°äº’æ–¥æœºåˆ¶,ä»»æ„æ—¶åˆ»åªå…è®¸ä¸€ä¸ªè¿›ç¨‹è¿›å…¥ä¸´ç•ŒåŒº*/
+/* countÖµÎª1,ÊµÏÖ»¥³â»úÖÆ,ÈÎÒâÊ±¿ÌÖ»ÔÊÐíÒ»¸ö½ø³Ì½øÈëÁÙ½çÇø
+  * ¾²Ì¬·ÖÅäÐÅºÅÁ¿²¢³õÊ¼»¯
+  */
 #define DECLARE_MUTEX(name)	\
 	struct semaphore name = __SEMAPHORE_INITIALIZER(name, 1)
 
-/*åˆå§‹åŒ–ä¿¡å·é‡*/
+/*³õÊ¼»¯ÐÅºÅÁ¿*/
 static inline void sema_init(struct semaphore *sem, int val)
 {
 	static struct lock_class_key __key;
-	/*åˆå§‹åŒ–ä¸»è¦å‡½æ•°*/
+	/*³õÊ¼»¯Ö÷Òªº¯Êý*/
 	*sem = (struct semaphore) __SEMAPHORE_INITIALIZER(*sem, val);
 	lockdep_init_map(&sem->lock.dep_map, "semaphore->lock", &__key, 0);
 }
-
+//³õÊ¼»¯ÐÅºÅÁ¿
 #define init_MUTEX(sem)		sema_init(sem, 1)
 #define init_MUTEX_LOCKED(sem)	sema_init(sem, 0)
 
-/*ä¸Ždown_interruptibleç›¸æ¯”ï¼Œdownæ˜¯ä¸å¯ä¸­æ–­çš„*/
+/*Óëdown_interruptibleÏà±È£¬downÊÇ²»¿ÉÖÐ¶ÏµÄ*/
 extern void down(struct semaphore *sem);
-/*å¯ä¸­æ–­çš„*/
+/*¿ÉÖÐ¶ÏµÄ*/
 extern int __must_check down_interruptible(struct semaphore *sem);
-/*ç¡çœ çš„è¿›ç¨‹å¯ä»¥å› æ”¶åˆ°ä¸€äº›è‡´å‘½æ€§ä¿¡å·è¢«å”¤é†’è€Œå¯¼è‡´èŽ·å–ä¿¡å·é‡çš„æ“ä½œå¤±è´¥ï¼Œæžå°‘ä½¿ç”¨*/
+/*Ë¯ÃßµÄ½ø³Ì¿ÉÒÔÒòÊÕµ½Ò»Ð©ÖÂÃüÐÔÐÅºÅ±»»½ÐÑ¶øµ¼ÖÂ»ñÈ¡ÐÅºÅÁ¿µÄ²Ù×÷Ê§°Ü£¬¼«ÉÙÊ¹ÓÃ*/
 extern int __must_check down_killable(struct semaphore *sem);
-/*è¿›ç¨‹è¯•å›¾èŽ·å¾—ä¿¡å·é‡ï¼Œè‹¥æ— æ³•èŽ·å¾—ç›´æŽ¥è¿”å›žï¼‘è€Œä¸è¿›å…¥ç¡çœ çŠ¶æ€ï¼›
-è¿”å›žï¼æ„å‘³ç€å‡½æ•°çš„è°ƒç”¨è€…å·²ç»èŽ·å¾—äº†ä¿¡å·é‡*/
+/*½ø³ÌÊÔÍ¼»ñµÃÐÅºÅÁ¿£¬ÈôÎÞ·¨»ñµÃÖ±½Ó·µ»Ø£±¶ø²»½øÈëË¯Ãß×´Ì¬£»
+·µ»Ø£°ÒâÎ¶×Åº¯ÊýµÄµ÷ÓÃÕßÒÑ¾­»ñµÃÁËÐÅºÅÁ¿*/
 extern int __must_check down_trylock(struct semaphore *sem);
-/* å‡½æ•°åœ¨æ— æ³•èŽ·å¾—ä¿¡å·é‡çš„æƒ…å†µä¸‹å°†è¿›å…¥ç¡çœ çŠ¶æ€ï¼Œä½†æ˜¯å¤„äºŽè¿™ç§ç¡çœ çŠ¶æ€æœ‰å®žé™…é™åˆ¶
- * å¦‚æžœjiffiesæŒ‡æ˜Žçš„å®žé™…åˆ°æœŸæ—¶å‡½æ•°ä¾ç„¶æ— æ³•èŽ·å¾—ä¿¡å·é‡ï¼Œåˆ™å°†è¿”å›žé”™è¯¯ç -ETIMEï¼Œ
- * åœ¨åˆ°æœŸå‰è¿›ç¨‹çš„ç¡çœ çŠ¶æ€ä¸ºTASK_UNINTERRUPTIBLEï¼ŒæˆåŠŸèŽ·å¾—ä¿¡å·é‡è¿”å›ž0.*/
+/* º¯ÊýÔÚÎÞ·¨»ñµÃÐÅºÅÁ¿µÄÇé¿öÏÂ½«½øÈëË¯Ãß×´Ì¬£¬µ«ÊÇ´¦ÓÚÕâÖÖË¯Ãß×´Ì¬ÓÐÊµ¼ÊÏÞÖÆ
+ * Èç¹ûjiffiesÖ¸Ã÷µÄÊµ¼Êµ½ÆÚÊ±º¯ÊýÒÀÈ»ÎÞ·¨»ñµÃÐÅºÅÁ¿£¬Ôò½«·µ»Ø´íÎóÂë-ETIME£¬
+ * ÔÚµ½ÆÚÇ°½ø³ÌµÄË¯Ãß×´Ì¬ÎªTASK_UNINTERRUPTIBLE£¬³É¹¦»ñµÃÐÅºÅÁ¿·µ»Ø0.*/
 extern int __must_check down_timeout(struct semaphore *sem, long jiffies);
-/*åªæœ‰ä¸€ä¸ªUPå‡½æ•°*/
+/*Ö»ÓÐÒ»¸öUPº¯Êý*/
 extern void up(struct semaphore *sem);
 
 #endif /* __LINUX_SEMAPHORE_H */

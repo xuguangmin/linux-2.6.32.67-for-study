@@ -207,7 +207,7 @@ void sched_clock_tick(void)
 
 	scd = this_scd();
 	now_gtod = ktime_to_ns(ktime_get());
-	now = sched_clock();
+	now = sched_clock();//转换为ns的TSC的当前值
 
 	scd->tick_raw = now;
 	scd->tick_gtod = now_gtod;

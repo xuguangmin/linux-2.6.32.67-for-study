@@ -20,9 +20,9 @@
 
 #include "internal.h"
 
-unsigned long max_low_pfn;
-unsigned long min_low_pfn;
-unsigned long max_pfn;
+unsigned long max_low_pfn;  //被内核直接映射的最后一个页框的页框号
+unsigned long min_low_pfn;  //ram中在内核映像后第一个可用页框的页框号
+unsigned long max_pfn; //最后一个可用页框的页框号
 
 #ifdef CONFIG_CRASH_DUMP
 /*

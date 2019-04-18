@@ -16,7 +16,7 @@ extern void __lockfunc __release_kernel_lock(void);
 	if (unlikely((tsk)->lock_depth >= 0))	\
 		__release_kernel_lock();	\
 } while (0)
-
+//获得大内核锁
 static inline int reacquire_kernel_lock(struct task_struct *task)
 {
 	if (unlikely(task->lock_depth >= 0))

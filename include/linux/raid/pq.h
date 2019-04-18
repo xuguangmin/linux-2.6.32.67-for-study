@@ -107,6 +107,8 @@ void raid6_dual_recov(int disks, size_t bytes, int faila, int failb,
 # define jiffies	raid6_jiffies()
 # define printk 	printf
 # define GFP_KERNEL	0
+/* 该函数类似alloc_pages,但它返回第一个所分配页的线性地址
+  * 该函数不能在高端内存分配页面*/
 # define __get_free_pages(x, y)	((unsigned long)mmap(NULL, PAGE_SIZE << (y), \
 						     PROT_READ|PROT_WRITE,   \
 						     MAP_PRIVATE|MAP_ANONYMOUS,\

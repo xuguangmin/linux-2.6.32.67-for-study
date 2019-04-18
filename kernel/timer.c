@@ -71,13 +71,13 @@ struct tvec_root {
 	struct list_head vec[TVR_SIZE];
 };
 
-/*ç”¨æ¥ç®¡ç†ç³»ç»Ÿä¸­æ·»åŠ çš„æ‰€æœ‰å®šæ—¶å™¨,å†…æ ¸ä¸ºç³»ç»Ÿä¸­çš„æ¯ä¸ªCPUéƒ½å®šä¹‰äº†ä¸€ä¸ªè¯¥ç±»å‹çš„å˜é‡*/
+/*ÓÃÀ´¹ÜÀíÏµÍ³ÖĞÌí¼ÓµÄËùÓĞ¶¨Ê±Æ÷,ÄÚºËÎªÏµÍ³ÖĞµÄÃ¿¸öCPU¶¼¶¨ÒåÁËÒ»¸ö¸ÃÀàĞÍµÄ±äÁ¿*/
 struct tvec_base {
 	spinlock_t lock;
-	struct timer_list *running_timer;
-	unsigned long timer_jiffies;
+	struct timer_list *running_timer;//Ö¸ÏòÓÉ±¾µØCPUµ±Ç°Õı´¦ÀíµÄ¶¯Ì¬¶¨Ê±Æ÷µÄtimer_list½á¹¹
+	unsigned long timer_jiffies;//ĞèÒª¼ì²éµÄ¶¯Ì¬¶¨Ê±Æ÷µÄ×îÔçµ½ÆÚÊ±¼ä
 	unsigned long next_timer;
-	/*tv1,tv2,tv3,tv4,tv5è¢«å†…æ ¸ç”¨æ¥å¯¹ç³»ç»Ÿä¸­æ³¨å†Œçš„å®šæ—¶å™¨è¿›è¡Œæ•£åˆ—å¼çš„ç®¡ç†*/
+	/*tv1,tv2,tv3,tv4,tv5±»ÄÚºËÓÃÀ´¶ÔÏµÍ³ÖĞ×¢²áµÄ¶¨Ê±Æ÷½øĞĞÉ¢ÁĞÊ½µÄ¹ÜÀí*/
 	struct tvec_root tv1;
 	struct tvec tv2;
 	struct tvec tv3;
@@ -87,7 +87,7 @@ struct tvec_base {
 
 struct tvec_base boot_tvec_bases;
 EXPORT_SYMBOL(boot_tvec_bases);
-/*å†…æ ¸ä¸ºç³»ç»Ÿä¸­çš„æ¯ä¸ªCPUéƒ½å®šä¹‰äº†ä¸€ä¸ªè¯¥ç±»å‹çš„å˜é‡*/
+/*ÄÚºËÎªÏµÍ³ÖĞµÄÃ¿¸öCPU¶¼¶¨ÒåÁËÒ»¸ö¸ÃÀàĞÍµÄ±äÁ¿*/
 static DEFINE_PER_CPU(struct tvec_base *, tvec_bases) = &boot_tvec_bases;
 
 /*
@@ -546,8 +546,8 @@ static inline void debug_deactivate(struct timer_list *timer)
 	trace_timer_cancel(timer);
 }
 
-/*ä¸»è¦åˆå§‹åŒ–å®šæ—¶å™¨å¯¹è±¡ä¸­ä¸å†…æ ¸å®ç°ç›¸å…³çš„æˆå‘˜,æ‰€ä»¥è®¾å¤‡é©±åŠ¨ç¨‹åºåœ¨å¼€å§‹ä½¿ç”¨å®šæ—¶å™¨å¯¹è±¡å‰åº”è¯¥
- *è°ƒç”¨innit_timer*/
+/*Ö÷Òª³õÊ¼»¯¶¨Ê±Æ÷¶ÔÏóÖĞÓëÄÚºËÊµÏÖÏà¹ØµÄ³ÉÔ±,ËùÒÔÉè±¸Çı¶¯³ÌĞòÔÚ¿ªÊ¼Ê¹ÓÃ¶¨Ê±Æ÷¶ÔÏóÇ°Ó¦¸Ã
+ *µ÷ÓÃinnit_timer*/
 static void __init_timer(struct timer_list *timer,
 			 const char *name,
 			 struct lock_class_key *key)
@@ -792,7 +792,7 @@ EXPORT_SYMBOL(mod_timer_pinned);
  * Timers with an ->expires field in the past will be executed in the next
  * timer tick.
  */
-/*å°†å®šæ—¶å™¨å¯¹è±¡åŠ å…¥åˆ°ç³»ç»Ÿä¸­,è¿™æ ·å®šæ—¶å™¨æ‰ä¼šåœ¨expiresè¡¨ç¤ºçš„æ—¶é—´ç‚¹åˆ°æœŸåè¢«è§¦å‘*/
+/*½«¶¨Ê±Æ÷¶ÔÏó¼ÓÈëµ½ÏµÍ³ÖĞ,ÕâÑù¶¨Ê±Æ÷²Å»áÔÚexpires±íÊ¾µÄÊ±¼äµãµ½ÆÚºó±»´¥·¢*/
 void add_timer(struct timer_list *timer)
 {
 	BUG_ON(timer_pending(timer));
@@ -972,7 +972,7 @@ static int cascade(struct tvec_base *base, struct tvec *tv, int index)
  * vectors.
  */
 /**
- *å‡½æ•°çš„æ•´ä½“æ€æƒ³æ˜¯,å¯¹tvec_basesç®¡ç†çš„å®šæ—¶å™¨é˜Ÿåˆ—è¿›è¡Œæ‰«æ,å¦‚æœå‘ç°æœ‰å®šæ—¶å™¨åˆ°æœŸ(time_after_eq),åˆ™è°ƒç”¨è¯¥å®šæ—¶å™¨å¯¹è±¡çš„fnå‡½æ•°()*/
+ *º¯ÊıµÄÕûÌåË¼ÏëÊÇ,¶Ôtvec_bases¹ÜÀíµÄ¶¨Ê±Æ÷¶ÓÁĞ½øĞĞÉ¨Ãè,Èç¹û·¢ÏÖÓĞ¶¨Ê±Æ÷µ½ÆÚ(time_after_eq),Ôòµ÷ÓÃ¸Ã¶¨Ê±Æ÷¶ÔÏóµÄfnº¯Êı()*/
 static inline void __run_timers(struct tvec_base *base)
 {
 	struct timer_list *timer;
@@ -1204,6 +1204,7 @@ unsigned long get_next_timer_interrupt(unsigned long now)
 /*
  * Called from the timer interrupt handler to charge one tick to the current
  * process.  user_tick is 1 if the tick is user time, 0 for system.
+ * ¸üĞÂÄÚºËÍ³¼ÆÊı
  */
 void update_process_times(int user_tick)
 {
@@ -1211,7 +1212,7 @@ void update_process_times(int user_tick)
 	int cpu = smp_processor_id();
 
 	/* Note: this timer irq context must be accounted for as well. */
-	account_process_tick(p, user_tick);
+	account_process_tick(p, user_tick); 
 	run_local_timers();
 	rcu_check_callbacks(cpu, user_tick);
 	printk_tick();
@@ -1221,8 +1222,8 @@ void update_process_times(int user_tick)
 
 /*
  * This function runs timers and the timer-tq in bottom half context.
- * å½“æ—¶é’Ÿä¸­æ–­çš„softirqéƒ¨åˆ†è¢«è°ƒåº¦æ‰§è¡Œæ—¶,å‡½æ•°è´Ÿè´£æ‰«ætvec_basesæ‰€åœ¨çš„å®šæ—¶å™¨ç®¡ç†é˜Ÿåˆ—,æ‰¾åˆ°
- * å·²ç»åˆ°æœŸçš„å‡½æ•°,ç„¶åè°ƒç”¨åˆ°æœŸå®šæ—¶å™¨å¯¹è±¡èŠ‚ç‚¹ä¸Šçš„å®šæ—¶å™¨å‡½æ•°
+ * µ±Ê±ÖÓÖĞ¶ÏµÄsoftirq²¿·Ö±»µ÷¶ÈÖ´ĞĞÊ±,º¯Êı¸ºÔğÉ¨Ãètvec_basesËùÔÚµÄ¶¨Ê±Æ÷¹ÜÀí¶ÓÁĞ,ÕÒµ½
+ * ÒÑ¾­µ½ÆÚµÄº¯Êı,È»ºóµ÷ÓÃµ½ÆÚ¶¨Ê±Æ÷¶ÔÏó½ÚµãÉÏµÄ¶¨Ê±Æ÷º¯Êı
  */
 static void run_timer_softirq(struct softirq_action *h)
 {
@@ -1233,7 +1234,7 @@ static void run_timer_softirq(struct softirq_action *h)
 	hrtimer_run_pending();
 
 	if (time_after_eq(jiffies, base->timer_jiffies))
-		/*å¯¹äºé‚£äº›åˆ°æœŸçš„å®šæ—¶å™¨é˜Ÿåˆ—è°ƒç”¨åé¢çš„å‡½æ•°è¿›ä¸€æ­¥å¤„ç†*/
+		/*¶ÔÓÚÄÇĞ©µ½ÆÚµÄ¶¨Ê±Æ÷¶ÓÁĞµ÷ÓÃºóÃæµÄº¯Êı½øÒ»²½´¦Àí*/
 		__run_timers(base);
 }
 
@@ -1403,7 +1404,7 @@ signed long __sched schedule_timeout(signed long timeout)
 		}
 	}
 
-	/*å½“expireæŒ‡å®šçš„æ—¶é’Ÿæ»´ç­”åˆ°æœŸæ—¶,setup_timer_on_stackå‡½æ•°è°ƒç”¨çš„ç¬¬äºŒä¸ªå‚æ•°process_timeoutä¼šè¢«è°ƒç”¨,åŒæ—¶æŒ‡å‘å½“å‰è¿›ç¨‹çš„currentæŒ‡é’ˆä½œä¸ºç¬¬ä¸‰ä¸ªå®å‚ä¼ ç»™äº†setup_timer_on_stack*/
+	/*µ±expireÖ¸¶¨µÄÊ±ÖÓµÎ´ğµ½ÆÚÊ±,setup_timer_on_stackº¯Êıµ÷ÓÃµÄµÚ¶ş¸ö²ÎÊıprocess_timeout»á±»µ÷ÓÃ,Í¬Ê±Ö¸Ïòµ±Ç°½ø³ÌµÄcurrentÖ¸Õë×÷ÎªµÚÈı¸öÊµ²Î´«¸øÁËsetup_timer_on_stack*/
 	expire = timeout + jiffies;
 
 	setup_timer_on_stack(&timer, process_timeout, (unsigned long)current);
@@ -1439,10 +1440,10 @@ signed long __sched schedule_timeout_killable(signed long timeout)
 }
 EXPORT_SYMBOL(schedule_timeout_killable);
 
-/*é‡Šæ”¾å¤„ç†å™¨,åŒæ—¶ä¼šå°†å½“å‰è¿›ç¨‹ä»cpuè¿è¡Œé˜Ÿåˆ—ä¸­ç§»å‡º*/
+/*ÊÍ·Å´¦ÀíÆ÷,Í¬Ê±»á½«µ±Ç°½ø³Ì´ÓcpuÔËĞĞ¶ÓÁĞÖĞÒÆ³ö*/
 signed long __sched schedule_timeout_uninterruptible(signed long timeout)
 {
-	/*è®¾ç½®å½“å‰è¿›ç¨‹ä¸å¯ä¸­æ–­çš„,ç¡®ä¿è¿›ç¨‹è‡³å°‘ä¼‘çœ ç”¨å‚æ•°msecsæŒ‡å®šçš„æ—¶é—´*/
+	/*ÉèÖÃµ±Ç°½ø³Ì²»¿ÉÖĞ¶ÏµÄ,È·±£½ø³ÌÖÁÉÙĞİÃßÓÃ²ÎÊımsecsÖ¸¶¨µÄÊ±¼ä*/
 	__set_current_state(TASK_UNINTERRUPTIBLE);
 	return schedule_timeout(timeout);
 }
@@ -1666,7 +1667,7 @@ static struct notifier_block __cpuinitdata timers_nb = {
 };
 
 
-/*æ—¶é’Ÿä¸­æ–­çš„softirqä¸ºTIMER_SOFTIRQ,å¯¹åº”çš„è½¯ä¸­æ–­å¤„ç†å‡½æ•°çš„å®‰è£…å‘ç”Ÿåœ¨è¯¥å‡½æ•°ä¸­*/
+/*Ê±ÖÓÖĞ¶ÏµÄsoftirqÎªTIMER_SOFTIRQ,¶ÔÓ¦µÄÈíÖĞ¶Ï´¦Àíº¯ÊıµÄ°²×°·¢ÉúÔÚ¸Ãº¯ÊıÖĞ*/
 void __init init_timers(void)
 {
 	int err = timer_cpu_notify(&timers_nb, (unsigned long)CPU_UP_PREPARE,
@@ -1676,9 +1677,9 @@ void __init init_timers(void)
 
 	BUG_ON(err == NOTIFY_BAD);
 	register_cpu_notifier(&timers_nb);
-	/*å½“æ—¶é’Ÿä¸­æ–­çš„softirqè¢«è°ƒåº¦æ‰§è¡Œæ—¶,å®ƒå°†è¿è¡Œå¯¹åº”çš„run_timer_softirqå‡½æ•°
-	 *åœ¨ç»™ä¸ªæ—¶é’Ÿä¸­æ–­å¤„ç†çš„ä¸ŠåŠéƒ¨åˆ†,éƒ½ä¼šè°ƒç”¨run_local_timers,åè€…åˆ™é€šè¿‡raise_softirq
-	 *å‡½æ•°æ¥è§¦å‘æ—¶é’Ÿä¸­æ–­çš„softirqéƒ¨åˆ†*/
+	/*µ±Ê±ÖÓÖĞ¶ÏµÄsoftirq±»µ÷¶ÈÖ´ĞĞÊ±,Ëü½«ÔËĞĞ¶ÔÓ¦µÄrun_timer_softirqº¯Êı
+	 *ÔÚ¸ø¸öÊ±ÖÓÖĞ¶Ï´¦ÀíµÄÉÏ°ë²¿·Ö,¶¼»áµ÷ÓÃrun_local_timers,ºóÕßÔòÍ¨¹ıraise_softirq
+	 *º¯ÊıÀ´´¥·¢Ê±ÖÓÖĞ¶ÏµÄsoftirq²¿·Ö*/
 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq);
 }
 
@@ -1686,13 +1687,13 @@ void __init init_timers(void)
  * msleep - sleep safely even with waitqueue interruptions
  * @msecs: Time in milliseconds to sleep for
  */
-/*åŸºäºschedule_timeoutç‰ˆæœ¬å®ç°çš„æ¯«ç§’çº§ç¡çœ çš„å‡½æ•°*/
+/*»ùÓÚschedule_timeout°æ±¾ÊµÏÖµÄºÁÃë¼¶Ë¯ÃßµÄº¯Êı*/
 void msleep(unsigned int msecs)
 {
 	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
 
 	while (timeout)
-		/*é‡Šæ”¾å¤„ç†å™¨,åŒæ—¶ä¼šå°†å½“å‰è¿›ç¨‹ä»cpuè¿è¡Œé˜Ÿåˆ—ä¸­ç§»å‡º*/
+		/*ÊÍ·Å´¦ÀíÆ÷,Í¬Ê±»á½«µ±Ç°½ø³Ì´ÓcpuÔËĞĞ¶ÓÁĞÖĞÒÆ³ö*/
 		timeout = schedule_timeout_uninterruptible(timeout);
 }
 
@@ -1706,7 +1707,7 @@ unsigned long msleep_interruptible(unsigned int msecs)
 {
 	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
 
-	/*è¿›ç¨‹å¯ä¸­æ–­,å¦‚æœåœ¨msecsæŒ‡å®šçš„å»¶è¿Ÿæ—¶é—´åˆ°æœŸä¹‹å‰,è¿›ç¨‹å› ä¸ºæ¥æ”¶åˆ°äº†ä¿¡å·è€Œè¢«å”¤é†’,whileå¾ªç¯ä¸­çš„signal_pendingå°†è¿”å›true,é‚£ä¹ˆschedule_timeout_interruptibleå°†è¿”å›åŸå…ˆæŒ‡å®šä¼‘çœ æ—¶é—´msecsçš„å‰©ä½™æ—¶é—´å€¼,æ„å‘³ç€msleep_interruptibleæ— æ³•ä¿è¯è¿›ç¨‹å®Œæ•´çš„ä¼‘çœ äº†æŒ‡å®šçš„æ—¶é—´å€¼*/
+	/*½ø³Ì¿ÉÖĞ¶Ï,Èç¹ûÔÚmsecsÖ¸¶¨µÄÑÓ³ÙÊ±¼äµ½ÆÚÖ®Ç°,½ø³ÌÒòÎª½ÓÊÕµ½ÁËĞÅºÅ¶ø±»»½ĞÑ,whileÑ­»·ÖĞµÄsignal_pending½«·µ»Øtrue,ÄÇÃ´schedule_timeout_interruptible½«·µ»ØÔ­ÏÈÖ¸¶¨ĞİÃßÊ±¼ämsecsµÄÊ£ÓàÊ±¼äÖµ,ÒâÎ¶×Åmsleep_interruptibleÎŞ·¨±£Ö¤½ø³ÌÍêÕûµÄĞİÃßÁËÖ¸¶¨µÄÊ±¼äÖµ*/
 	while (timeout && !signal_pending(current))
 		timeout = schedule_timeout_interruptible(timeout);
 	return jiffies_to_msecs(timeout);

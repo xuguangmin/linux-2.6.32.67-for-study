@@ -23,7 +23,7 @@
 unsigned long			tick_usec = TICK_USEC;
 
 /* ACTHZ period (nsecs): */
-unsigned long			tick_nsec;
+unsigned long			tick_nsec;	//时钟中断节拍频率，ns
 
 u64				tick_length;
 static u64			tick_length_base;

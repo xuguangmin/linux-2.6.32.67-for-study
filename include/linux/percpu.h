@@ -26,10 +26,12 @@
  * Must be an lvalue. Since @var must be a simple identifier,
  * we force a syntax error here if it isn't.
  */
+ /* 先禁用内核抢占，然后在每CPU数组name中为本地CPU选择元素 */
 #define get_cpu_var(var) (*({				\
 	extern int simple_identifier_##var(void);	\
 	preempt_disable();				\
 	&__get_cpu_var(var); }))
+// 启用内核抢占
 #define put_cpu_var(var) preempt_enable()
 
 #ifdef CONFIG_SMP
@@ -127,6 +129,7 @@ extern int __init pcpu_page_first_chunk(size_t reserved_size,
  * dynamically allocated. Non-atomic access to the current CPU's
  * version should probably be combined with get_cpu()/put_cpu().
  */
+ /* 返回每CPU数组中与参数cpu对应的CPU元素地址，参数ptr给出数组地址 */
 #define per_cpu_ptr(ptr, cpu)	SHIFT_PERCPU_PTR((ptr), per_cpu_offset((cpu)))
 
 extern void *__alloc_reserved_percpu(size_t size, size_t align);
@@ -143,7 +146,7 @@ struct percpu_data {
 #else
 #define __percpu_disguise(pdata) (struct percpu_data *)(pdata)
 #endif
-
+/* 返回每CPU数组中与参数cpu对应的CPU元素地址，参数ptr给出数组地址 */
 #define per_cpu_ptr(ptr, cpu)						\
 ({									\
         struct percpu_data *__p = __percpu_disguise(ptr);		\
@@ -153,6 +156,7 @@ struct percpu_data {
 #endif /* CONFIG_HAVE_LEGACY_PER_CPU_AREA */
 
 extern void *__alloc_percpu(size_t size, size_t align);
+/* 释放被动态分配的每cpu数组，ptr指示其地址 */
 extern void free_percpu(void *__pdata);
 
 #ifndef CONFIG_HAVE_SETUP_PER_CPU_AREA
@@ -160,7 +164,7 @@ extern void __init setup_per_cpu_areas(void);
 #endif
 
 #else /* CONFIG_SMP */
-
+/* 返回每CPU数组中与参数cpu对应的CPU元素地址，参数ptr给出数组地址 */
 #define per_cpu_ptr(ptr, cpu) ({ (void)(cpu); (ptr); })
 
 static inline void *__alloc_percpu(size_t size, size_t align)
@@ -173,7 +177,7 @@ static inline void *__alloc_percpu(size_t size, size_t align)
 	WARN_ON_ONCE(align > SMP_CACHE_BYTES);
 	return kzalloc(size, GFP_KERNEL);
 }
-
+/* 释放被动态分配的每cpu数组，ptr指示其地址 */
 static inline void free_percpu(void *p)
 {
 	kfree(p);
@@ -187,7 +191,7 @@ static inline void *pcpu_lpage_remapped(void *kaddr)
 }
 
 #endif /* CONFIG_SMP */
-
+/* 动态分配type类型数据结构的每CPU数组，并返回它的地址 */
 #define alloc_percpu(type)	(type *)__alloc_percpu(sizeof(type), \
 						       __alignof__(type))
 

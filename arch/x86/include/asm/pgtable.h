@@ -29,20 +29,24 @@ extern struct list_head pgd_list;
 #ifdef CONFIG_PARAVIRT
 #include <asm/paravirt.h>
 #else  /* !CONFIG_PARAVIRT */
-#define set_pte(ptep, pte)		native_set_pte(ptep, pte)
+#define set_pte(ptep, pte)		native_set_pte(ptep, pte)  //向一个页表项中写入指定的值
 #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
 
+//作用与set_pte相同，当PAE激活时，能保证64位的值被原子的写入
 #define set_pte_atomic(ptep, pte)					\
 	native_set_pte_atomic(ptep, pte)
 
+//向一个页表项中写入指定的值
 #define set_pmd(pmdp, pmd)		native_set_pmd(pmdp, pmd)
 
 #ifndef __PAGETABLE_PUD_FOLDED
+//向一个页表项中写入指定的值
 #define set_pgd(pgdp, pgd)		native_set_pgd(pgdp, pgd)
 #define pgd_clear(pgd)			native_pgd_clear(pgd)
 #endif
 
 #ifndef set_pud
+//向一个页表项中写入指定的值
 # define set_pud(pudp, pud)		native_set_pud(pudp, pud)
 #endif
 
@@ -56,21 +60,21 @@ extern struct list_head pgd_list;
 #define pte_update(mm, addr, ptep)              do { } while (0)
 #define pte_update_defer(mm, addr, ptep)        do { } while (0)
 
-#define pgd_val(x)	native_pgd_val(x)
-#define __pgd(x)	native_make_pgd(x)
+#define pgd_val(x)	native_pgd_val(x)   // 把一个特定类型转换成无符号整数
+#define __pgd(x)	native_make_pgd(x)  // 把一个无符号整数转换成所需的类型
 
 #ifndef __PAGETABLE_PUD_FOLDED
-#define pud_val(x)	native_pud_val(x)
-#define __pud(x)	native_make_pud(x)
+#define pud_val(x)	native_pud_val(x)    // 把一个特定类型转换成无符号整数
+#define __pud(x)	native_make_pud(x)  // 把一个无符号整数转换成所需的类型
 #endif
 
 #ifndef __PAGETABLE_PMD_FOLDED
-#define pmd_val(x)	native_pmd_val(x)
-#define __pmd(x)	native_make_pmd(x)
+#define pmd_val(x)	native_pmd_val(x)   // 把一个特定类型转换成无符号整数
+#define __pmd(x)	native_make_pmd(x)   // 把一个无符号整数转换成所需的类型
 #endif
 
-#define pte_val(x)	native_pte_val(x)
-#define __pte(x)	native_make_pte(x)
+#define pte_val(x)	native_pte_val(x)   // 把一个特定类型转换成无符号整数
+#define __pte(x)	native_make_pte(x)  // 把一个无符号整数转换成所需的类型
 
 #define arch_end_context_switch(prev)	do {} while(0)
 
@@ -134,9 +138,9 @@ static inline unsigned long pud_pfn(pud_t pud)
 {
 	return (pud_val(pud) & PTE_PFN_MASK) >> PAGE_SHIFT;
 }
-
+/*返回页表项pte所引用页的描述符地址*/
 #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
-
+//如果一个页中间目录项指向一个大型页(2MB或4MB)返回1
 static inline int pmd_large(pmd_t pte)
 {
 	return (pmd_flags(pte) & (_PAGE_PSE | _PAGE_PRESENT)) ==
@@ -308,13 +312,14 @@ pte_t *populate_extra_pte(unsigned long vaddr);
 
 #ifndef __ASSEMBLY__
 #include <linux/mm_types.h>
-
+//如果相应的表项值为0，则返回1
 static inline int pte_none(pte_t pte)
 {
 	return !pte.pte;
 }
 
 #define __HAVE_ARCH_PTE_SAME
+//如果a和b两个页表项指向同一页，并且指定相同的访问优先级，则返回1
 static inline int pte_same(pte_t a, pte_t b)
 {
 	return a.pte == b.pte;
@@ -350,6 +355,8 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 /*
  * Currently stuck as a macro due to indirect forward reference to
  * linux/mmzone.h's __section_mem_map_addr() definition:
+ * 通过页页中间目录项pmd产生相应页表的页描述符地址
+ * 在两级或三级分页系统中pmd实际上是也全局目录中的一项
  */
 #define pmd_page(pmd)	pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT)
 
@@ -358,6 +365,7 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
  *
  * this macro returns the index of the entry in the pmd page which would
  * control the given virtual address
+ * 产生线性地址addr在页中间目录中所对应目录项的索引
  */
 static inline unsigned long pmd_index(unsigned long address)
 {
@@ -370,6 +378,7 @@ static inline unsigned long pmd_index(unsigned long address)
  *
  * (Currently stuck as a macro because of indirect forward reference
  * to linux/mm.h:page_to_nid())
+ * 根据页描述符地址p和一组存取权限prot创建相应页表项
  */
 #define mk_pte(page, pgprot)   pfn_pte(page_to_pfn(page), (pgprot))
 
@@ -378,17 +387,22 @@ static inline unsigned long pmd_index(unsigned long address)
  *
  * this function returns the index of the entry in the pte page which would
  * control the given virtual address
+ * 线性地址addr对应的表项在页表中的索引
  */
 static inline unsigned long pte_index(unsigned long address)
 {
 	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
 }
-
+/*
+  * 线性地址addr在页中间目录pmd中有一个对应的项,
+  * 该宏就产生这个对应的项，即页表的线性地址。
+  * 该宏只在主内核页表上使用
+  */
 static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
 {
 	return (pte_t *)pmd_page_vaddr(*pmd) + pte_index(address);
 }
-
+//判断页目录中间项是一个不能使用的页表
 static inline int pmd_bad(pmd_t pmd)
 {
 	return (pmd_flags(pmd) & ~_PAGE_USER) != _KERNPG_TABLE;
@@ -403,6 +417,7 @@ static inline unsigned long pages_to_mb(unsigned long npg)
 	remap_pfn_range(vma, vaddr, pfn, size, prot)
 
 #if PAGETABLE_LEVELS > 2
+//相应的表项值为0返回1
 static inline int pud_none(pud_t pud)
 {
 	return native_pud_val(pud) == 0;
@@ -421,10 +436,14 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
 /*
  * Currently stuck as a macro due to indirect forward reference to
  * linux/mmzone.h's __section_mem_map_addr() definition:
+ * 通过页上级目录项pud产生相应的页中间目录的线性地址
+ * 在两级分页系统中，该宏等价于pmd_page()
  */
 #define pud_page(pud)		pfn_to_page(pud_val(pud) >> PAGE_SHIFT)
 
-/* Find an entry in the second-level page table.. */
+/* Find an entry in the second-level page table.. 
+  * 这个宏产生目录项addr在页中间目录中的偏移地址
+  */
 static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
 {
 	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
@@ -461,6 +480,8 @@ static inline unsigned long pgd_page_vaddr(pgd_t pgd)
 /*
  * Currently stuck as a macro due to indirect forward reference to
  * linux/mmzone.h's __section_mem_map_addr() definition:
+ * 通过页全局目录pgd产生页上级目录所在页框的页描述符地址
+ * 在两级或三级分页系统中，该宏等价于pud_page(),后者应用于页上级目录
  */
 #define pgd_page(pgd)		pfn_to_page(pgd_val(pgd) >> PAGE_SHIFT)
 
@@ -470,6 +491,10 @@ static inline unsigned long pud_index(unsigned long address)
 	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
 }
 
+/* 接收指向页全局目录项的指针pgd和线性地址addr作为参数。
+  * 该宏产生页上级目录项中目录项addr对应的线性地址，
+  * 在两级或三级分页系统中该宏产生pgd，即一个页全局目录项的地址
+  */
 static inline pud_t *pud_offset(pgd_t *pgd, unsigned long address)
 {
 	return (pud_t *)pgd_page_vaddr(*pgd) + pud_index(address);
@@ -493,17 +518,24 @@ static inline int pgd_none(pgd_t pgd)
  *
  * this macro returns the index of the entry in the pgd page which would
  * control the given virtual address
+ * 找到线性地址addr对应的目录项在页全局目录中的索引
  */
-#define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+#define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1)) 
 
 /*
  * pgd_offset() returns a (pgd_t *)
  * pgd_index() is used get the offset into the pgd page's array of pgd_t's;
+ * 接收内存描述符和线性地址addr作为参数。这个宏
+ * 产生地址addr在页全局目录中相应表项的线性地址
+ * ;通过内存描述符mm内的一个指针可以找到这个页
+ * 全局目录
  */
 #define pgd_offset(mm, address) ((mm)->pgd + pgd_index((address)))
 /*
  * a shortcut which implies the use of the kernel's pgd, instead
  * of a process's
+ * 产生主内核页全局目录中的某个项的线性地址，
+ * 该项对应于地址addr
  */
 #define pgd_offset_k(address) pgd_offset(&init_mm, (address))
 
@@ -572,6 +604,7 @@ extern int ptep_clear_flush_young(struct vm_area_struct *vma,
 				  unsigned long address, pte_t *ptep);
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+//清除页表项并返回前一个值
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 				       pte_t *ptep)
 {

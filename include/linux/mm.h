@@ -512,6 +512,7 @@ static inline void set_compound_order(struct page *page, unsigned long order)
 #define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
 #define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
 
+//返回页所在的管理区索引号
 static inline enum zone_type page_zonenum(struct page *page)
 {
 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
@@ -542,12 +543,18 @@ static inline int zone_to_nid(struct zone *zone)
 #ifdef NODE_NOT_IN_PAGE_FLAGS
 extern int page_to_nid(struct page *page);
 #else
+// 计算页描述符所在的节点索引ID
 static inline int page_to_nid(struct page *page)
 {
 	return (page->flags >> NODES_PGSHIFT) & NODES_MASK;
 }
 #endif
 
+/* @page : 页描述符的地址
+  * 读取页描述符中的flags字段的最高位，然后通过查看
+  * node_data数组来确定相应管理区描述符的地址。
+  * 在启动时用所有内存节点的所有管理区描述符的地址初始化这个数组
+  */
 static inline struct zone *page_zone(struct page *page)
 {
 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
@@ -562,8 +569,8 @@ static inline unsigned long page_to_section(struct page *page)
 
 static inline void set_page_zone(struct page *page, enum zone_type zone)
 {
-	page->flags &= ~(ZONES_MASK << ZONES_PGSHIFT);
-	page->flags |= (zone & ZONES_MASK) << ZONES_PGSHIFT;
+	page->flags &= ~(ZONES_MASK << ZONES_PGSHIFT); // 先清零
+	page->flags |= (zone & ZONES_MASK) << ZONES_PGSHIFT;  //再设置
 }
 
 static inline void set_page_node(struct page *page, unsigned long node)
@@ -983,6 +990,7 @@ static inline void pgtable_page_dtor(struct page *page)
 	pte_unmap(pte);					\
 } while (0)
 
+//产生线性地址addr对应的页表项的线性地址
 #define pte_alloc_map(mm, pmd, address)			\
 	((unlikely(!pmd_present(*(pmd))) && __pte_alloc(mm, pmd, address))? \
 		NULL: pte_offset_map(pmd, address))
@@ -991,6 +999,9 @@ static inline void pgtable_page_dtor(struct page *page)
 	((unlikely(!pmd_present(*(pmd))) && __pte_alloc(mm, pmd, address))? \
 		NULL: pte_offset_map_lock(mm, pmd, address, ptlp))
 
+/*如果与地址addr相关的页中间目录项pmd为空，该函数
+ * 分配一个新页表，然后返回于addr相关的页表项的线性地址。
+ * 该函数仅被主内核页表使用*/
 #define pte_alloc_kernel(pmd, address)			\
 	((unlikely(!pmd_present(*(pmd))) && __pte_alloc_kernel(pmd, address))? \
 		NULL: pte_offset_kernel(pmd, address))
@@ -1147,7 +1158,7 @@ extern unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 extern unsigned long mmap_region(struct file *file, unsigned long addr,
 	unsigned long len, unsigned long flags,
 	unsigned int vm_flags, unsigned long pgoff);
-
+//分配一个vm_area_struct
 static inline unsigned long do_mmap(struct file *file, unsigned long addr,
 	unsigned long len, unsigned long prot,
 	unsigned long flag, unsigned long offset)

@@ -67,6 +67,7 @@ u64 native_sched_clock(void)
 /* We need to define a real function for sched_clock, to override the
    weak default version */
 #ifdef CONFIG_PARAVIRT
+//返回转换为ns的TSC的当前值
 unsigned long long sched_clock(void)
 {
 	return paravirt_sched_clock();
@@ -401,6 +402,7 @@ success:
 
 /**
  * native_calibrate_tsc - calibrate the tsc on boot
+ * 计算出CPU频率
  */
 unsigned long native_calibrate_tsc(void)
 {

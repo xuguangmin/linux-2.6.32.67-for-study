@@ -49,7 +49,7 @@
 	__young;							\
 })
 #endif
-
+//清除页表项并返回前一个值
 #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
 #define ptep_get_and_clear(__mm, __address, __ptep)			\
 ({									\

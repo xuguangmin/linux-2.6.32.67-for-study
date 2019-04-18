@@ -21,7 +21,7 @@ extern pmd_t level2_fixmap_pgt[512];
 extern pmd_t level2_ident_pgt[512];
 extern pgd_t init_level4_pgt[];
 
-#define swapper_pg_dir init_level4_pgt
+#define swapper_pg_dir init_level4_pgt    //临时页全局目录
 
 extern void paging_init(void);
 
@@ -124,6 +124,9 @@ static inline int pgd_large(pgd_t pgd) { return 0; }
 /* PTE - Level 1 access. */
 
 /* x86-64 always has all page tables mapped. */
+/* 接收一个指向页中间目录项的指针dir和线性地址addr
+ * 作为参数，产生线性地址addr对应的页表项的线性地
+ */
 #define pte_offset_map(dir, address) pte_offset_kernel((dir), (address))
 #define pte_offset_map_nested(dir, address) pte_offset_kernel((dir), (address))
 #define pte_unmap(pte) /* NOP */

@@ -30,6 +30,7 @@
 #include <asm/boot.h>
 #include <asm/asm-offsets.h>
 
+//初始化临时页表
 	__HEAD
 ENTRY(startup_32)
 	cld

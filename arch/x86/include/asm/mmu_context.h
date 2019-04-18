@@ -29,7 +29,7 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 		percpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
 #endif
 }
-
+//µØÖ·¿Õ¼äÌæ»»
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 			     struct task_struct *tsk)
 {

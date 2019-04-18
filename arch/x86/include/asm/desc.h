@@ -317,6 +317,14 @@ static inline void set_desc_limit(struct desc_struct *desc, unsigned long limit)
 	desc->limit = (limit >> 16) & 0xf;
 }
 
+/*  
+  * gate:向量
+  * type:中断门，异常门，or 陷阱门
+  * addr:中断服务例程地址
+  * dpl:描述符特权级
+  * ist:
+  * seg:内核代码段，段选择符
+  */
 static inline void _set_gate(int gate, unsigned type, void *addr,
 			     unsigned dpl, unsigned ist, unsigned seg)
 {

@@ -31,7 +31,7 @@
  * PMD_SHIFT determines the size of the area a second-level page table can map
  * PGDIR_SHIFT determines what a third-level page table entry can map
  */
-#define PGDIR_SHIFT		21
+#define PGDIR_SHIFT		21   //确定页全局目录项能映射的区域大小的对数
 
 #define PGDIR_SIZE		(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK		(~(PGDIR_SIZE-1))

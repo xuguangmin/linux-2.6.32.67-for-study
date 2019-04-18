@@ -241,7 +241,7 @@ static void pgd_prepopulate_pmd(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmds[])
 		pud_populate(mm, pud, pmd);
 	}
 }
-
+/*分配一个新的页全局目录*/
 pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *pgd;
@@ -281,7 +281,7 @@ out_free_pgd:
 out:
 	return NULL;
 }
-
+/*释放页全局目录中地址为pgd的项*/
 void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
 	pgd_mop_up_pmds(mm, pgd);

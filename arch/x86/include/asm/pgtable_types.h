@@ -30,13 +30,21 @@
 /* - set: nonlinear file mapping, saved PTE; unset:swap */
 #define _PAGE_BIT_FILE		_PAGE_BIT_DIRTY
 
+//如果被置1,所指的页或页表就在主存中
 #define _PAGE_PRESENT	(_AT(pteval_t, 1) << _PAGE_BIT_PRESENT)
+//页或页表的存取权限
 #define _PAGE_RW	(_AT(pteval_t, 1) << _PAGE_BIT_RW)
+//含有访问页或页表的特权级
 #define _PAGE_USER	(_AT(pteval_t, 1) << _PAGE_BIT_USER)
+//指明当把数据写到页框时，使用回写策略还是通写策略
 #define _PAGE_PWT	(_AT(pteval_t, 1) << _PAGE_BIT_PWT)
+//指明当访问包含在一个页框中的数据时，高速缓存必须启用还是禁用
 #define _PAGE_PCD	(_AT(pteval_t, 1) << _PAGE_BIT_PCD)
+//分页单元对相应页框进行寻址时就设置这个标志
 #define _PAGE_ACCESSED	(_AT(pteval_t, 1) << _PAGE_BIT_ACCESSED)
+//只应用于页表项中，每当对一个页框进行写操作时就设置这个标志
 #define _PAGE_DIRTY	(_AT(pteval_t, 1) << _PAGE_BIT_DIRTY)
+//只应用于页目录项，置位则页目录项指的是2MB或4MB页框
 #define _PAGE_PSE	(_AT(pteval_t, 1) << _PAGE_BIT_PSE)
 #define _PAGE_GLOBAL	(_AT(pteval_t, 1) << _PAGE_BIT_GLOBAL)
 #define _PAGE_UNUSED1	(_AT(pteval_t, 1) << _PAGE_BIT_UNUSED1)
@@ -119,7 +127,7 @@
 #define PAGE_KERNEL_EXEC		__pgprot(__PAGE_KERNEL_EXEC)
 #define PAGE_KERNEL_RX			__pgprot(__PAGE_KERNEL_RX)
 #define PAGE_KERNEL_WC			__pgprot(__PAGE_KERNEL_WC)
-#define PAGE_KERNEL_NOCACHE		__pgprot(__PAGE_KERNEL_NOCACHE)
+#define PAGE_KERNEL_NOCACHE		__pgprot(__PAGE_KERNEL_NOCACHE)  //PCD标志，控制硬件高速缓存处理页或页框
 #define PAGE_KERNEL_UC_MINUS		__pgprot(__PAGE_KERNEL_UC_MINUS)
 #define PAGE_KERNEL_EXEC_NOCACHE	__pgprot(__PAGE_KERNEL_EXEC_NOCACHE)
 #define PAGE_KERNEL_LARGE		__pgprot(__PAGE_KERNEL_LARGE)
@@ -204,7 +212,7 @@ static inline pgdval_t pgd_flags(pgd_t pgd)
 }
 
 #if PAGETABLE_LEVELS > 3
-typedef struct { pudval_t pud; } pud_t;
+typedef struct { pudval_t pud; } pud_t;//页上级目录项格式
 
 static inline pud_t native_make_pud(pmdval_t val)
 {

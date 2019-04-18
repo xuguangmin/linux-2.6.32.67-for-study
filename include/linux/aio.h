@@ -84,14 +84,14 @@ struct kioctx;
  * once.  ki_retry must ensure forward progress, the AIO core will wait
  * indefinitely for kick_iocb() to be called.
  */
-/*é©±åŠ¨å¼‚æ­¥éé˜»å¡I/Oæ“ä½œä¸­,ç”¨æ¥å°è£…ä¸€ä¸ªè¯»å†™è¯·æ±‚çš„å®Œæ•´ä¸Šä¸‹æ–‡*/
+/*Çı¶¯Òì²½·Ç×èÈûI/O²Ù×÷ÖĞ,ÓÃÀ´·â×°Ò»¸ö¶ÁĞ´ÇëÇóµÄÍêÕûÉÏÏÂÎÄ*/
 struct kiocb {
 	struct list_head	ki_run_list;
 	unsigned long		ki_flags;
 	int			ki_users;
 	unsigned		ki_key;		/* id of this request */
 
-	struct file		*ki_filp;	/*æ–‡ä»¶ç›¸å…³*/
+	struct file		*ki_filp;	/*ÎÄ¼şÏà¹Ø*/
 	struct kioctx		*ki_ctx;	/* may be NULL for sync ops */
 	int			(*ki_cancel)(struct kiocb *, struct io_event *);
 	ssize_t			(*ki_retry)(struct kiocb *);
@@ -100,7 +100,7 @@ struct kiocb {
 	union {
 		void __user		*user;
 		struct task_struct	*tsk;
-	} ki_obj;	/*ä¸å‘å‡ºå¼‚æ­¥I/Oè¯·æ±‚çš„è¿›ç¨‹ç›¸å…³*/
+	} ki_obj;	/*Óë·¢³öÒì²½I/OÇëÇóµÄ½ø³ÌÏà¹Ø*/
 
 	__u64			ki_user_data;	/* user's data for completion */
 	wait_queue_t		ki_wait;

@@ -40,34 +40,34 @@
  * The per-CPU workqueue (if single thread, we always use the first
  * possible cpu).
  */
- /*CPUå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„,å®é™…ä»£ç ä¸­struct cpu_workqueue_structå¯¹è±¡æ˜¯ä¸ªper_CPUå‹çš„å˜é‡ï¼Œé€šè¿‡alloc_percpuå‡½æ•°åŠ¨æ€åˆ›å»ºï¼Œç³»ç»Ÿä¸­çš„æ¯ä¸ªcpuéƒ½æœ‰ä¸€ä»½ï¼Œæœ¬ä¹¦ç§°struct cpu_workqueue_structä¸ºCPUå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„*/
+ /*CPU¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹,Êµ¼Ê´úÂëÖĞstruct cpu_workqueue_struct¶ÔÏóÊÇ¸öper_CPUĞÍµÄ±äÁ¿£¬Í¨¹ıalloc_percpuº¯Êı¶¯Ì¬´´½¨£¬ÏµÍ³ÖĞµÄÃ¿¸öcpu¶¼ÓĞÒ»·İ£¬±¾Êé³Æstruct cpu_workqueue_structÎªCPU¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹*/
 struct cpu_workqueue_struct {
 
-	spinlock_t lock;	/*å¯¹è±¡çš„è‡ªæ—‹é”,ç”¨äºå¯¹å¯èƒ½çš„å¹¶å‘è®¿é—®è¯¥å¯¹è±¡æ—¶æä¾›äº’æ–¥ä¿æŠ¤æœºåˆ¶*/
+	spinlock_t lock;	/*¶ÔÏóµÄ×ÔĞıËø,ÓÃÓÚ¶Ô¿ÉÄÜµÄ²¢·¢·ÃÎÊ¸Ã¶ÔÏóÊ±Ìá¹©»¥³â±£»¤»úÖÆ*/
 
-	struct list_head worklist;  /*åŒå‘é“¾è¡¨å¯¹è±¡,ç”¨æ¥å°†é©±åŠ¨ç¨‹åºæäº¤çš„å·¥ä½œèŠ‚ç‚¹å½¢æˆé“¾è¡¨,é©±åŠ¨ç¨‹åºä¸­çš„å»¶è¿Ÿæ“ä½œä»¥å·¥ä½œèŠ‚ç‚¹çš„å½¢å¼å­˜åœ¨*/
-	wait_queue_head_t more_work; /*ç­‰å¾…é˜Ÿåˆ—å¤´èŠ‚ç‚¹,å·¥ä½œé˜Ÿåˆ—çš„å·¥äººçº¿ç¨‹æ²¡æœ‰å·¥ä½œèŠ‚ç‚¹éœ€è¦å¤„ç†æ—¶å°†è¿›å…¥ç¡çœ çŠ¶æ€,æ­¤æ—¶ä»–éœ€è¦è¿›å…¥è¯¥ç­‰å¾…é˜Ÿåˆ—*/
-	struct work_struct *current_work;/*ç”¨äºè®°å½•å½“å‰å·¥äººçº¿ç¨‹æ­£åœ¨å¤„ç†çš„å·¥ä½œèŠ‚ç‚¹*/
+	struct list_head worklist;  /*Ë«ÏòÁ´±í¶ÔÏó,ÓÃÀ´½«Çı¶¯³ÌĞòÌá½»µÄ¹¤×÷½ÚµãĞÎ³ÉÁ´±í,Çı¶¯³ÌĞòÖĞµÄÑÓ³Ù²Ù×÷ÒÔ¹¤×÷½ÚµãµÄĞÎÊ½´æÔÚ*/
+	wait_queue_head_t more_work; /*µÈ´ı¶ÓÁĞÍ·½Úµã,¹¤×÷¶ÓÁĞµÄ¹¤ÈËÏß³ÌÃ»ÓĞ¹¤×÷½ÚµãĞèÒª´¦ÀíÊ±½«½øÈëË¯Ãß×´Ì¬,´ËÊ±ËûĞèÒª½øÈë¸ÃµÈ´ı¶ÓÁĞ*/
+	struct work_struct *current_work;/*ÓÃÓÚ¼ÇÂ¼µ±Ç°¹¤ÈËÏß³ÌÕıÔÚ´¦ÀíµÄ¹¤×÷½Úµã*/
 
-	struct workqueue_struct *wq;	/*æŒ‡å‘ç³»ç»Ÿå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„*/
-	struct task_struct *thread;	/*æŒ‡å‘å·¥äººçº¿ç¨‹æ‰€åœ¨çš„è¿›ç¨‹ç©ºé—´ç»“æ„*/
+	struct workqueue_struct *wq;	/*Ö¸ÏòÏµÍ³¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹*/
+	struct task_struct *thread;	/*Ö¸Ïò¹¤ÈËÏß³ÌËùÔÚµÄ½ø³Ì¿Õ¼ä½á¹¹*/
 } ____cacheline_aligned;
 
 /*
  * The externally visible workqueue abstraction is an array of
  * per-CPU workqueues:
  */
- /*å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„,å†…æ ¸ä¼šä¸ºåˆ›å»ºçš„æ¯ä¸ªå·¥ä½œé˜Ÿåˆ—ç”Ÿæˆä¸€ä¸ªå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„å¯¹è±¡*/
+ /*¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹,ÄÚºË»áÎª´´½¨µÄÃ¿¸ö¹¤×÷¶ÓÁĞÉú³ÉÒ»¸ö¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹¶ÔÏó*/
 struct workqueue_struct {
-	struct cpu_workqueue_struct *cpu_wq; /*æŒ‡å‘cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„çš„per-CPU
-			* æ ¹æ®è¯¥æŒ‡é’ˆ,ç³»ç»Ÿä¸­æ¯ä¸ªcpuéƒ½å¯ä»¥é€šè¿‡per_cpu_ptræ¥è·å¾—å±				* äºè‡ªå·±çš„cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„çš„å¯¹è±¡*/
-	struct list_head list;/*åŒå‘é“¾è¡¨å¯¹è±¡,ç”¨äºå°†å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„åŠ å…¥åˆ°ä¸€
-				*ä¸ªå…¨å±€å˜é‡ä¸­,åªæœ‰å¯¹ésinglethreadå·¥ä½œé˜Ÿåˆ—æœ‰æ•ˆ*/
-	const char *name;  /* å·¥ä½œé˜Ÿåˆ—çš„åç§°*/
-	int singlethread;  /* æ ‡è¯†åˆ›å»ºçš„å·¥ä½œé˜Ÿåˆ—ä¸­å·¥äººçº¿ç¨‹çš„æ•°é‡*/
+	struct cpu_workqueue_struct *cpu_wq; /*Ö¸Ïòcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹µÄper-CPU
+			* ¸ù¾İ¸ÃÖ¸Õë,ÏµÍ³ÖĞÃ¿¸öcpu¶¼¿ÉÒÔÍ¨¹ıper_cpu_ptrÀ´»ñµÃÊôÓÚ×Ô¼ºµÄcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹µÄ¶ÔÏó*/
+	struct list_head list;/*Ë«ÏòÁ´±í¶ÔÏó,ÓÃÓÚ½«¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹¼ÓÈëµ½Ò»
+				*¸öÈ«¾Ö±äÁ¿ÖĞ,Ö»ÓĞ¶Ô·Çsinglethread¹¤×÷¶ÓÁĞÓĞĞ§*/
+	const char *name;  /* ¹¤×÷¶ÓÁĞµÄÃû³Æ*/
+	int singlethread;  /* ±êÊ¶´´½¨µÄ¹¤×÷¶ÓÁĞÖĞ¹¤ÈËÏß³ÌµÄÊıÁ¿*/
 	int freezeable;		/* Freeze threads during suspend 
-				 * è¡¨ç¤ºè¿›ç¨‹å¯å¦è¿›å…¥å†»ç»“çŠ¶æ€*/
-	int rt;		/*ç”¨æ¥è°ƒæ•´worker_threadçº¿ç¨‹æ‰€åœ¨è¿›ç¨‹çš„è°ƒåº¦ç­–ç•¥*/
+				 * ±íÊ¾½ø³Ì¿É·ñ½øÈë¶³½á×´Ì¬*/
+	int rt;		/*ÓÃÀ´µ÷Õûworker_threadÏß³ÌËùÔÚ½ø³ÌµÄµ÷¶È²ßÂÔ*/
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map lockdep_map;
 #endif
@@ -100,8 +100,8 @@ static const struct cpumask *wq_cpu_map(struct workqueue_struct *wq)
 		? cpu_singlethread_map : cpu_populated_map;
 }
 
-/* å¦‚æœæ˜¯singlethreadç±»å‹çš„å·¥ä½œé˜Ÿåˆ—,é‚£ä¹ˆå·¥ä½œèŠ‚ç‚¹å°±æäº¤åˆ°ç¬¬ä¸€ä¸ªCPUçš„cwqä¸Š,
- * å¦åˆ™å“ªä¸ªCPUè°ƒç”¨queue_work,å·¥ä½œèŠ‚ç‚¹å°±æäº¤åˆ°å“ªä¸ªCPUçš„cwqä¸Š*/
+/* Èç¹ûÊÇsinglethreadÀàĞÍµÄ¹¤×÷¶ÓÁĞ,ÄÇÃ´¹¤×÷½Úµã¾ÍÌá½»µ½µÚÒ»¸öCPUµÄcwqÉÏ,
+ * ·ñÔòÄÄ¸öCPUµ÷ÓÃqueue_work,¹¤×÷½Úµã¾ÍÌá½»µ½ÄÄ¸öCPUµÄcwqÉÏ*/
 static
 struct cpu_workqueue_struct *wq_per_cpu(struct workqueue_struct *wq, int cpu)
 {
@@ -132,7 +132,7 @@ struct cpu_workqueue_struct *get_wq_data(struct work_struct *work)
 	return (void *) (atomic_long_read(&work->data) & WORK_STRUCT_WQ_DATA_MASK);
 }
 
-/*__queue_workè°ƒç”¨è¯¥å‡½æ•°,å®ŒæˆèŠ‚ç‚¹çš„æäº¤*/
+/*__queue_workµ÷ÓÃ¸Ãº¯Êı,Íê³É½ÚµãµÄÌá½»*/
 static void insert_work(struct cpu_workqueue_struct *cwq,
 			struct work_struct *work, struct list_head *head)
 {
@@ -145,13 +145,13 @@ static void insert_work(struct cpu_workqueue_struct *cwq,
 	 */
 	smp_wmb();
 	list_add_tail(&work->entry, head);
-	/*å”¤é†’åœ¨ç­‰å¾…é˜Ÿåˆ—cwq->more_workä¸Šç¡çœ çš„worker_thread,å¦‚æœworker_threadæ­£åœ¨è¿è¡Œ,å°±ä»€ä¹ˆä¹Ÿä¸åš*/
+	/*»½ĞÑÔÚµÈ´ı¶ÓÁĞcwq->more_workÉÏË¯ÃßµÄworker_thread,Èç¹ûworker_threadÕıÔÚÔËĞĞ,¾ÍÊ²Ã´Ò²²»×ö*/
 	wake_up(&cwq->more_work);
 }
 
-/* æäº¤èŠ‚ç‚¹
- * @cwq:CPUå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„
- * @work:å¾…æäº¤çš„èŠ‚ç‚¹æŒ‡é’ˆ
+/* Ìá½»½Úµã
+ * @cwq:CPU¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹
+ * @work:´ıÌá½»µÄ½ÚµãÖ¸Õë
  */
 static void __queue_work(struct cpu_workqueue_struct *cwq,
 			 struct work_struct *work)
@@ -159,7 +159,7 @@ static void __queue_work(struct cpu_workqueue_struct *cwq,
 	unsigned long flags;
 
 	spin_lock_irqsave(&cwq->lock, flags);
-	/*å®ŒæˆèŠ‚ç‚¹çš„æäº¤*/
+	/*Íê³É½ÚµãµÄÌá½»*/
 	insert_work(cwq, work, &cwq->worklist);
 	spin_unlock_irqrestore(&cwq->lock, flags);
 }
@@ -174,14 +174,14 @@ static void __queue_work(struct cpu_workqueue_struct *cwq,
  * We queue the work to the CPU on which it was submitted, but if the CPU dies
  * it can be processed by another CPU.
  */
- /* å½“é©±åŠ¨ç¨‹åºè°ƒç”¨queue_workå‘å·¥ä½œé˜Ÿåˆ—æäº¤èŠ‚ç‚¹workæ—¶,queue_workä¼šæŠŠwork->dataçš„
-  * WORK_STRUCT_PENDINGä½ç½®1,è¿™æ˜¯ä¸ºäº†é˜²æ­¢é©±åŠ¨ç¨‹åºå°†ä¸€ä¸ªå°šæœªè¢«å¤„ç†çš„å·¥ä½œèŠ‚ç‚¹
-  * å†æ¬¡æäº¤cwq->worklist
+ /* µ±Çı¶¯³ÌĞòµ÷ÓÃqueue_workÏò¹¤×÷¶ÓÁĞÌá½»½ÚµãworkÊ±,queue_work»á°Ñwork->dataµÄ
+  * WORK_STRUCT_PENDINGÎ»ÖÃ1,ÕâÊÇÎªÁË·ÀÖ¹Çı¶¯³ÌĞò½«Ò»¸öÉĞÎ´±»´¦ÀíµÄ¹¤×÷½Úµã
+  * ÔÙ´ÎÌá½»cwq->worklist
 
- * åœ¨ç”¨queue_workå‘å·¥ä½œé˜Ÿåˆ—æäº¤å·¥ä½œèŠ‚ç‚¹æ—¶ï¼Œå¦‚æœå·¥ä½œé˜Ÿåˆ—æ˜¯singlethreadç±»å‹çš„ï¼Œ
- * å› ä¸ºæ­¤æ—¶åªæœ‰ä¸€ä¸ªworklistï¼Œæ‰€ä»¥å·¥ä½œèŠ‚ç‚¹åªèƒ½æäº¤åˆ°è¿™å”¯ä¸€çš„ä¸€ä¸ªworklistä¸Šï¼Œ
- * åä¹‹ï¼Œå¦‚æœå·¥ä½œé˜Ÿåˆ—ä¸æ˜¯singlethreadç±»å‹çš„ï¼Œé‚£ä¹ˆå·¥ä½œèŠ‚ç‚¹å°†ä¼šæäº¤åˆ°å½“å‰è¿è¡Œ
- * queue_workçš„CPUæ‰€åœ¨çš„worklistä¸­*/
+ * ÔÚÓÃqueue_workÏò¹¤×÷¶ÓÁĞÌá½»¹¤×÷½ÚµãÊ±£¬Èç¹û¹¤×÷¶ÓÁĞÊÇsinglethreadÀàĞÍµÄ£¬
+ * ÒòÎª´ËÊ±Ö»ÓĞÒ»¸öworklist£¬ËùÒÔ¹¤×÷½ÚµãÖ»ÄÜÌá½»µ½ÕâÎ¨Ò»µÄÒ»¸öworklistÉÏ£¬
+ * ·´Ö®£¬Èç¹û¹¤×÷¶ÓÁĞ²»ÊÇsinglethreadÀàĞÍµÄ£¬ÄÇÃ´¹¤×÷½Úµã½«»áÌá½»µ½µ±Ç°ÔËĞĞ
+ * queue_workµÄCPUËùÔÚµÄworklistÖĞ*/
 int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 {
 	int ret;
@@ -209,12 +209,12 @@ queue_work_on(int cpu, struct workqueue_struct *wq, struct work_struct *work)
 {
 	int ret = 0;
 
-	/* é¦–å…ˆæ£€æµ‹work->dataçš„WORK_STRUCT_PENDINGä½æœ‰æ²¡æœ‰è¢«ç½®1,ç½®1æ„å‘³ç€æ­¤å‰è¯¥
-	 * workå·²ç»è¢«æäº¤è¿˜æ²¡æœ‰å¤„ç†,å†…æ ¸ç¦æ­¢é©±åŠ¨ç¨‹åºåœ¨ä¸€ä¸ªå·¥ä½œèŠ‚ç‚¹è¿˜æ²¡å¤„ç†å®Œå°±
-	 * å†æ¬¡æäº¤è¯¥èŠ‚ç‚¹,æ­¤å¤„çš„æ£€æµ‹ä¹Ÿå‘Šè¯‰é©±åŠ¨ç¨‹åº,åœ¨æ„é€ å·¥ä½œèŠ‚ç‚¹å¯¹è±¡workæ—¶,
-	 * åº”è¯¥ç¡®ä¿work->dataä½2ä½ä¸º0,å¦‚æœwork->dataçš„WORK_STRUCT_PENDINGä¸ºæ˜¯0
-	 * ,é‚£ä¹ˆå°±æŠŠè¯¥ä½ç½®1è¡¨æ˜å·¥ä½œèŠ‚ç‚¹å¤„äºç­‰å¾…å¤„ç†çš„çŠ¶æ€,ç„¶åè°ƒç”¨__queue_work
-	 * æ¥æäº¤èŠ‚ç‚¹*/
+	/* Ê×ÏÈ¼ì²âwork->dataµÄWORK_STRUCT_PENDINGÎ»ÓĞÃ»ÓĞ±»ÖÃ1,ÖÃ1ÒâÎ¶×Å´ËÇ°¸Ã
+	 * workÒÑ¾­±»Ìá½»»¹Ã»ÓĞ´¦Àí,ÄÚºË½ûÖ¹Çı¶¯³ÌĞòÔÚÒ»¸ö¹¤×÷½Úµã»¹Ã»´¦ÀíÍê¾Í
+	 * ÔÙ´ÎÌá½»¸Ã½Úµã,´Ë´¦µÄ¼ì²âÒ²¸æËßÇı¶¯³ÌĞò,ÔÚ¹¹Ôì¹¤×÷½Úµã¶ÔÏóworkÊ±,
+	 * Ó¦¸ÃÈ·±£work->dataµÍ2Î»Îª0,Èç¹ûwork->dataµÄWORK_STRUCT_PENDINGÎªÊÇ0
+	 * ,ÄÇÃ´¾Í°Ñ¸ÃÎ»ÖÃ1±íÃ÷¹¤×÷½Úµã´¦ÓÚµÈ´ı´¦ÀíµÄ×´Ì¬,È»ºóµ÷ÓÃ__queue_work
+	 * À´Ìá½»½Úµã*/
 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
 		BUG_ON(!list_empty(&work->entry));
 		__queue_work(wq_per_cpu(wq, cpu), work);
@@ -243,17 +243,17 @@ static void delayed_work_timer_fn(unsigned long __data)
  */
 
 /** 
- * delayä»£è¡¨ä¸€ä¸ªå»¶è¿Ÿçš„æ—¶é—´,å·¥ä½œèŠ‚ç‚¹éœ€è¦ç­‰åˆ°delayæŒ‡å®šçš„æ—¶é—´è¿‡åæ‰ä¼šè¢«çœŸæ­£æäº¤
- * åˆ°é˜Ÿåˆ—wqä¸Š
+ * delay´ú±íÒ»¸öÑÓ³ÙµÄÊ±¼ä,¹¤×÷½ÚµãĞèÒªµÈµ½delayÖ¸¶¨µÄÊ±¼ä¹ıºó²Å»á±»ÕæÕıÌá½»
+ * µ½¶ÓÁĞwqÉÏ,delay±íÊ¾ÏµÍ³µÎ´ğÊı
  */
 int queue_delayed_work(struct workqueue_struct *wq,
 			struct delayed_work *dwork, unsigned long delay)
 {
-	/*å’Œqueue_workä¸€æ ·*/
+	/*ºÍqueue_workÒ»Ñù*/
 	if (delay == 0)
 		return queue_work(wq, &dwork->work);
 
-	/*å»¶è¿Ÿæäº¤*/
+	/*ÑÓ³ÙÌá½»*/
 	return queue_delayed_work_on(-1, wq, dwork, delay);
 }
 EXPORT_SYMBOL_GPL(queue_delayed_work);
@@ -268,10 +268,10 @@ EXPORT_SYMBOL_GPL(queue_delayed_work);
  * Returns 0 if @work was already on a queue, non-zero otherwise.
  */
 /**
- * åˆ©ç”¨å®šæ—¶å™¨timeræ¥å®ç°å»¶è¿Ÿæäº¤çš„å·¥ä½œ,timer->expires = jiffies + delay,è¿™æ ·å½“
- * delayå®é™…åˆ°æœŸå,timer->function = delayed_work_timer_fnå°†è¢«è°ƒç”¨,
- * delayed_work_timer_fnä¼šæŠŠqueue_delayed_work_onè¦æäº¤çš„èŠ‚ç‚¹æäº¤åˆ°å·¥ä½œé˜Ÿåˆ—ä¸­,
- * æ‰€æœ‰é©±åŠ¨ç¨‹åºè¦ä½¿ç”¨queue_delayed_work,è¦ç”Ÿæˆä¸€ä¸ªstruct delayed_workå¯¹è±¡
+ * ÀûÓÃ¶¨Ê±Æ÷timerÀ´ÊµÏÖÑÓ³ÙÌá½»µÄ¹¤×÷,timer->expires = jiffies + delay,ÕâÑùµ±
+ * delayÊµ¼Êµ½ÆÚºó,timer->function = delayed_work_timer_fn½«±»µ÷ÓÃ,
+ * delayed_work_timer_fn»á°Ñqueue_delayed_work_onÒªÌá½»µÄ½ÚµãÌá½»µ½¹¤×÷¶ÓÁĞÖĞ,
+ * ËùÓĞÇı¶¯³ÌĞòÒªÊ¹ÓÃqueue_delayed_work,ÒªÉú³ÉÒ»¸östruct delayed_work¶ÔÏó
  */
 int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
 			struct delayed_work *dwork, unsigned long delay)
@@ -302,15 +302,15 @@ int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
 }
 EXPORT_SYMBOL_GPL(queue_delayed_work_on);
 
-/*å¤„ç†cwq->worklistä¸Šçš„å·¥ä½œèŠ‚ç‚¹*/
+/*´¦Àícwq->worklistÉÏµÄ¹¤×÷½Úµã*/
 static void run_workqueue(struct cpu_workqueue_struct *cwq)
 {
 	spin_lock_irq(&cwq->lock);
 	/**
-	 * å‡½æ•°åœ¨whileå¾ªç¯ä¸­éå†cwq->worklisté“¾è¡¨,å¯¹äºå…¶ä¸­çš„æ¯ä¸ªå·¥ä½œèŠ‚ç‚¹work,
-	 * å…ˆå°†å…¶ä»cwk->worklisté“¾è¡¨åˆ é™¤,ç„¶åè°ƒç”¨å·¥ä½œèŠ‚ç‚¹ä¸Šçš„å»¶è¿Ÿå‡½æ•°f(work),
-	 * ä¼ é€’ç»™å‡½æ•°çš„å‚æ•°æ˜¯å»¶è¿Ÿå‡½æ•°æ‰€åœ¨å·¥ä½œèŠ‚ç‚¹çš„æŒ‡é’ˆwork,ä¸€ä¸ªå·¥ä½œèŠ‚ç‚¹è¢«å¤„ç†
-	 * å®Œä¹‹å,å°†ä¸ä¼šå†å‡ºç°åœ¨å·¥ä½œé˜Ÿåˆ—çš„cwq->worklistä¸­,é™¤éè¢«å†æ¬¡æäº¤
+	 * º¯ÊıÔÚwhileÑ­»·ÖĞ±éÀúcwq->worklistÁ´±í,¶ÔÓÚÆäÖĞµÄÃ¿¸ö¹¤×÷½Úµãwork,
+	 * ÏÈ½«Æä´Ócwk->worklistÁ´±íÉ¾³ı,È»ºóµ÷ÓÃ¹¤×÷½ÚµãÉÏµÄÑÓ³Ùº¯Êıf(work),
+	 * ´«µİ¸øº¯ÊıµÄ²ÎÊıÊÇÑÓ³Ùº¯ÊıËùÔÚ¹¤×÷½ÚµãµÄÖ¸Õëwork,Ò»¸ö¹¤×÷½Úµã±»´¦Àí
+	 * ÍêÖ®ºó,½«²»»áÔÙ³öÏÖÔÚ¹¤×÷¶ÓÁĞµÄcwq->worklistÖĞ,³ı·Ç±»ÔÙ´ÎÌá½»
 	 */
 	while (!list_empty(&cwq->worklist)) {
 		struct work_struct *work = list_entry(cwq->worklist.next,
@@ -333,12 +333,12 @@ static void run_workqueue(struct cpu_workqueue_struct *cwq)
 		spin_unlock_irq(&cwq->lock);
 
 		BUG_ON(get_wq_data(work) != cwq);
-		/* å‡½æ•°ç”¨æ¥æ¸…é™¤work->dataçš„WORK_STRUCT_PENDINGä½(ä½0),è¿™é‡Œå†…æ ¸æŠŠ
-		 * work->dataçš„ä½2ä½ç”¨äºè®°å½•workçš„çŠ¶æ€ä¿¡æ¯*/
+		/* º¯ÊıÓÃÀ´Çå³ıwork->dataµÄWORK_STRUCT_PENDINGÎ»(Î»0),ÕâÀïÄÚºË°Ñ
+		 * work->dataµÄµÍ2Î»ÓÃÓÚ¼ÇÂ¼workµÄ×´Ì¬ĞÅÏ¢*/
 		work_clear_pending(work);
 		lock_map_acquire(&cwq->wq->lockdep_map);
 		lock_map_acquire(&lockdep_map);
-		/*è°ƒç”¨å»¶è¿Ÿå‡½æ•°*/
+		/*µ÷ÓÃÑÓ³Ùº¯Êı*/
 		f(work);
 		lock_map_release(&lockdep_map);
 		lock_map_release(&cwq->wq->lockdep_map);
@@ -360,7 +360,7 @@ static void run_workqueue(struct cpu_workqueue_struct *cwq)
 	spin_unlock_irq(&cwq->lock);
 }
 
-/*å·¥äººçº¿ç¨‹*/
+/*¹¤×÷ÕßÏß³Ì*/
 static int worker_thread(void *__cwq)
 {
 	struct cpu_workqueue_struct *cwq = __cwq;
@@ -369,7 +369,7 @@ static int worker_thread(void *__cwq)
 	if (cwq->wq->freezeable)
 		set_freezable();
 
-	/*ä¸»ä½“*/
+	/*Ö÷Ìå*/
 	for (;;) {
 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
 		if (!freezing(current) &&
@@ -380,11 +380,11 @@ static int worker_thread(void *__cwq)
 
 		try_to_freeze();
 
-		/*æ£€æµ‹æœ‰æ²¡æœ‰åˆ«çš„å‡½æ•°å¯¹ä»–è°ƒç”¨äº†kthread_stop,æœ‰çš„è¯ä»£è¡¨è¯¥çº¿ç¨‹çš„kthreadå¯¹è±¡çš„should_stopæˆå‘˜å°†è¢«ç½®1,æ­¤æ—¶worker_threadå°†é€šè¿‡breakè·³å‡ºå¾ªç¯,çº¿ç¨‹å‡½æ•°æ‰€åœ¨çš„è¿›ç¨‹å°†ä¼šç»ˆç»“*/
+		/*¼ì²âÓĞÃ»ÓĞ±ğµÄº¯Êı¶ÔËûµ÷ÓÃÁËkthread_stop,ÓĞµÄ»°´ú±í¸ÃÏß³ÌµÄkthread¶ÔÏóµÄshould_stop³ÉÔ±½«±»ÖÃ1,´ËÊ±worker_thread½«Í¨¹ıbreakÌø³öÑ­»·,Ïß³Ìº¯ÊıËùÔÚµÄ½ø³Ì½«»áÖÕ½á*/
 		if (kthread_should_stop())
 			break;
 
-		/*å¤„ç†cwq->worklistä¸Šçš„å·¥ä½œèŠ‚ç‚¹*/
+		/*´¦Àícwq->worklistÉÏµÄ¹¤×÷½Úµã*/
 		run_workqueue(cwq);
 	}
 
@@ -402,7 +402,7 @@ static void wq_barrier_func(struct work_struct *work)
 	complete(&barr->done);
 }
 
-/*å‡½æ•°æäº¤ä¸­æ­¢èŠ‚ç‚¹*/
+/*º¯ÊıÌá½»ÖĞÖ¹½Úµã*/
 static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
 			struct wq_barrier *barr, struct list_head *head)
 {
@@ -414,36 +414,36 @@ static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
 	insert_work(cwq, &barr->work, head);
 }
 
-/* ç»ˆæ­¢worker_threadæ‰€åœ¨è¿›ç¨‹çš„ä¸€ä¸ªå‰ææ—¶è¦ç¡®ä¿æ‰€æœ‰æäº¤åˆ°cwq->worklistä¸­çš„å·¥ä½œ
- * èŠ‚ç‚¹éƒ½å·²ç»å¤„ç†å®Œæ¯•,ç”±æ­¤å‡½æ•°å®Œæˆ;å‡½æ•°ç¡®ä¿cwq->worklistä¸Šæ‰€æœ‰å·¥ä½œèŠ‚ç‚¹éƒ½å·²ç»
- * å¤„ç†å®Œæ¯•çš„è®¾è®¡æ€æƒ³æ˜¯åˆ©ç”¨å®Œæˆæ¥å£completion:å¦‚æœcwq->worklistä¸ä¸ºç©ºæˆ–è€…
- * cwq->current_workä¸ä¸ºç©º,è¯´æ˜cwq_worklistä¸Šè¿˜æœ‰å·¥ä½œèŠ‚ç‚¹æˆ–è€…worker_threadæ­£åœ¨
- * å¤„ç†ä¸€ä¸ªå·¥ä½œèŠ‚ç‚¹,åˆ™å‘cwq->worklistä¸Šæäº¤ä¸€ä¸ªæ–°çš„å·¥ä½œèŠ‚ç‚¹,è¿™é‡Œä¸å¦¨ç§°ä¸ºç»ˆæ­¢
- * èŠ‚ç‚¹,å½“ç»ˆæ­¢èŠ‚ç‚¹ä¸Šçš„å»¶è¿Ÿå‡½æ•°è¢«æ‰§è¡Œæ—¶,å®ƒå°†è°ƒç”¨completeå‡½æ•°é€šçŸ¥
- * flush_cpu_workqueue,è€Œåè€…åœ¨æäº¤å®Œç»ˆæ­¢èŠ‚ç‚¹ä¹‹åå°†ç¡çœ ç­‰å¾…wait_for_completion
- * å‡½æ•°ä¸Š,ç›´åˆ°ä¹‹å‰æäº¤çš„ç»ˆæ­¢èŠ‚ç‚¹ä¸Šçš„å»¶è¿Ÿå‡½æ•°æ‰§è¡Œç»“æŸ;
+/* ÖÕÖ¹worker_threadËùÔÚ½ø³ÌµÄÒ»¸öÇ°ÌáÊ±ÒªÈ·±£ËùÓĞÌá½»µ½cwq->worklistÖĞµÄ¹¤×÷
+ * ½Úµã¶¼ÒÑ¾­´¦ÀíÍê±Ï,ÓÉ´Ëº¯ÊıÍê³É;º¯ÊıÈ·±£cwq->worklistÉÏËùÓĞ¹¤×÷½Úµã¶¼ÒÑ¾­
+ * ´¦ÀíÍê±ÏµÄÉè¼ÆË¼ÏëÊÇÀûÓÃÍê³É½Ó¿Úcompletion:Èç¹ûcwq->worklist²»Îª¿Õ»òÕß
+ * cwq->current_work²»Îª¿Õ,ËµÃ÷cwq_worklistÉÏ»¹ÓĞ¹¤×÷½Úµã»òÕßworker_threadÕıÔÚ
+ * ´¦ÀíÒ»¸ö¹¤×÷½Úµã,ÔòÏòcwq->worklistÉÏÌá½»Ò»¸öĞÂµÄ¹¤×÷½Úµã,ÕâÀï²»·Á³ÆÎªÖÕÖ¹
+ * ½Úµã,µ±ÖÕÖ¹½ÚµãÉÏµÄÑÓ³Ùº¯Êı±»Ö´ĞĞÊ±,Ëü½«µ÷ÓÃcompleteº¯ÊıÍ¨Öª
+ * flush_cpu_workqueue,¶øºóÕßÔÚÌá½»ÍêÖÕÖ¹½ÚµãÖ®ºó½«Ë¯ÃßµÈ´ıwait_for_completion
+ * º¯ÊıÉÏ,Ö±µ½Ö®Ç°Ìá½»µÄÖÕÖ¹½ÚµãÉÏµÄÑÓ³Ùº¯ÊıÖ´ĞĞ½áÊø;
  * 
- * å‡½æ•°çš„æ“ä½œèŒƒå›´åªé™äºå•ä¸ªCPU,å¯¹äºésinglethreadå·¥ä½œé˜Ÿåˆ—,å› ä¸ºæ¯ä¸ªCPUä¸Šéƒ½æœ‰
- * ä¸€ä¸ªå·¥ä½œé˜Ÿåˆ—å’Œworker_thread,è¦ç¡®ä¿ç³»ç»Ÿä¸­æ‰€æœ‰CPUä¸Šçš„å·¥ä½œé˜Ÿåˆ—ä¸­çš„å·¥ä½œèŠ‚ç‚¹éƒ½è¢«
- * å¤„ç†å®Œ,åº”è¯¥ä½¿ç”¨flush_workqueueå‡½æ•°*/
+ * º¯ÊıµÄ²Ù×÷·¶Î§Ö»ÏŞÓÚµ¥¸öCPU,¶ÔÓÚ·Çsinglethread¹¤×÷¶ÓÁĞ,ÒòÎªÃ¿¸öCPUÉÏ¶¼ÓĞ
+ * Ò»¸ö¹¤×÷¶ÓÁĞºÍworker_thread,ÒªÈ·±£ÏµÍ³ÖĞËùÓĞCPUÉÏµÄ¹¤×÷¶ÓÁĞÖĞµÄ¹¤×÷½Úµã¶¼±»
+ * ´¦ÀíÍê,Ó¦¸ÃÊ¹ÓÃflush_workqueueº¯Êı*/
 static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
 {
 	int active = 0;
 	struct wq_barrier barr;
 
-	/*æ„å‘³ç€é©±åŠ¨ç¨‹åºä¸åº”è¯¥åœ¨æäº¤çš„å·¥ä½œèŠ‚ç‚¹å»¶è¿Ÿå‡½æ•°ä¸­è°ƒç”¨flush_cpu_workqueue*/
+	/*ÒâÎ¶×ÅÇı¶¯³ÌĞò²»Ó¦¸ÃÔÚÌá½»µÄ¹¤×÷½ÚµãÑÓ³Ùº¯ÊıÖĞµ÷ÓÃflush_cpu_workqueue*/
 	WARN_ON(cwq->thread == current);
 
 	spin_lock_irq(&cwq->lock);
 	if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
-		/*å‡½æ•°æäº¤ä¸­æ­¢èŠ‚ç‚¹*/
+		/*º¯ÊıÌá½»ÖĞÖ¹½Úµã*/
 		insert_wq_barrier(cwq, &barr, &cwq->worklist);
 		active = 1;
 	}
 	spin_unlock_irq(&cwq->lock);
 
 	if (active)
-		/*æäº¤å®Œä¸­æ­¢èŠ‚ç‚¹,å†æ­¤ç­‰å¾…å»¶è¿Ÿå‡½æ•°æ‰§è¡Œ*/
+		/*Ìá½»ÍêÖĞÖ¹½Úµã,ÔÙ´ËµÈ´ıÑÓ³Ùº¯ÊıÖ´ĞĞ*/
 		wait_for_completion(&barr.done);
 
 	return active;
@@ -462,9 +462,11 @@ static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
  * This function used to run the workqueues itself.  Now we just wait for the
  * helper threads to do it.
  */
- /* å‡½æ•°è¿”å›åå¯ä»¥ç¡®ä¿å‡½æ•°è°ƒç”¨å‰æäº¤çš„æ‰€æœ‰å·¥ä½œèŠ‚ç‚¹éƒ½å·²ç»å¤„ç†å®Œæ¯•,ä¸ä¹‹ç±»ä¼¼çš„è¿˜æœ‰
-  * ä¸€ä¸ªå‡½æ•°flush_work,å¦‚æœé©±åŠ¨ç¨‹åºæƒ³ç­‰å¾…åœ¨æŸä¸ªæäº¤çš„å·¥ä½œèŠ‚ç‚¹ä¸Šç›´åˆ°è¯¥èŠ‚ç‚¹å¤„ç†
-  * å®Œæ¯•å‡½æ•°æ‰è¿”å›ï¼Œå°±å¯ä»¥ä½¿ç”¨flush_workå‡½æ•°*/
+ /* ¸Ãº¯ÊıÊ¹µ÷ÓÃ½ø³ÌÒ»Ö±´¦ÓÚ×èÈû×´Ì¬£¬ÖªµÀµÈ´ı¶ÓÁĞÖĞµÄËùÓĞº¯ÊıÖ´ĞĞÍê±Ï,µ«ÊÇ²»»áµÈ´ı
+  * ÔÚµ÷ÓÃflush_workqueueÖ®ºó¼ÓÈëµ½µÈ´ı¶ÓÁĞÖĞµÄº¯Êı
+  * º¯Êı·µ»Øºó¿ÉÒÔÈ·±£º¯Êıµ÷ÓÃÇ°Ìá½»µÄËùÓĞ¹¤×÷½Úµã¶¼ÒÑ¾­´¦ÀíÍê±Ï,ÓëÖ®ÀàËÆµÄ»¹ÓĞ
+  * Ò»¸öº¯Êıflush_work,Èç¹ûÇı¶¯³ÌĞòÏëµÈ´ıÔÚÄ³¸öÌá½»µÄ¹¤×÷½ÚµãÉÏÖ±µ½¸Ã½Úµã´¦Àí
+  * Íê±Ïº¯Êı²Å·µ»Ø£¬¾Í¿ÉÒÔÊ¹ÓÃflush_workº¯Êı*/
 void flush_workqueue(struct workqueue_struct *wq)
 {
 	const struct cpumask *cpu_map = wq_cpu_map(wq);
@@ -489,9 +491,9 @@ EXPORT_SYMBOL_GPL(flush_workqueue);
  * sense to use this function.
  */
 
-/* å¦‚æœé©±åŠ¨ç¨‹åºæƒ³ç­‰å¾…åœ¨æŸä¸ªæäº¤çš„å·¥ä½œèŠ‚ç‚¹ä¸Šç›´åˆ°è¯¥èŠ‚ç‚¹å¤„ç†å®Œæ¯•å‡½æ•°æ‰è¿”å›ï¼Œ
- * å°±å¯ä»¥ä½¿ç”¨flush_workå‡½æ•°,å‚æ•°workå°±æ˜¯è°ƒç”¨è€…è¦ç­‰å¾…åœ¨å…¶ä¸Šçš„å·¥ä½œèŠ‚ç‚¹,å¦‚æœå‡½æ•°
- * è°ƒç”¨æ—¶workå·²ç»å¤„ç†å®Œæ¯•ï¼Œå‡½æ•°è¿”å›ï¼*/
+/* Èç¹ûÇı¶¯³ÌĞòÏëµÈ´ıÔÚÄ³¸öÌá½»µÄ¹¤×÷½ÚµãÉÏÖ±µ½¸Ã½Úµã´¦ÀíÍê±Ïº¯Êı²Å·µ»Ø£¬
+ * ¾Í¿ÉÒÔÊ¹ÓÃflush_workº¯Êı,²ÎÊıwork¾ÍÊÇµ÷ÓÃÕßÒªµÈ´ıÔÚÆäÉÏµÄ¹¤×÷½Úµã,Èç¹ûº¯Êı
+ * µ÷ÓÃÊ±workÒÑ¾­´¦ÀíÍê±Ï£¬º¯Êı·µ»Ø£°*/
 int flush_work(struct work_struct *work)
 {
 	struct cpu_workqueue_struct *cwq;
@@ -669,7 +671,7 @@ int cancel_delayed_work_sync(struct delayed_work *dwork)
 	return __cancel_work_timer(&dwork->work, &dwork->timer);
 }
 EXPORT_SYMBOL(cancel_delayed_work_sync);
-
+// Ô¤¶¨Òå¹¤×÷¶ÓÁĞ
 static struct workqueue_struct *keventd_wq __read_mostly;
 
 /**
@@ -683,15 +685,16 @@ static struct workqueue_struct *keventd_wq __read_mostly;
  * queued and leaves it in the same position on the kernel-global
  * workqueue otherwise.
  */
- /* æäº¤å·¥ä½œèŠ‚ç‚¹,queue_workçš„åŒ…è£…å‡½æ•°,,queue_workçš„åŒ…è£…å‡½æ•°
-  * é©±åŠ¨ç¨‹åºå¦‚æœä½¿ç”¨å†…æ ¸åˆ›å»ºçš„å·¥ä½œé˜Ÿåˆ—åªéœ€è°ƒç”¨schedule_workqueueå°±å¯ä»¥äº†*/
+ /* Ô¤¶¨Òå¹¤×÷¶ÓÁĞº¯Êı
+   * Ìá½»¹¤×÷½Úµã,queue_workµÄ°ü×°º¯Êı,,queue_workµÄ°ü×°º¯Êı
+  * Çı¶¯³ÌĞòÈç¹ûÊ¹ÓÃÄÚºËÔ¤¶¨ÒåµÄ¹¤×÷¶ÓÁĞÖ»Ğèµ÷ÓÃschedule_workqueue¾Í¿ÉÒÔÁË*/
 int schedule_work(struct work_struct *work)
 {
 	return queue_work(keventd_wq, work);
 }
 EXPORT_SYMBOL(schedule_work);
 
-/*
+/*Ô¤¶¨Òå¹¤×÷¶ÓÁĞº¯Êı
  * schedule_work_on - put work task on a specific cpu
  * @cpu: cpu to put the work task on
  * @work: job to be done
@@ -712,7 +715,9 @@ EXPORT_SYMBOL(schedule_work_on);
  * After waiting for a given time this puts a job in the kernel-global
  * workqueue.
  */
- /*å¯¹äºå†…æ ¸åˆ›å»ºçš„å·¥ä½œé˜Ÿåˆ—çš„å»¶è¿Ÿæäº¤å‡½æ•°;å¯¹åº”queue_delayed_work*/
+ /* Ô¤¶¨Òå¹¤×÷¶ÓÁĞº¯Êı
+   * ¶ÔÓÚÄÚºË´´½¨µÄ¹¤×÷¶ÓÁĞµÄÑÓ³ÙÌá½»º¯Êı;¶ÔÓ¦queue_delayed_work
+   */
 int schedule_delayed_work(struct delayed_work *dwork,
 					unsigned long delay)
 {
@@ -746,6 +751,7 @@ EXPORT_SYMBOL(flush_delayed_work);
  *
  * After waiting for a given time this puts a job in the kernel-global
  * workqueue on the specified CPU.
+ * Ô¤¶¨Òå¹¤×÷¶ÓÁĞº¯Êı;µÈ¼ÛÓÚqueue_delayed_work
  */
 int schedule_delayed_work_on(int cpu,
 			struct delayed_work *dwork, unsigned long delay)
@@ -800,7 +806,9 @@ int schedule_on_each_cpu(work_func_t func)
 	free_percpu(works);
 	return 0;
 }
-
+/**
+  * Ô¤¶¨Òå¹¤×÷¶ÓÁĞº¯Êı;µÈ¼ÛÓÚflush_workqueue
+  **/
 void flush_scheduled_work(void)
 {
 	flush_workqueue(keventd_wq);
@@ -858,10 +866,10 @@ EXPORT_SYMBOL_GPL(current_is_keventd);
 static struct cpu_workqueue_struct *
 init_cpu_workqueue(struct workqueue_struct *wq, int cpu)
 {
-	/*è·å¾—ç³»ç»Ÿä¸­ç¬¬ä¸€ä¸ªcpuå¯¹åº”çš„CPUå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„æŒ‡é’ˆcwq*/
+	/*»ñµÃÏµÍ³ÖĞµÚÒ»¸öcpu¶ÔÓ¦µÄCPU¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹Ö¸Õëcwq*/
 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
 
-	/*åˆå§‹åŒ–cwqä¸­çš„ç­‰å¾…é˜Ÿåˆ—å’ŒåŒå‘é“¾è¡¨ç­‰æˆå‘˜å˜é‡*/
+	/*³õÊ¼»¯cwqÖĞµÄµÈ´ı¶ÓÁĞºÍË«ÏòÁ´±íµÈ³ÉÔ±±äÁ¿*/
 	cwq->wq = wq;
 	spin_lock_init(&cwq->lock);
 	INIT_LIST_HEAD(&cwq->worklist);
@@ -870,7 +878,7 @@ init_cpu_workqueue(struct workqueue_struct *wq, int cpu)
 	return cwq;
 }
 
-/*ç”Ÿæˆä¸€ä¸ªå·¥äººçº¿ç¨‹,åœ¨linuxå†…æ ¸ä¸­å†…æ ¸çº¿ç¨‹å…¶å®æ˜¯ä¸€ä¸ªè¿›ç¨‹*/
+/*Éú³ÉÒ»¸ö¹¤×÷ÕßÏß³Ì,ÔÚlinuxÄÚºËÖĞÄÚºËÏß³ÌÆäÊµÊÇÒ»¸ö½ø³Ì*/
 static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 {
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
@@ -878,7 +886,7 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	const char *fmt = is_wq_single_threaded(wq) ? "%s" : "%s/%d";
 	struct task_struct *p;
 
-	/*å°†è¿›ç¨‹task_structä¸­ä¿å­˜æœ‰è¿›ç¨‹æ‰§è¡Œç°åœºå¯„å­˜å™¨çš„pcå€¼æŒ‡å‘worker_threadå‡½æ•°,è¿™æ ·å½“è¯¥è¿›ç¨‹è¢«è°ƒåº¦è¿è¡Œæ—¶å°†æ‰§è¡Œwork_threadå‡½æ•°,ä¼ ç»™å‡½æ•°çš„å‚æ•°æ—¶ç³»ç»Ÿä¸­ç¬¬ä¸€ä¸ªcpuä¸Šçš„cwqæŒ‡é’ˆ*/
+	/*½«½ø³Ìtask_structÖĞ±£´æÓĞ½ø³ÌÖ´ĞĞÏÖ³¡¼Ä´æÆ÷µÄpcÖµÖ¸Ïòworker_threadº¯Êı,ÕâÑùµ±¸Ã½ø³Ì±»µ÷¶ÈÔËĞĞÊ±½«Ö´ĞĞwork_threadº¯Êı,´«¸øº¯ÊıµÄ²ÎÊıÊ±ÏµÍ³ÖĞµÚÒ»¸öcpuÉÏµÄcwqÖ¸Õë*/
 	p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
 	/*
 	 * Nobody can add the work_struct to this cwq,
@@ -892,7 +900,7 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 		return PTR_ERR(p);
 	if (cwq->wq->rt)
 		sched_setscheduler_nocheck(p, SCHED_FIFO, &param);
-	/*æ–°è¿›ç¨‹çš„task_structç»“æ„ä½“æŒ‡é’ˆpå°†ä¿å­˜åœ¨cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„çš„threadæˆå‘˜ä¸­*/
+	/*ĞÂ½ø³ÌµÄtask_struct½á¹¹ÌåÖ¸Õëp½«±£´æÔÚcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹µÄthread³ÉÔ±ÖĞ*/
 	cwq->thread = p;
 
 	trace_workqueue_creation(cwq->thread, cpu);
@@ -907,7 +915,7 @@ static void start_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	if (p != NULL) {
 		if (cpu >= 0)
 			kthread_bind(p, cpu);
-		/*å°†æ–°è¿›ç¨‹æŠ•å…¥åˆ°ç³»ç»Ÿçš„è¿è¡Œé˜Ÿåˆ—ä¸­, å¦‚æ­¤ä¹‹åæ–°è¿›ç¨‹å°±å…·å¤‡äº†è¢«è°ƒåº¦è¿è¡Œçš„æ¡ä»¶*/
+		/*½«ĞÂ½ø³ÌÍ¶Èëµ½ÏµÍ³µÄÔËĞĞ¶ÓÁĞÖĞ, Èç´ËÖ®ºóĞÂ½ø³Ì¾Í¾ß±¸ÁË±»µ÷¶ÈÔËĞĞµÄÌõ¼ş*/
 		wake_up_process(p);
 	}
 }
@@ -923,19 +931,19 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 	struct cpu_workqueue_struct *cwq;
 	int err = 0, cpu;
 
-	/*ç”Ÿæˆå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„çš„å¯¹è±¡wqå¹¶åˆå§‹åŒ–*/
+	/*Éú³É¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹µÄ¶ÔÏówq²¢³õÊ¼»¯*/
 	wq = kzalloc(sizeof(*wq), GFP_KERNEL);
 	if (!wq)
 		return NULL;
 
-	/*alloc_percpuå‡½æ•°ç”Ÿæˆäº†per_CPUç±»å‹çš„CPUå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„å¯¹è±¡*/
+	/*alloc_percpuº¯ÊıÉú³ÉÁËper_CPUÀàĞÍµÄCPU¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹¶ÔÏó*/
 	wq->cpu_wq = alloc_percpu(struct cpu_workqueue_struct);
 	if (!wq->cpu_wq) {
 		kfree(wq);
 		return NULL;
 	}
 
-	/*åˆå§‹åŒ–å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„wq*/
+	/*³õÊ¼»¯¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹wq*/
 	wq->name = name;
 	lockdep_init_map(&wq->lockdep_map, lock_name, key, 0);
 	wq->singlethread = singlethread;
@@ -943,13 +951,13 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 	wq->rt = rt;
 	INIT_LIST_HEAD(&wq->list);
 
-	/*æ ¹æ®singlethreadçš„å€¼å¯¹å•çº¿ç¨‹é˜Ÿåˆ—å’Œå¤šçº¿ç¨‹é˜Ÿåˆ—åˆ†åˆ«è¿›è¡Œå¤„ç†*/
+	/*¸ù¾İsinglethreadµÄÖµ¶Ôµ¥Ïß³Ì¶ÓÁĞºÍ¶àÏß³Ì¶ÓÁĞ·Ö±ğ½øĞĞ´¦Àí*/
 	if (singlethread) {
 		/*singlethread = 1*/
 
-		/*è·å¾—ç³»ç»Ÿä¸­ç¬¬ä¸€ä¸ªcpuå¯¹åº”çš„cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„æŒ‡é’ˆ*/
+		/*»ñµÃÏµÍ³ÖĞµÚÒ»¸öcpu¶ÔÓ¦µÄcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹Ö¸Õë*/
 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
-		/*ç”Ÿæˆå·¥äººçº¿ç¨‹(linuxå†…æ ¸ä¸­çš„çº¿ç¨‹å…¶å®æ˜¯ä¸€ä¸ªè¿›ç¨‹,æ‹¥æœ‰ç‹¬ç«‹çš„task_struct) å•çº¿ç¨‹çš„  singlethread = 1*/
+		/*Éú³É¹¤ÈËÏß³Ì(linuxÄÚºËÖĞµÄÏß³ÌÆäÊµÊÇÒ»¸ö½ø³Ì,ÓµÓĞ¶ÀÁ¢µÄtask_struct) µ¥Ïß³ÌµÄ  singlethread = 1*/
 		err = create_workqueue_thread(cwq, singlethread_cpu);
 		start_workqueue_thread(cwq, -1);
 	} else {
@@ -963,8 +971,8 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 		 * cwq[cpu]->thread.
 		 */
 		spin_lock(&workqueue_lock);
-		/* å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„å¯¹è±¡wqè¿˜å°†æŠŠè‡ªå·±åŠ å…¥åˆ°
-		 * workqueuesç®¡ç†çš„é“¾è¡¨ä¸­,workqueuesæ˜¯ä¸€ä¸ªå…¨å±€å‹çš„åŒå‘é“¾è¡¨å¯¹è±¡,ç”¨æ¥é“¾æ¥ç³»ç»Ÿä¸­æ‰€æœ‰ésinglethreadçš„å·¥ä½œé˜Ÿåˆ— */
+		/* ¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹¶ÔÏówq»¹½«°Ñ×Ô¼º¼ÓÈëµ½
+		 * workqueues¹ÜÀíµÄÁ´±íÖĞ,workqueuesÊÇÒ»¸öÈ«¾ÖĞÍµÄË«ÏòÁ´±í¶ÔÏó,ÓÃÀ´Á´½ÓÏµÍ³ÖĞËùÓĞ·ÇsinglethreadµÄ¹¤×÷¶ÓÁĞ */
 		list_add(&wq->list, &workqueues);
 		spin_unlock(&workqueue_lock);
 		/*
@@ -973,17 +981,17 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 		 * cpu_up() can hit the uninitialized cwq once we drop the
 		 * lock.
 		 */
-		/*è·å¾—ç³»ç»Ÿä¸­ç¬¬ä¸€ä¸ªcpuå¯¹åº”çš„cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„æŒ‡é’ˆ*/
+		/*»ñµÃÏµÍ³ÖĞµÚÒ»¸öcpu¶ÔÓ¦µÄcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹Ö¸Õë*/
 		for_each_possible_cpu(cpu) {
 			cwq = init_cpu_workqueue(wq, cpu);
 			if (err || !cpu_online(cpu))
 				continue;
 
-			/* ç”Ÿæˆå·¥äººçº¿ç¨‹,singlethread != 1; å‡½æ•°å¯¹ç³»ç»Ÿä¸­çš„æ¯ä¸ª
-			 * cpuè°ƒç”¨singlethreadä¸­çš„ä¸‰ä¸ªæ­¥éª¤,è¿™æ ·ä¹ˆä¸ªcpuéƒ½å°†æ‹¥æœ‰
-			 * è‡ªå·±çš„cpuå·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„å’Œå·¥ä½œåœ¨å…¶ä¸Šçš„å·¥äººçº¿ç¨‹,è¿™
-			 * ç§æƒ…å†µä¸‹,å·¥ä½œé˜Ÿåˆ—ç®¡ç†ç»“æ„å¯¹è±¡wqè¿˜å°†æŠŠè‡ªå·±åŠ å…¥åˆ°
-			 * workqueuesç®¡ç†çš„é“¾è¡¨ä¸­ */
+			/* Éú³É¹¤ÈËÏß³Ì,singlethread != 1; º¯Êı¶ÔÏµÍ³ÖĞµÄÃ¿¸ö
+			 * cpuµ÷ÓÃsinglethreadÖĞµÄÈı¸ö²½Öè,ÕâÑùÃ´¸öcpu¶¼½«ÓµÓĞ
+			 * ×Ô¼ºµÄcpu¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹ºÍ¹¤×÷ÔÚÆäÉÏµÄ¹¤ÈËÏß³Ì,Õâ
+			 * ÖÖÇé¿öÏÂ,¹¤×÷¶ÓÁĞ¹ÜÀí½á¹¹¶ÔÏówq»¹½«°Ñ×Ô¼º¼ÓÈëµ½
+			 * workqueues¹ÜÀíµÄÁ´±íÖĞ */
 			err = create_workqueue_thread(cwq, cpu);
 			start_workqueue_thread(cwq, cpu);
 		}
@@ -998,8 +1006,8 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 }
 EXPORT_SYMBOL_GPL(__create_workqueue_key);
 
-/* å®‰å…¨çš„ç»ˆç»“worker_thread,å› ä¸ºdestroy_workqueueè¢«è°ƒç”¨çš„æ—¶å€™,
- * worker_threadå¾ˆæœ‰å¯èƒ½æ­£åœ¨å¤„ç†worklistä¸­ä½™ä¸‹çš„å·¥ä½œèŠ‚ç‚¹*/
+/* °²È«µÄÖÕ½áworker_thread,ÒòÎªdestroy_workqueue±»µ÷ÓÃµÄÊ±ºò,
+ * worker_threadºÜÓĞ¿ÉÄÜÕıÔÚ´¦ÀíworklistÖĞÓàÏÂµÄ¹¤×÷½Úµã*/
 static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 {
 	/*
@@ -1012,8 +1020,8 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 	lock_map_acquire(&cwq->wq->lockdep_map);
 	lock_map_release(&cwq->wq->lockdep_map);
 
-	/*ç»ˆæ­¢worker_threadæ‰€åœ¨è¿›ç¨‹çš„ä¸€ä¸ªå‰ææ—¶è¦ç¡®ä¿æ‰€æœ‰æäº¤åˆ°cwq->worklistä¸­
-	 * çš„å·¥ä½œèŠ‚ç‚¹éƒ½å·²ç»å¤„ç†å®Œæ¯•,ç”±æ­¤å‡½æ•°å®Œæˆ*/
+	/*ÖÕÖ¹worker_threadËùÔÚ½ø³ÌµÄÒ»¸öÇ°ÌáÊ±ÒªÈ·±£ËùÓĞÌá½»µ½cwq->worklistÖĞ
+	 * µÄ¹¤×÷½Úµã¶¼ÒÑ¾­´¦ÀíÍê±Ï,ÓÉ´Ëº¯ÊıÍê³É*/
 	flush_cpu_workqueue(cwq);
 	/*
 	 * If the caller is CPU_POST_DEAD and cwq->worklist was not empty,
@@ -1026,9 +1034,9 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 	 * a dead CPU.
 	 */
 	trace_workqueue_destruction(cwq->thread);
-	/*è®©worker_threadæ‰€åœ¨çš„è¿›ç¨‹ç»ˆæ­¢ï¼Œå› ä¸ºä¸€æ—¦è¿›ç¨‹çš„æ‰§è¡Œå‡½æ•°worker_thread
-	 * ç»“æŸï¼Œè¿›ç¨‹å°†è°ƒç”¨do_exitè€Œç»ˆç»“ï¼Œæ‰€ä»¥kthread_stopè®©worker_threadç»“æŸ
-	 * çš„åŸç†å°±æ˜¯è®¾ç½®should_stop = 1*/
+	/*ÈÃworker_threadËùÔÚµÄ½ø³ÌÖÕÖ¹£¬ÒòÎªÒ»µ©½ø³ÌµÄÖ´ĞĞº¯Êıworker_thread
+	 * ½áÊø£¬½ø³Ì½«µ÷ÓÃdo_exit¶øÖÕ½á£¬ËùÒÔkthread_stopÈÃworker_thread½áÊø
+	 * µÄÔ­Àí¾ÍÊÇÉèÖÃshould_stop = 1*/
 	kthread_stop(cwq->thread);
 	cwq->thread = NULL;
 }
@@ -1039,7 +1047,7 @@ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
  *
  * Safely destroy a workqueue. All work currently pending will be done first.
  */
- /*å‡½æ•°æ‰§è¡Œä¸create_singlethread_workqueue/create_workqueueç›¸åçš„ä»»åŠ¡,å½“é©±åŠ¨ç¨‹åºä¸å†éœ€è¦åè€…åˆ›å»ºçš„å·¥ä½œé˜Ÿåˆ—æ—¶(æ¯”å¦‚é©±åŠ¨ç¨‹åºæ¨¡å—ä»ç³»ç»Ÿä¸­ç§»èµ°æˆ–è€…å…³é—­è®¾å¤‡),éœ€è¦è°ƒç”¨è¯¥å‡½æ•°æ¥åšå·¥ä½œé˜Ÿåˆ—çš„æ¸…ç†å–„åå·¥ä½œ*/
+ /*º¯ÊıÖ´ĞĞÓëcreate_singlethread_workqueue/create_workqueueÏà·´µÄÈÎÎñ,µ±Çı¶¯³ÌĞò²»ÔÙĞèÒªºóÕß´´½¨µÄ¹¤×÷¶ÓÁĞÊ±(±ÈÈçÇı¶¯³ÌĞòÄ£¿é´ÓÏµÍ³ÖĞÒÆ×ß»òÕß¹Ø±ÕÉè±¸),ĞèÒªµ÷ÓÃ¸Ãº¯ÊıÀ´×ö¹¤×÷¶ÓÁĞµÄÇåÀíÉÆºó¹¤×÷*/
 void destroy_workqueue(struct workqueue_struct *wq)
 {
 	const struct cpumask *cpu_map = wq_cpu_map(wq);
@@ -1051,8 +1059,8 @@ void destroy_workqueue(struct workqueue_struct *wq)
 	spin_unlock(&workqueue_lock);
 
 	for_each_cpu(cpu, cpu_map)
-		/*å®‰å…¨çš„ç»ˆç»“worker_thread,å› ä¸ºdestroy_workqueueè¢«è°ƒç”¨çš„æ—¶å€™,
-		 * worker_threadå¾ˆæœ‰å¯èƒ½æ­£åœ¨å¤„ç†worklistä¸­ä½™ä¸‹çš„å·¥ä½œèŠ‚ç‚¹*/
+		/*°²È«µÄÖÕ½áworker_thread,ÒòÎªdestroy_workqueue±»µ÷ÓÃµÄÊ±ºò,
+		 * worker_threadºÜÓĞ¿ÉÄÜÕıÔÚ´¦ÀíworklistÖĞÓàÏÂµÄ¹¤×÷½Úµã*/
 		cleanup_workqueue_thread(per_cpu_ptr(wq->cpu_wq, cpu));
  	cpu_maps_update_done();
 
@@ -1167,7 +1175,7 @@ void __init init_workqueues(void)
 	singlethread_cpu = cpumask_first(cpu_possible_mask);
 	cpu_singlethread_map = cpumask_of(singlethread_cpu);
 	hotcpu_notifier(workqueue_cpu_callback, 0);
-	/*åˆå§‹åŒ–é˜¶æ®µåˆ›å»ºä¸€ä¸ªåä¸ºeventsçš„å·¥ä½œé˜Ÿåˆ—*/
+	/*³õÊ¼»¯½×¶Î´´½¨Ò»¸öÃûÎªeventsµÄ¹¤×÷¶ÓÁĞ*/
 	keventd_wq = create_workqueue("events");
 	BUG_ON(!keventd_wq);
 }

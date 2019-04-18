@@ -34,7 +34,7 @@ static inline __attribute__((pure)) int phys_to_nid(unsigned long addr)
 	return nid;
 }
 
-#define NODE_DATA(nid)		(node_data[nid])
+#define NODE_DATA(nid)		(node_data[nid]) // (UMA结构的机器)NODE_DATA指向全局的contig_page_data,对于NUMA结构的系统，NODE_DATA指向node_data
 
 #define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
 #define node_end_pfn(nid)       (NODE_DATA(nid)->node_start_pfn +	\

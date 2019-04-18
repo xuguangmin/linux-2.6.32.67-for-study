@@ -1,14 +1,14 @@
 #ifndef __ASM_GENERIC_PARAM_H
 #define __ASM_GENERIC_PARAM_H
 
-/*HZç”¨æ¥è¡¨ç¤ºç³»ç»Ÿæ—¶é’Ÿä¸­æ–­å‘ç”Ÿçš„é¢‘ç‡*/
+/*HZÓÃÀ´±íÊ¾ÏµÍ³Ê±ÖÓÖĞ¶Ï·¢ÉúµÄÆµÂÊ*/
 #ifdef __KERNEL__
 # define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
 # define USER_HZ	100		/* some user interfaces are */
 # define CLOCKS_PER_SEC	(USER_HZ)       /* in "ticks" like times() */
 #endif
 
-/*HZç”¨æ¥è¡¨ç¤ºç³»ç»Ÿæ—¶é’Ÿä¸­æ–­å‘ç”Ÿçš„é¢‘ç‡*/
+/*HZÓÃÀ´±íÊ¾ÏµÍ³Ê±ÖÓÖĞ¶Ï·¢ÉúµÄÆµÂÊ*/
 #ifndef HZ
 #define HZ 100
 #endif
@@ -21,7 +21,7 @@
 #define NOGROUP		(-1)
 #endif
 
-/*ä¸»æœºåæœ€å¤§é•¿åº¦*/
+/*Ö÷»úÃû×î´ó³¤¶È*/
 #define MAXHOSTNAMELEN	64	/* max length of hostname */
 
 #endif /* __ASM_GENERIC_PARAM_H */

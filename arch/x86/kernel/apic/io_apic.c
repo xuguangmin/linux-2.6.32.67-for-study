@@ -3088,7 +3088,6 @@ void __init setup_IO_APIC(void)
  *      Called after all the initialization is done. If we didnt find any
  *      APIC bugs then we can allow the modify fast path
  */
-
 static int __init io_apic_bug_finalize(void)
 {
 	if (sis_apic_bug == -1)

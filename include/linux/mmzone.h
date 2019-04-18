@@ -194,7 +194,7 @@ struct per_cpu_pageset {
 
 #endif /* !__GENERATING_BOUNDS.H */
 
-/*å†…å­˜åŒºåŸŸç±»å‹ç”¨zone_typeè¡¨ç¤º*/
+/*ÄÚ´æ½Úµã»®·ÖµÄ¹ÜÀíÇøÓòÀàĞÍÓÃzone_type±íÊ¾*/
 enum zone_type {
 #ifdef CONFIG_ZONE_DMA
 	/*
@@ -202,14 +202,14 @@ enum zone_type {
 	 * to do DMA to all of addressable memory (ZONE_NORMAL). Then we
 	 * carve out the portion of memory that is needed for these devices.
 	 * The range is arch specific.
-	 * å½“æœ‰äº›è®¾å¤‡ä¸èƒ½ä½¿ç”¨æ‰€æœ‰çš„ZONE_NORMALåŒºåŸŸä¸­çš„å†…å­˜ç©ºé—´ä½œDMAè®¿é—®æ—¶ï¼Œ
-	 * å°±å¯ä»¥ä½¿ç”¨ZONE_DMAæ‰€è¡¨ç¤ºçš„å†…å­˜åŒºåŸŸï¼Œäºæ˜¯æˆ‘ä¹ˆæŠŠè¿™éƒ¨åˆ†ç©ºé—´åˆ’åˆ†å‡ºæ¥
-	 * ä¸“é—¨ç”¨ä½œDMAè®¿é—®çš„å†…å­˜ç©ºé—´ã€‚
-	 * è¯¥åŒºåŸŸçš„ç©ºé—´è®¿é—®æ˜¯å¤„ç†å™¨ä½“ç³»ç»“æ„ç›¸å…³çš„
+	 * µ±ÓĞĞ©Éè±¸²»ÄÜÊ¹ÓÃËùÓĞµÄZONE_NORMALÇøÓòÖĞµÄÄÚ´æ¿Õ¼ä×÷DMA·ÃÎÊÊ±£¬
+	 * ¾Í¿ÉÒÔÊ¹ÓÃZONE_DMAËù±íÊ¾µÄÄÚ´æÇøÓò£¬ÓÚÊÇÎÒÃ´°ÑÕâ²¿·Ö¿Õ¼ä»®·Ö³öÀ´
+	 * ×¨ÃÅÓÃ×÷DMA·ÃÎÊµÄÄÚ´æ¿Õ¼ä¡£
+	 * ¸ÃÇøÓòµÄ¿Õ¼ä·ÃÎÊÊÇ´¦ÀíÆ÷ÌåÏµ½á¹¹Ïà¹ØµÄ
 	 *
-	 * Some examples(ä¸€äº›ä¾‹å­)
+	 * Some examples(Ò»Ğ©Àı×Ó)
 	 *
-	 * Architecture(ä½“ç³»æ¶æ„) Limit(é™åˆ¶)
+	 * Architecture(ÌåÏµ¼Ü¹¹) Limit(ÏŞÖÆ)
 	 * ---------------------------
 	 * parisc, ia64, sparc	<4G
 	 * s390			<2G
@@ -219,16 +219,16 @@ enum zone_type {
 	 * i386, x86_64 and multiple other arches
 	 * 			<16M.
 	 */
-	ZONE_DMA,
+	ZONE_DMA,  //°üº¬µÍÓÚ16MBµÄÄÚ´æÒ³¿ò
 #endif
 #ifdef CONFIG_ZONE_DMA32
 	/*
 	 * x86_64 needs two ZONE_DMAs because it supports devices that are
 	 * only able to do DMA to the lower 16M but also 32 bit devices that
 	 * can only do DMA areas below 4G.
-	 * X86_64æ¶æ„å› ä¸ºé™¤äº†æ”¯æŒåªèƒ½ä½¿ç”¨ä½äº16MBç©ºé—´çš„DMAè®¾å¤‡å¤–ï¼Œ
-	 * è¿˜æ”¯æŒå¯ä»¥è®¿é—®4GBä»¥ä¸‹ç©ºé—´çš„32ä½DMAè®¾å¤‡ï¼Œæ‰€ä»¥éœ€è¦ä¸¤ä¸ªZONE_DMA
-	 * å†…å­˜åŒºåŸŸ
+	 * X86_64¼Ü¹¹ÒòÎª³ıÁËÖ§³ÖÖ»ÄÜÊ¹ÓÃµÍÓÚ16MB¿Õ¼äµÄDMAÉè±¸Íâ£¬
+	 * »¹Ö§³Ö¿ÉÒÔ·ÃÎÊ4GBÒÔÏÂ¿Õ¼äµÄ32Î»DMAÉè±¸£¬ËùÒÔĞèÒªÁ½¸öZONE_DMA
+	 * ÄÚ´æÇøÓò
 	 */
 	ZONE_DMA32,
 #endif
@@ -236,10 +236,10 @@ enum zone_type {
 	 * Normal addressable memory is in ZONE_NORMAL. DMA operations can be
 	 * performed on pages in ZONE_NORMAL if the DMA devices support
 	 * transfers to all addressable memory.
-	 * å¸¸è§„å†…å­˜è®¿é—®åŒºåŸŸç”±ZONE_NORMALæ ‡è¯†ï¼Œå¦‚æœDMAè®¾å¤‡å¯ä»¥åœ¨æ¬¡åŒºåŸŸ
-	 * ä½œå†…å­˜è®¿é—®ï¼Œä¹Ÿå¯ä»¥ä½¿ç”¨æœ¬åŒºåŸŸ
+	 * ³£¹æÄÚ´æ·ÃÎÊÇøÓòÓÉZONE_NORMAL±êÊ¶£¬Èç¹ûDMAÉè±¸¿ÉÒÔÔÚ´ÎÇøÓò
+	 * ×÷ÄÚ´æ·ÃÎÊ£¬Ò²¿ÉÒÔÊ¹ÓÃ±¾ÇøÓò
 	 */
-	ZONE_NORMAL,
+	ZONE_NORMAL,  //°üº¬¸ßÓÚ16MBÇÒµÍÓÚ896MBµÄÄÚ´æÒ³¿ò
 #ifdef CONFIG_HIGHMEM
 	/*
 	 * A memory area that is only addressable by the kernel through
@@ -248,16 +248,16 @@ enum zone_type {
 	 * 900MB. The kernel will set up special mappings (page
 	 * table entries on i386) for each page that the kernel needs to
 	 * access.
-	 * é«˜ç«¯å†…å­˜åŒºåŸŸç”¨ZONE_HIGHMEMæ ‡è¯†ï¼Œè¯¥åŒºåŸŸæ— æ³•ä»å†…æ ¸è™šæ‹Ÿåœ°å€ç©ºé—´ç›´æ¥
-	 * åšçº¿æ€§æ˜ å°„ï¼Œæ‰€ä»¥ä¸ºè®¿é—®è¯¥åŒºåŸŸå¿…é¡»ç»å†…æ ¸ä½œç‰¹æ®Šçš„é¡µæ˜ å°„ï¼Œæ¯”å¦‚åœ¨i386
-	 * ä½“ç³»ä¸Šï¼Œå†…æ ¸ç©ºé—´1GBï¼Œé™¤å»å…¶ä»–ä¸€äº›å¼€é”€ï¼Œèƒ½å¯¹ç‰©ç†åœ°å€è¿›è¡Œçº¿æ€§æ˜ å°„çš„
-	 * ç©ºé—´å¤§çº¦åªæœ‰896MBï¼Œæ­¤æ—¶é«˜äº896MBä»¥ä¸Šçš„ç‰©ç†åœ°å€ç©ºé—´å°±å«ZONE_HIGHMEM
-	 * åŒºåŸŸ
+	 * ¸ß¶ËÄÚ´æÇøÓòÓÃZONE_HIGHMEM±êÊ¶£¬¸ÃÇøÓòÎŞ·¨´ÓÄÚºËĞéÄâµØÖ·¿Õ¼äÖ±½Ó
+	 * ×öÏßĞÔÓ³Éä£¬ËùÒÔÎª·ÃÎÊ¸ÃÇøÓò±ØĞë¾­ÄÚºË×÷ÌØÊâµÄÒ³Ó³Éä£¬±ÈÈçÔÚi386
+	 * ÌåÏµÉÏ£¬ÄÚºË¿Õ¼ä1GB£¬³ıÈ¥ÆäËûÒ»Ğ©¿ªÏú£¬ÄÜ¶ÔÎïÀíµØÖ·½øĞĞÏßĞÔÓ³ÉäµÄ
+	 * ¿Õ¼ä´óÔ¼Ö»ÓĞ896MB£¬´ËÊ±¸ßÓÚ896MBÒÔÉÏµÄÎïÀíµØÖ·¿Õ¼ä¾Í½ĞZONE_HIGHMEM
+	 * ÇøÓò
 	 */
-	ZONE_HIGHMEM,
+	ZONE_HIGHMEM,  //°üº¬´Ó896MB¿ªÊ¼¸ßÓÚ896MBµÄÄÚ´æÒ³¿ò
 #endif
-	ZONE_MOVABLE,
-	__MAX_NR_ZONES
+	ZONE_MOVABLE,//ÄÚºË¶¨ÒåµÄÒ»¸öÎ±ÄÚ´æ¹ÜÀíÇø£¬ÔÚ·ÀÖ¹ÎïÀíÄÚ´æËéÆ¬µÄ»úÖÆmemory migrationÖĞĞèÒªÊ¹ÓÃ¸ÃÄÚ´æÓò
+	__MAX_NR_ZONES //³äµ±½áÊø±ê¼Ç£¬ÔÚÄÚºËÖĞÏëÒªµü´úÏµÍ³ÖĞËùÓĞÄÚ´æÓò£¬»áÓÃµ½¸Ã³£Á¿
 };
 
 #ifndef __GENERATING_BOUNDS_H
@@ -298,7 +298,7 @@ struct zone_reclaim_stat {
 	unsigned long		nr_saved_scan[NR_LRU_LISTS];
 };
 
-/*ç»“æ„è¡¨ç¤ºæ¯ä¸€ä¸ªå†…å­˜åŒºåŸŸ*/
+/*ÄÚ´æ¹ÜÀíÇøÃèÊö·û*/
 struct zone {
 	/* Fields commonly accessed by the page allocator */
 
@@ -327,11 +327,11 @@ struct zone {
 	/*
 	 * zone reclaim becomes active if more unmapped pages exist.
 	 */
-	unsigned long		min_unmapped_pages;
+	unsigned long		min_unmapped_pages; // ´æ´¢ÁË¹ÜÀíÇøÄÚ±£ÁôµÄÒ³¿òµÄÊıÄ¿
 	unsigned long		min_slab_pages;
 	struct per_cpu_pageset	*pageset[NR_CPUS];
 #else
-	struct per_cpu_pageset	pageset[NR_CPUS];
+	struct per_cpu_pageset	pageset[NR_CPUS];//Êı¾İ½á¹¹ÓÃÓÚÊµÏÖµ¥Ò»Ò³¿òµÄÌØÊâ¸ßËÙ»º´æ
 #endif
 	/*
 	 * free areas of different sizes
@@ -341,7 +341,7 @@ struct zone {
 	/* see spanned/present_pages for more description */
 	seqlock_t		span_seqlock;
 #endif
-	struct free_area	free_area[MAX_ORDER];
+	struct free_area	free_area[MAX_ORDER];//±êÊ¾³ö¹ÜÀíÇøµÄ¿ÕÏĞÒ³¿ò¿é
 
 #ifndef CONFIG_SPARSEMEM
 	/*
@@ -362,7 +362,7 @@ struct zone {
 
 	struct zone_reclaim_stat reclaim_stat;
 
-	unsigned long		pages_scanned;	   /* since last reclaim */
+	unsigned long		pages_scanned;	   /* ¹ÜÀíÇøÄÚ»ØÊÕÒ³¿òÊ±Ê¹ÓÃµÄ¼ÆÊıÆ÷ */
 	unsigned long		flags;		   /* zone flags, see below */
 
 	/* Zone statistics */
@@ -381,7 +381,7 @@ struct zone {
 	 * Access to both this field is quite racy even on uniprocessor.  But
 	 * it is expected to average out OK.
 	 */
-	int prev_priority;
+	int prev_priority; //¹ÜÀíÇøÓÅÏÈ¼¶£¬·¶Î§ÔÚ12ºÍ0Ö®¼ä
 
 	/*
 	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
@@ -417,16 +417,16 @@ struct zone {
 	 * primary users of these fields, and in mm/page_alloc.c
 	 * free_area_init_core() performs the initialization of them.
 	 */
-	wait_queue_head_t	* wait_table;
+	wait_queue_head_t	* wait_table;  //½ø³ÌµÈ´ı¶ÓÁĞµÄÈıÁĞ±í,ÕâĞ©½ø³ÌÕıÔÚµÈ´ı¹ÜÀíÇøÖĞµÄÄ³Ò³
 	unsigned long		wait_table_hash_nr_entries;
-	unsigned long		wait_table_bits;
+	unsigned long		wait_table_bits;//µÈ´ı¶ÓÁĞÉ¢ÁĞ±íÊı×é´óĞ¡£¬ÖµÎª2^order
 
 	/*
 	 * Discontig memory support fields.
 	 */
-	struct pglist_data	*zone_pgdat;
+	struct pglist_data	*zone_pgdat; // ÄÚ´æ½Úµã
 	/* zone_start_pfn == zone_start_paddr >> PAGE_SHIFT */
-	unsigned long		zone_start_pfn;
+	unsigned long		zone_start_pfn;  //¹ÜÀíÇøµÚÒ»¸öÒ³¿òµÄÏÂ±ê
 
 	/*
 	 * zone_start_pfn, spanned_pages and present_pages are all
@@ -438,13 +438,13 @@ struct zone {
 	 * frequently read in proximity to zone->lock.  It's good to
 	 * give them a chance of being in the same cacheline.
 	 */
-	unsigned long		spanned_pages;	/* total size, including holes */
-	unsigned long		present_pages;	/* amount of memory (excluding holes) */
+	unsigned long		spanned_pages;	/* ÒÔÒ³Îªµ¥Î»µÄ¹ÜÀíÇøµÄ×Ü´óĞ¡£¬°üÀ¨¶´ */
+	unsigned long		present_pages;	/* ÒÔÒ³Îªµ¥Î»µÄ¹ÜÀíÇøµÄ×Ü´óĞ¡£¬²»°üÀ¨¶´*/
 
 	/*
 	 * rarely used fields:
 	 */
-	const char		*name;
+	const char		*name; //Ö¸ÕëÖ¸Ïò¹ÜÀíÇøµÄ´«Í³Ãû³Æ,DMA,NORMAL,»òHighMem
 } ____cacheline_internodealigned_in_smp;
 
 typedef enum {
@@ -605,6 +605,7 @@ struct zoneref {
  * zonelist_zone()	- Return the struct zone * for an entry in _zonerefs
  * zonelist_zone_idx()	- Return the index of the zone for an entry
  * zonelist_node_idx()	- Return the index of the node for an entry
+ * ¹ÜÀíÇøÃèÊö·ûÖ¸ÕëÊı×é
  */
 struct zonelist {
 	struct zonelist_cache *zlcache_ptr;		     // NULL or &zlcache
@@ -624,7 +625,7 @@ struct node_active_region {
 
 #ifndef CONFIG_DISCONTIGMEM
 /* The array of struct pages - for discontigmem use pgdat->lmem_map */
-/* å…¨å±€å˜é‡ï¼Œå­˜æ”¾æ‰€æœ‰ç‰©ç†é¡µpageå¯¹è±¡çš„æŒ‡é’ˆ*/
+/* È«¾Ö±äÁ¿£¬´æ·ÅËùÓĞÎïÀíÒ³page¶ÔÏóµÄÖ¸Õë*/
 extern struct page *mem_map;
 #endif
 
@@ -640,18 +641,21 @@ extern struct page *mem_map;
  * per-zone basis.
  */
 struct bootmem_data;
-/*ç»“æ„è¡¨ç¤ºå•ä¸ªå†…å­˜èŠ‚ç‚¹*/
+/* ½Úµã(node)ÃèÊö·û
+  * ÏµÍ³µÄÎïÀíÄÚ´æ±»»®·ÖÎª¼¸¸ö½Úµã,Ã¿¸ö½ÚµãµÄÎïÀíÄÚ´æ
+  * ÓÖ·ÖÎª¼¸¸ö¹ÜÀíÇø
+  */
 typedef struct pglist_data {
-	struct zone node_zones[MAX_NR_ZONES];
-	struct zonelist node_zonelists[MAX_ZONELISTS];
-	int nr_zones;
+	struct zone node_zones[MAX_NR_ZONES];  //½ÚµãÖĞ¹ÜÀíÇøÃèÊö·ûµÄÊı×é
+	struct zonelist node_zonelists[MAX_ZONELISTS]; //Ò³·ÖÅäÆ÷Ê¹ÓÃµÄzonelistÊı¾İ½á¹¹µÄÊı×é,ºó±¸¹ÜÀíÇø
+	int nr_zones; //½ÚµãÖĞ¹ÜÀíÇøµÄ¸öÊı
 #ifdef CONFIG_FLAT_NODE_MEM_MAP	/* means !SPARSEMEM */
-	struct page *node_mem_map;
+	struct page *node_mem_map; //½ÚµãÖĞÒ³ÃèÊö·ûµÄÊı×é
 #ifdef CONFIG_CGROUP_MEM_RES_CTLR
 	struct page_cgroup *node_page_cgroup;
 #endif
 #endif
-	struct bootmem_data *bdata;
+	struct bootmem_data *bdata; //ÓÃÔÚÄÚºË³õÊ¼»¯½×¶Î
 #ifdef CONFIG_MEMORY_HOTPLUG
 	/*
 	 * Must be held any time you expect node_start_pfn, node_present_pages
@@ -662,14 +666,14 @@ typedef struct pglist_data {
 	 */
 	spinlock_t node_size_lock;
 #endif
-	unsigned long node_start_pfn;
-	unsigned long node_present_pages; /* total number of physical pages */
+	unsigned long node_start_pfn; //½ÚµãÖĞµÚÒ»¸öÒ³¿òµÄÏÂ±ê
+	unsigned long node_present_pages; /* total number of physical pages £¬²»°üÀ¨¶´*/
 	unsigned long node_spanned_pages; /* total size of physical page
 					     range, including holes */
-	int node_id;
-	wait_queue_head_t kswapd_wait;
-	struct task_struct *kswapd;
-	int kswapd_max_order;
+	int node_id; //½Úµã±êÊ¶·û
+	wait_queue_head_t kswapd_wait; //kswapdÒ³»»³öÊØ»¤½ø³ÌÊ¹ÓÃµÄµÈ´ı¶ÓÁĞ
+	struct task_struct *kswapd; //Ö¸ÕëÖ¸ÏòkswapdÄÚºËÏß³ÌµÄ½ø³ÌÃèÊö·û
+	int kswapd_max_order;  //kswapd½«Òª´´½¨µÄ¿ÕÏĞ¿é´óĞ¡È¡¶ÔÊıµÄÖµ
 } pg_data_t;
 
 #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
@@ -806,7 +810,7 @@ extern char numa_zonelist_order[];
 #ifndef CONFIG_NEED_MULTIPLE_NODES
 
 extern struct pglist_data contig_page_data;
-#define NODE_DATA(nid)		(&contig_page_data)
+#define NODE_DATA(nid)		(&contig_page_data)  // (UMA½á¹¹µÄ»úÆ÷)NODE_DATAÖ¸ÏòÈ«¾ÖµÄcontig_page_data,¶ÔÓÚNUMA½á¹¹µÄÏµÍ³£¬NODE_DATAÖ¸Ïònode_data
 #define NODE_MEM_MAP(nid)	mem_map
 
 #else /* CONFIG_NEED_MULTIPLE_NODES */

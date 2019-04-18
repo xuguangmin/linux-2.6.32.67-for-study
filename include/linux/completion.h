@@ -11,8 +11,8 @@
 #include <linux/wait.h>
 
 /*
- * å®Œæˆæ¥å£ï¼Œæ˜¯ä¸€ä¸ªåŒæ­¥æœºåˆ¶ï¼Œç”¨æ¥åœ¨å¤šä¸ªæ‰§è¡Œè·¯å¾„é—´ä½œåŒæ­¥ä½¿ç”¨ï¼Œ
- * å³åè°ƒå¤šä¸ªæ‰§è¡Œè·¯å¾„çš„æ‰§è¡Œé¡ºåº
+ * ²¹³äÔ­Óï£¬ÊÇÒ»¸öÍ¬²½»úÖÆ£¬ÓÃÀ´ÔÚ¶à¸öÖ´ĞĞÂ·¾¶¼ä×÷Í¬²½Ê¹ÓÃ£¬
+ * ¼´Ğ­µ÷¶à¸öÖ´ĞĞÂ·¾¶µÄÖ´ĞĞË³Ğò£¬ÀıÈç£º²Î¿¼page217
  */
 
 /**
@@ -27,14 +27,13 @@
  * and macros DECLARE_COMPLETION(), DECLARE_COMPLETION_ONSTACK(), and
  * INIT_COMPLETION().
  */
- /*å®Œæˆå€Ÿå£*/
+ /*²¹³äÔ­Óï*/
 struct completion {
-	unsigned int done;	/*è¡¨ç¤ºå½“å‰completionçš„çŠ¶æ€*/
-	wait_queue_head_t wait;	/* waitæ˜¯ä¸€ç­‰å¾…é˜Ÿåˆ—,ç”¨æ¥ç®¡ç†å½“å‰ç­‰å¾…åœ¨
-				 * è¯¥completionä¸Šçš„æ‰€æœ‰è¿›ç¨‹*/
+	unsigned int done;	/*±íÊ¾µ±Ç°completionµÄ×´Ì¬*/
+	wait_queue_head_t wait;/* waitÊÇÒ»¸öµÈ´ı¶ÓÁĞ,ÓÃÀ´¹ÜÀíµ±Ç°µÈ´ıÔÚ¸ÃcompletionÉÏµÄËùÓĞ½ø³Ì*/
 };
 
-/*ç­‰å¾…é˜Ÿåˆ—*/
+/*µÈ´ı¶ÓÁĞ*/
 #define COMPLETION_INITIALIZER(work) \
 	{ 0, __WAIT_QUEUE_HEAD_INITIALIZER((work).wait) }
 
@@ -49,7 +48,7 @@ struct completion {
  * for static declarations. You should use the _ONSTACK variant for automatic
  * variables.
  */
- /*é™æ€å®šä¹‰ä¸€ä¸ªstruct completionå˜é‡å¹¶åˆå§‹åŒ–*/
+ /*¾²Ì¬¶¨ÒåÒ»¸östruct completion±äÁ¿²¢³õÊ¼»¯*/
 #define DECLARE_COMPLETION(work) \
 	struct completion work = COMPLETION_INITIALIZER(work)
 
@@ -79,15 +78,15 @@ struct completion {
  * This inline function will initialize a dynamically created completion
  * structure.
  */
- /*åŠ¨æ€åˆå§‹åŒ–ä¸€ä¸ªcompletionå˜é‡*/
+ /*¶¯Ì¬³õÊ¼»¯Ò»¸öcompletion±äÁ¿*/
 static inline void init_completion(struct completion *x)
 {
 	x->done = 0;
 	init_waitqueue_head(&x->wait);
 }
 
-/* å®Œæˆæ¥å£completionå¯¹æ‰§è¡Œè·¯å¾„é—´çš„åŒæ­¥å¯ä»¥é€šè¿‡ç­‰å¾…è€…ä¸å®Œæˆè€…æ¨¡å‹æ¥è¡¨è¿°ï¼Œ
- * å¯¹äºç­‰å¾…è€…çš„è¡Œä¸º,å†…æ ¸å®šä¹‰äº†wait_for_completionå‡½æ•°*/
+/* completion¶ÔÖ´ĞĞÂ·¾¶¼äµÄÍ¬²½¿ÉÒÔÍ¨¹ıµÈ´ıÕßÓëÍê³ÉÕßÄ£ĞÍÀ´±íÊö£¬
+ * ¶ÔÓÚµÈ´ıÕßµÄĞĞÎª,ÄÚºË¶¨ÒåÁËwait_for_completionº¯Êı*/
 extern void wait_for_completion(struct completion *);
 extern int wait_for_completion_interruptible(struct completion *x);
 extern int wait_for_completion_killable(struct completion *x);
@@ -108,7 +107,7 @@ extern void complete_all(struct completion *);
  * This macro should be used to reinitialize a completion structure so it can
  * be reused. This is especially important after complete_all() is used.
  */
- /*é‡æ–°åˆå§‹åŒ–ä¸€ä¸ªä½¿ç”¨è¿‡çš„struct completionå˜é‡*/
+ /*ÖØĞÂ³õÊ¼»¯Ò»¸öÊ¹ÓÃ¹ıµÄstruct completion±äÁ¿*/
 #define INIT_COMPLETION(x)	((x).done = 0)
 
 

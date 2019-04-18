@@ -28,9 +28,10 @@ typedef union {
 
 /*
  * PGDIR_SHIFT determines what a top-level page table entry can map
+ * 激活PAE
  */
-#define PGDIR_SHIFT	30
-#define PTRS_PER_PGD	4
+#define PGDIR_SHIFT	30    //确定页全局目录项能映射的区域大小的对数
+#define PTRS_PER_PGD	4         //计算页全局目录中其中表项的个数
 
 /*
  * PMD_SHIFT determines the size of the area a middle-level

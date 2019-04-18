@@ -26,17 +26,17 @@
  * setting should be assumed to be "as already configured", which
  * may be as per machine or firmware initialisation.
  */
- /*ç³»ç»Ÿå®šä¹‰çš„ä¸­æ–­ä¿¡å·è§¦å‘ç±»å‹æ ‡å¿—,è®¾å®šä¸­æ–­è§¦å‘ä¿¡å·ç±»å‹çš„å‡½æ•°ä¸º__irq_set_trigger*/
+ /*ÏµÍ³¶¨ÒåµÄÖĞ¶ÏĞÅºÅ´¥·¢ÀàĞÍ±êÖ¾,Éè¶¨ÖĞ¶Ï´¥·¢ĞÅºÅÀàĞÍµÄº¯ÊıÎª__irq_set_trigger*/
 #define IRQF_TRIGGER_NONE	0x00000000
-/*ä¸Šå‡æ²¿è§¦å‘*/
+/*ÉÏÉıÑØ´¥·¢*/
 #define IRQF_TRIGGER_RISING	0x00000001
-/*ä¸‹é™æ²¿è§¦å‘*/
+/*ÏÂ½µÑØ´¥·¢*/
 #define IRQF_TRIGGER_FALLING	0x00000002
-/*é«˜ç”µç“¶è§¦å‘*/
+/*¸ßµçÆ¿´¥·¢*/
 #define IRQF_TRIGGER_HIGH	0x00000004
-/*ä½ç”µå¹³è§¦å‘*/
+/*µÍµçÆ½´¥·¢*/
 #define IRQF_TRIGGER_LOW	0x00000008
-/*ä¸­æ–­è§¦å‘ä¿¡å·æ©ç */
+/*ÖĞ¶Ï´¥·¢ĞÅºÅÑÚÂë*/
 #define IRQF_TRIGGER_MASK	(IRQF_TRIGGER_HIGH | IRQF_TRIGGER_LOW | \
 				 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)
 #define IRQF_TRIGGER_PROBE	0x00000010
@@ -92,7 +92,7 @@ enum {
 	IRQTF_AFFINITY,
 };
 
-/*irq_return_tå£°æ˜,è®¾å¤‡é©±åŠ¨ç¨‹åºè´Ÿè´£å®ç°è¯¥å‡½æ•°,ç„¶åè°ƒç”¨request_irqå‡½æ•°ï¼Œåè€…ä¼šæŠŠé©±åŠ¨ç¨‹åºå®ç°çš„ä¸­æ–­æœåŠ¡ä¾‹ç¨‹èµ‹å€¼ç»™handler*/
+/*irq_return_tÉùÃ÷,Éè±¸Çı¶¯³ÌĞò¸ºÔğÊµÏÖ¸Ãº¯Êı,È»ºóµ÷ÓÃrequest_irqº¯Êı£¬ºóÕß»á°ÑÇı¶¯³ÌĞòÊµÏÖµÄÖĞ¶Ï·şÎñÀı³Ì¸³Öµ¸øhandler*/
 typedef irqreturn_t (*irq_handler_t)(int, void *);
 
 /**
@@ -108,20 +108,20 @@ typedef irqreturn_t (*irq_handler_t)(int, void *);
  * @thread:	thread pointer for threaded interrupts
  * @thread_flags:	flags related to @thread
  */
- /*è®¾å¤‡é©±åŠ¨ç¨‹åºé€šè¿‡è¿™ä¸ªç»“æ„å°†å…¶ä¸­æ–­å¤„ç†å‡½æ•°æŒ‚åœ¨åœ¨actionä¸Š*/
+ /*Éè±¸Çı¶¯³ÌĞòÍ¨¹ıÕâ¸ö½á¹¹½«ÆäÖĞ¶Ï´¦Àíº¯Êı¹ÒÔÚÔÚactionÉÏ*/
 struct irqaction {
-	irq_handler_t handler;	/*æŒ‡å‘è®¾å¤‡ç‰¹å®šçš„ä¸­æ–­æœåŠ¡ä¾‹ç¨‹å‡½æ•°çš„æŒ‡é’ˆ*/
+	irq_handler_t handler;	/*Ö¸ÏòÉè±¸ÌØ¶¨µÄÖĞ¶Ï·şÎñÀı³Ìº¯ÊıµÄÖ¸Õë*/
 	unsigned long flags;
 	const char *name;
-	void *dev_id;	/* è°ƒç”¨handleræ—¶ä¼ ç»™ä»–çš„å‚æ•°ï¼Œåœ¨å¤šä¸ªè®¾å¤‡å…±äº«ä¸€ä¸ªirqçš„
-			 * æƒ…å†µä¸‹ç‰¹åˆ«é‡è¦ï¼Œè¿™ç§é“¾å¼çš„actionä¸­ï¼Œ
-			 * è®¾å¤‡é©±åŠ¨ç¨‹åºé€šè¿‡dev_idæ¥æ ‡è¯†è‡ªå·±*/
-	struct irqaction *next;	/* æŒ‡å‘ä¸‹ä¸€ä¸ªactionå¯¹è±¡,ç”¨äºå¤šä¸ªè®¾å¤‡å…±äº«ä¸€ä¸ªirq
-	 			 * çš„æƒ…å½¢ï¼Œæ­¤æ—¶actioné€šè¿‡nextæ„æˆä¸€ä¸ªé“¾è¡¨*/
+	void *dev_id;	/* µ÷ÓÃhandlerÊ±´«¸øËûµÄ²ÎÊı£¬ÔÚ¶à¸öÉè±¸¹²ÏíÒ»¸öirqµÄ
+			 * Çé¿öÏÂÌØ±ğÖØÒª£¬ÕâÖÖÁ´Ê½µÄactionÖĞ£¬
+			 * Éè±¸Çı¶¯³ÌĞòÍ¨¹ıdev_idÀ´±êÊ¶×Ô¼º*/
+	struct irqaction *next;	/* Ö¸ÏòÏÂÒ»¸öaction¶ÔÏó,ÓÃÓÚ¶à¸öÉè±¸¹²ÏíÒ»¸öirq
+	 			 * µÄÇéĞÎ£¬´ËÊ±actionÍ¨¹ınext¹¹³ÉÒ»¸öÁ´±í*/
 	int irq;
-	struct proc_dir_entry *dir; /*ä¸­æ–­å¤„ç†å‡½æ•°ä¸­ç”¨æ¥åˆ›å»ºåœ¨procæ–‡ä»¶ç³»ç»Ÿä¸­çš„ç›®å½•é¡¹*/
-	irq_handler_t thread_fn;  /* å½“é©±åŠ¨ç¨‹åºè°ƒç”¨request_threaded_irqå‡½æ•°
-				   * æ¥å®‰è£…ä¸­æ–­å¤„ç†ä¾‹ç¨‹æ—¶ï¼Œç”¨æ¥å®ç°irq_threadæœºåˆ¶*/
+	struct proc_dir_entry *dir; /*ÖĞ¶Ï´¦Àíº¯ÊıÖĞÓÃÀ´´´½¨ÔÚprocÎÄ¼şÏµÍ³ÖĞµÄÄ¿Â¼Ïî*/
+	irq_handler_t thread_fn;  /* µ±Çı¶¯³ÌĞòµ÷ÓÃrequest_threaded_irqº¯Êı
+				   * À´°²×°ÖĞ¶Ï´¦ÀíÀı³ÌÊ±£¬ÓÃÀ´ÊµÏÖirq_thread»úÖÆ*/
 	struct task_struct *thread;
 	unsigned long thread_flags;
 };
@@ -134,12 +134,12 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		     irq_handler_t thread_fn,
 		     unsigned long flags, const char *name, void *dev);
 
-/* æŠŠé©±åŠ¨ç¨‹åºå®ç°çš„ä¸­æ–­æœåŠ¡ä¾‹ç¨‹èµ‹å€¼ç»™handler,é©±åŠ¨ç¨‹åºä¸­å®‰è£…ä¸­æ–­æœåŠ¡ä¾‹ç¨‹
- * @irq:å½“å‰è¦å®‰è£…çš„ä¸­æ–­å¤„ç†ä¾‹ç¨‹å¯¹åº”çš„ä¸­æ–­å·
- * @handler:ä¸­æ–­å¤„ç†ä¾‹ç¨‹ISR,ç”±è®¾å¤‡é©±åŠ¨ç¨‹åºè´Ÿè´£å®ç°
- * @flags:æ˜¯æ ‡å¿—å˜é‡,å¯å½±å“å†…æ ¸åœ¨å®‰è£…ISRæ—¶çš„ä¸€äº›è¡Œä¸ºæ¨¡å¼,ä¿¡å·è§¦å‘ç±»å‹
- * @name:å½“å‰å®‰è£…ä¸­æ–­ISRçš„è®¾å¤‡åç§°ï¼Œå†…æ ¸åœ¨procæ–‡ä»¶ç³»ç»Ÿç”Ÿæˆnameçš„ä¸€ä¸ªå…¥å£ç‚¹
- * @dev:æ˜¯ä¸ªä¼ é€’åˆ°ä¸­æ–­å¤„ç†ä¾‹ç¨‹çš„æŒ‡é’ˆï¼Œåœ¨ä¸­æ–­å…±äº«çš„æƒ…å†µä¸‹ï¼Œå°†åœ¨free_irqæ—¶ç”¨åˆ°ï¼Œä»¥     åŒºåˆ†å½“å‰æ˜¯è¦é‡Šæ”¾çš„å“ªä¸€ä¸ªstruct irqactionå¯¹è±¡*/
+/* °ÑÇı¶¯³ÌĞòÊµÏÖµÄÖĞ¶Ï·şÎñÀı³Ì¸³Öµ¸øhandler,Çı¶¯³ÌĞòÖĞ°²×°ÖĞ¶Ï·şÎñÀı³Ì
+ * @irq:µ±Ç°Òª°²×°µÄÖĞ¶Ï´¦ÀíÀı³Ì¶ÔÓ¦µÄÖĞ¶ÏºÅ
+ * @handler:ÖĞ¶Ï´¦ÀíÀı³ÌISR,ÓÉÉè±¸Çı¶¯³ÌĞò¸ºÔğÊµÏÖ
+ * @flags:ÊÇ±êÖ¾±äÁ¿,¿ÉÓ°ÏìÄÚºËÔÚ°²×°ISRÊ±µÄÒ»Ğ©ĞĞÎªÄ£Ê½,ĞÅºÅ´¥·¢ÀàĞÍ
+ * @name:µ±Ç°°²×°ÖĞ¶ÏISRµÄÉè±¸Ãû³Æ£¬ÄÚºËÔÚprocÎÄ¼şÏµÍ³Éú³ÉnameµÄÒ»¸öÈë¿Úµã
+ * @dev:ÊÇ¸ö´«µİµ½ÖĞ¶Ï´¦ÀíÀı³ÌµÄÖ¸Õë£¬ÔÚÖĞ¶Ï¹²ÏíµÄÇé¿öÏÂ£¬½«ÔÚfree_irqÊ±ÓÃµ½£¬ÒÔ     Çø·Öµ±Ç°ÊÇÒªÊÍ·ÅµÄÄÄÒ»¸östruct irqaction¶ÔÏó*/
 static inline int __must_check
 request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	    const char *name, void *dev)
@@ -171,7 +171,7 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 static inline void exit_irq_thread(void) { }
 #endif
 
-/*é€šè¿‡request_irqå®‰è£…çš„ä¸­æ–­å¤„ç†å‡½æ•°ï¼Œå¦‚æœä¸å†éœ€è¦åº”è¯¥è°ƒç”¨free_irqäºˆä»¥é‡Šæ”¾*/
+/*Í¨¹ırequest_irq°²×°µÄÖĞ¶Ï´¦Àíº¯Êı£¬Èç¹û²»ÔÙĞèÒªÓ¦¸Ãµ÷ÓÃfree_irqÓèÒÔÊÍ·Å*/
 extern void free_irq(unsigned int, void *);
 
 struct device;
@@ -368,18 +368,18 @@ static inline int disable_irq_wake(unsigned int irq)
    tasklets are more than enough. F.e. all serial device BHs et
    al. should be converted to tasklets, not to softirqs.
  */
-/*softirqçš„ç±»å‹,è½¯ä»¶ä¸­æ–­çš„ç±»å‹*/
+/*softirqµÄÀàĞÍ,Èí¼şÖĞ¶ÏµÄÀàĞÍ*/
 enum
 {
-	HI_SOFTIRQ=0,	/*ç”¨æ¥å®ç°tasklet,ä¼˜å…ˆçº§é«˜äºTASKLET_SOFTIRQ*/
-	TIMER_SOFTIRQ,	/*ç”¨äºå®šæ—¶å™¨*/
-	NET_TX_SOFTIRQ,	/*ç½‘ç»œè®¾å¤‡çš„å‘é€æ“ä½œ*/
-	NET_RX_SOFTIRQ,	/*ç½‘ç»œè®¾å¤‡çš„æ¥æ”¶æ“ä½œ*/
-	BLOCK_SOFTIRQ,	/*å—è®¾å¤‡çš„æ“ä½œ*/
-	BLOCK_IOPOLL_SOFTIRQ,	/*å—è®¾å¤‡çš„æ“ä½œ*/
-	TASKLET_SOFTIRQ,	/*ç”¨æ¥å®ç°tasklet*/
-	SCHED_SOFTIRQ,		/*ç”¨äºè°ƒåº¦å™¨*/
-	HRTIMER_SOFTIRQ,	/*ç”¨äºå®šæ—¶å™¨*/
+	HI_SOFTIRQ=0,	/*ÓÃÀ´ÊµÏÖtasklet,ÓÅÏÈ¼¶¸ßÓÚTASKLET_SOFTIRQ*/
+	TIMER_SOFTIRQ,	/*ÓÃÓÚ¶¨Ê±Æ÷*/
+	NET_TX_SOFTIRQ,	/*ÍøÂçÉè±¸µÄ·¢ËÍ²Ù×÷*/
+	NET_RX_SOFTIRQ,	/*ÍøÂçÉè±¸µÄ½ÓÊÕ²Ù×÷*/
+	BLOCK_SOFTIRQ,	/*¿éÉè±¸µÄ²Ù×÷*/
+	BLOCK_IOPOLL_SOFTIRQ,	/*¿éÉè±¸µÄ²Ù×÷*/
+	TASKLET_SOFTIRQ,	/*ÓÃÀ´ÊµÏÖtasklet*/
+	SCHED_SOFTIRQ,		/*ÓÃÓÚµ÷¶ÈÆ÷*/
+	HRTIMER_SOFTIRQ,	/*ÓÃÓÚ¶¨Ê±Æ÷*/
 	RCU_SOFTIRQ,	/* Preferable RCU should always be the last softirq */
 
 	NR_SOFTIRQS
@@ -394,7 +394,7 @@ extern char *softirq_to_name[NR_SOFTIRQS];
  * asm/hardirq.h to get better cache usage.  KAO
  */
 
-/*è½¯ä¸­æ–­å¤„ç†å‡½æ•°åŸå½¢*/
+/*ÈíÖĞ¶Ï´¦Àíº¯ÊıÔ­ĞÎ*/
 struct softirq_action
 {
 	void	(*action)(struct softirq_action *);
@@ -448,37 +448,37 @@ extern void __send_remote_softirq(struct call_single_data *cp, int cpu,
      wrt another tasklets. If client needs some intertask synchronization,
      he makes it with spinlocks.
  */
- /*è¡¨ç¤ºtaskletå¯¹è±¡çš„æ•°æ®ç»“æ„
-  * é©±åŠ¨ç¨‹åºä¸ºäº†å®ç°åŸºäºtaskletæœºåˆ¶çš„å»¶è¿Ÿæ“ä½œ,é¦–å…ˆéœ€è¦å£°æ˜ä¸€ä¸ªtaskletå¯¹è±¡*/
+ /*±íÊ¾tasklet¶ÔÏóµÄÊı¾İ½á¹¹;taskletÃèÊö·û
+  * Çı¶¯³ÌĞòÎªÁËÊµÏÖ»ùÓÚtasklet»úÖÆµÄÑÓ³Ù²Ù×÷,Ê×ÏÈĞèÒªÉùÃ÷Ò»¸ötasklet¶ÔÏó*/
 struct tasklet_struct
 {
-	struct tasklet_struct *next;	/*å°†ç³»ç»Ÿä¸­çš„taskletå¯¹è±¡æ„å»ºæˆé“¾è¡¨*/
-	unsigned long state; /*è®°å½•æ¯ä¸ªtaskletåœ¨ç³»ç»Ÿä¸­çš„çŠ¶æ€,å…¶å€¼æ—¶æšä¸¾å‹å˜é‡
-				TASKLET_STATE_SCHEDå’ŒTASKLET_STATE_RUNä¸¤è€…ä¹‹ä¸€*/
+	struct tasklet_struct *next;	/*½«ÏµÍ³ÖĞµÄtasklet¶ÔÏó¹¹½¨³ÉÁ´±í*/
+	unsigned long state; /*¼ÇÂ¼Ã¿¸ötaskletÔÚÏµÍ³ÖĞµÄ×´Ì¬,ÆäÖµÊ±Ã¶¾ÙĞÍ±äÁ¿
+				TASKLET_STATE_SCHEDºÍTASKLET_STATE_RUNÁ½ÕßÖ®Ò»*/
 
-	atomic_t count;	/*ç”¨æ¥å®ç°taskletçš„disableå’Œenableæ“ä½œ,count.counter=0
-			è¡¨ç¤ºå½“å‰çš„taskletæ˜¯enabledçš„,å¯ä»¥è¢«è°ƒåº¦æ‰§è¡Œ,å¦åˆ™ä¾¿æ˜¯
-			disabledçš„tasklet,ä¸å¯è¢«æ‰§è¡Œ*/
-	void (*func)(unsigned long);	/*è¯¥taskletä¸Šçš„æ‰§è¡Œå‡½æ•°æˆ–è€…å»¶è¿Ÿå‡½æ•°,å½“è¯¥taskletåœ¨SOFTIRQéƒ¨åˆ†è¢«è°ƒåº¦æ‰§è¡Œæ—¶,è¯¥å‡½æ•°æŒ‡é’ˆæŒ‡å‘çš„å‡½æ•°è¢«è°ƒç”¨,ç”¨æ¥å®Œæˆé©±åŠ¨ç¨‹åºä¸­å®é™…çš„å»¶è¿Ÿæ“ä½œä»»åŠ¡*/
-	unsigned long data;	/*ä½œä¸ºå‚æ•°ä¼ ç»™funcå‡½æ•°*/
+	atomic_t count;	/*ÓÃÀ´ÊµÏÖtaskletµÄdisableºÍenable²Ù×÷,count.counter=0
+			±íÊ¾µ±Ç°µÄtaskletÊÇenabledµÄ,¿ÉÒÔ±»µ÷¶ÈÖ´ĞĞ,·ñÔò±ãÊÇ
+			disabledµÄtasklet,²»¿É±»Ö´ĞĞ*/
+	void (*func)(unsigned long);	/*¸ÃtaskletÉÏµÄÖ´ĞĞº¯Êı»òÕßÑÓ³Ùº¯Êı,µ±¸ÃtaskletÔÚSOFTIRQ²¿·Ö±»µ÷¶ÈÖ´ĞĞÊ±,¸Ãº¯ÊıÖ¸ÕëÖ¸ÏòµÄº¯Êı±»µ÷ÓÃ,ÓÃÀ´Íê³ÉÇı¶¯³ÌĞòÖĞÊµ¼ÊµÄÑÓ³Ù²Ù×÷ÈÎÎñ*/
+	unsigned long data;	/*×÷Îª²ÎÊı´«¸øfuncº¯Êı*/
 };
 
-/*å£°æ˜å¹¶åˆå§‹åŒ–ä¸€ä¸ªtaskletå¯¹è±¡*/
+/*ÉùÃ÷²¢³õÊ¼»¯Ò»¸ötasklet¶ÔÏó*/
 #define DECLARE_TASKLET(name, func, data) \
 struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(0), func, data }
 
-/*ç”¨æ¥å£°æ˜ä¸€ä¸ªå¤„äºdisabledçŠ¶æ€çš„taskletå¯¹è±¡*/
+/*ÓÃÀ´ÉùÃ÷Ò»¸ö´¦ÓÚdisabled×´Ì¬µÄtasklet¶ÔÏó*/
 #define DECLARE_TASKLET_DISABLED(name, func, data) \
 struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(1), func, data }
 
 
 enum
 {
-	/*TASKLET_STATE_SCHEDè¡¨ç¤ºå½“å‰taskletå·²ç»è¢«æäº¤*/
+	/*TASKLET_STATE_SCHED±íÊ¾µ±Ç°taskletÒÑ¾­±»Ìá½»*/
 	TASKLET_STATE_SCHED,	/* Tasklet is scheduled for execution */
 
-	/* TASKLET_STATE_RUNåªç”¨åœ¨å¯¹ç§°å¤šå¤„ç†å™¨ç³»ç»ŸSMPä¸­,
-	 * è¡¨ç¤ºå½“å‰taskletæ­£åœ¨æ‰§è¡Œ*/
+	/* TASKLET_STATE_RUNÖ»ÓÃÔÚ¶Ô³Æ¶à´¦ÀíÆ÷ÏµÍ³SMPÖĞ,
+	 * ±íÊ¾µ±Ç°taskletÕıÔÚÖ´ĞĞ*/
 	TASKLET_STATE_RUN	/* Tasklet is running (SMP only) */
 };
 
@@ -506,8 +506,8 @@ static inline void tasklet_unlock_wait(struct tasklet_struct *t)
 
 extern void __tasklet_schedule(struct tasklet_struct *t);
 
-/* é©±åŠ¨ç¨‹åºé¡¹ç³»ç»Ÿæäº¤è¿™ä¸ªtasklet,å³å°†tastletå¯¹è±¡åŠ å…¥åˆ°tasklet_vecç®¡ç†çš„é“¾è¡¨ä¸­
- * å¯¹äºHI_SOFTIRQ,æäº¤taskletå¯¹è±¡çš„å‡½æ•°ä¸ºtasklet_hi_schedule*/
+/* Çı¶¯³ÌĞòÏîÏµÍ³Ìá½»Õâ¸ötasklet,¼´½«tastlet¶ÔÏó¼ÓÈëµ½tasklet_vec¹ÜÀíµÄÁ´±íÖĞ
+ * ¶ÔÓÚHI_SOFTIRQ,Ìá½»tasklet¶ÔÏóµÄº¯ÊıÎªtasklet_hi_schedule*/
 static inline void tasklet_schedule(struct tasklet_struct *t)
 {
 	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
@@ -516,7 +516,7 @@ static inline void tasklet_schedule(struct tasklet_struct *t)
 
 extern void __tasklet_hi_schedule(struct tasklet_struct *t);
 
-/* é©±åŠ¨ç¨‹åºé¡¹ç³»ç»Ÿæäº¤è¿™ä¸ªtasklet,å³å°†tastletå¯¹è±¡åŠ å…¥åˆ°tasklet_hi_vecç®¡ç†çš„é“¾è¡¨ä¸­*/
+/* Çı¶¯³ÌĞòÏîÏµÍ³Ìá½»Õâ¸ötasklet,¼´½«tastlet¶ÔÏó¼ÓÈëµ½tasklet_hi_vec¹ÜÀíµÄÁ´±íÖĞ*/
 static inline void tasklet_hi_schedule(struct tasklet_struct *t)
 {
 	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
@@ -538,14 +538,14 @@ static inline void tasklet_hi_schedule_first(struct tasklet_struct *t)
 }
 
 
-/*disableä¸€ä¸ªtasklet,ä½¿ä¹‹æ— æ³•è¢«SOFTIRQè°ƒåº¦è¿è¡Œ*/
+/*disableÒ»¸ötasklet,Ê¹Ö®ÎŞ·¨±»SOFTIRQµ÷¶ÈÔËĞĞ*/
 static inline void tasklet_disable_nosync(struct tasklet_struct *t)
 {
 	atomic_inc(&t->count);
 	smp_mb__after_atomic_inc();
 }
 
-/*disableä¸€ä¸ªtasklet,ä½¿ä¹‹æ— æ³•è¢«SOFTIRQè°ƒåº¦è¿è¡Œ*/
+/*disableÒ»¸ötasklet,Ê¹Ö®ÎŞ·¨±»SOFTIRQµ÷¶ÈÔËĞĞ*/
 static inline void tasklet_disable(struct tasklet_struct *t)
 {
 	tasklet_disable_nosync(t);
@@ -567,7 +567,7 @@ static inline void tasklet_hi_enable(struct tasklet_struct *t)
 
 extern void tasklet_kill(struct tasklet_struct *t);
 extern void tasklet_kill_immediate(struct tasklet_struct *t, unsigned int cpu);
-/*åŠ¨æ€åˆå§‹åŒ–taskletå¯¹è±¡*/
+/*¶¯Ì¬³õÊ¼»¯tasklet¶ÔÏó*/
 extern void tasklet_init(struct tasklet_struct *t,
 			 void (*func)(unsigned long), unsigned long data);
 

@@ -17,7 +17,7 @@
 
 		.text
 
-#define PAGE_SHIFT 12
+#define PAGE_SHIFT 12    //指定线性地址offset字段位数，由PAGE_SIZE和PAGE_MASK使用
 
 /* Prototype: int __copy_to_user(void *to, const char *from, size_t n)
  * Purpose  : copy a block to user memory from kernel memory

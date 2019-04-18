@@ -20,7 +20,7 @@ unsigned long __initdata e820_table_start;
 unsigned long __meminitdata e820_table_end;
 unsigned long __meminitdata e820_table_top;
 
-int after_bootmem;
+int after_bootmem; //内存管理器bootmem分配器初始化标志
 
 int direct_gbpages
 #ifdef CONFIG_DIRECT_GBPAGES

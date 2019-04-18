@@ -188,7 +188,7 @@ struct swap_list_t {
 #define vm_swap_full() (nr_swap_pages*2 < total_swap_pages)
 
 /* linux/mm/page_alloc.c */
-extern unsigned long totalram_pages;
+extern unsigned long totalram_pages;  //可用页框的总数量
 extern unsigned long totalreserve_pages;
 extern unsigned int nr_free_buffer_pages(void);
 extern unsigned int nr_free_pagecache_pages(void);
